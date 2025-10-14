@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import I18nExample from '@components/I18nExample';
 import { Application, extend, useApplication, useTick } from '@pixi/react';
 import { Assets, Container, Sprite, Texture } from 'pixi.js';
 
@@ -46,10 +47,13 @@ const BunnySprite = () => {
 
 export default function App() {
   return (
-    // We'll wrap our components with an <Application> component to provide
-    // the Pixi.js Application context
-    <Application background={'#1099bb'} resizeTo={window}>
-      <BunnySprite />
-    </Application>
+    <>
+      <I18nExample />
+      {/* We'll wrap our components with an <Application> component to provide
+          the Pixi.js Application context */}
+      <Application background={'#1099bb'} resizeTo={window}>
+        <BunnySprite />
+      </Application>
+    </>
   );
 }
