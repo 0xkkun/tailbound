@@ -38,6 +38,7 @@
 
 - [game-concept.md](concept/game-concept.md) - 최초 게임 컨셉
 - [initial-design.md](concept/initial-design.md) - 초기 디자인 회의록
+- [affix-design.md](concept/affix-design.md) - 접두사/접미사 시스템 디자인
 
 > **참고**: 이 폴더의 문서는 참고용이며, 최종 결정 사항은 `CORE_DESIGN.md`를 확인하세요.
 
@@ -128,7 +129,7 @@
 
 | 문서 | 설명 | 상태 |
 |------|------|------|
-| architecture.md | 코드 아키텍처 | 📝 예정 |
+| [architecture.md](technical/architecture.md) | 코드 아키텍처 | ✅ 완료 |
 | pixijs-setup.md | PixiJS 초기 설정 | 📝 예정 |
 | build-deploy.md | 빌드 및 배포 가이드 | 📝 예정 |
 | optimization.md | 성능 최적화 가이드 | 📝 예정 |
@@ -151,8 +152,8 @@
 ### 개발자 온보딩
 1. [CORE_DESIGN.md](CORE_DESIGN.md) 읽기 (필수)
 2. [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) 읽기
-3. `technical/architecture.md` 읽기 (작성 후)
-4. `workflow/git-workflow.md` 읽기 (작성 후)
+3. [technical/architecture.md](technical/architecture.md) 읽기 ✅
+4. `workflow/git-workflow.md` 읽기 (작성 예정)
 
 ### 새로운 문서 작성하기
 1. [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md)에서 적절한 폴더 확인
@@ -236,12 +237,14 @@
 
 | 날짜 | 내용 | 작성자 |
 |------|------|--------|
+| 2025-10-14 | technical/architecture.md 작성 완료 | 개발팀 |
+| 2025-10-14 | README 업데이트 (architecture.md 링크 추가) | 개발팀 |
 | 2025-10-13 | 초기 문서 구조 생성 | 개발팀 |
 | 2025-10-13 | CORE_DESIGN.md 작성 | 개발팀 |
 | 2025-10-13 | FOLDER_STRUCTURE.md 작성 | 개발팀 |
 
 ---
 
-**문서 버전**: 1.0
-**최종 수정일**: 2025-10-13
+**문서 버전**: 1.1
+**최종 수정일**: 2025-10-14
 **작성자**: 개발팀
