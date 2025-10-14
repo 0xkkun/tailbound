@@ -1,0 +1,13 @@
+{
+  "app": {
+    "title": "설화",
+    "welcome": "환영합니다"
+  },
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다",
+    "retry": "다시 시도",
+    "cancel": "취소",
+    "confirm": "확인"
+  }
+}
