@@ -1,0 +1,27 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+build
+*.tsbuildinfo
+
+# Coverage
+coverage
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Editor directories
+.vscode
+.idea
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
