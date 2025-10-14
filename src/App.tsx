@@ -1,6 +1,6 @@
-import { Application, extend, useApplication, useTick } from "@pixi/react";
-import { Assets, Container, Sprite, Texture } from "pixi.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
+import { Application, extend, useApplication, useTick } from '@pixi/react';
+import { Assets, Container, Sprite, Texture } from 'pixi.js';
 
 // extend tells @pixi/react what Pixi.js components are available
 extend({
@@ -18,7 +18,7 @@ const BunnySprite = () => {
   // Preload the sprite if it hasn't been loaded yet
   useEffect(() => {
     if (texture === Texture.EMPTY) {
-      Assets.load("/assets/bunny.png").then((result) => {
+      Assets.load('/assets/bunny.png').then((result) => {
         setTexture(result);
       });
     }
@@ -48,7 +48,7 @@ export default function App() {
   return (
     // We'll wrap our components with an <Application> component to provide
     // the Pixi.js Application context
-    <Application background={"#1099bb"} resizeTo={window}>
+    <Application background={'#1099bb'} resizeTo={window}>
       <BunnySprite />
     </Application>
   );
