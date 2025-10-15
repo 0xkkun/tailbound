@@ -124,8 +124,17 @@
 
 ---
 
-### 7. 🛠️ 기술 문서 (technical/)
-개발 관련 기술 문서
+### 7. 🛠️ 개발 가이드 (dev/)
+개발 환경 및 도구 사용 가이드
+
+| 문서 | 설명 | 상태 |
+|------|------|------|
+| [setup.md](dev/setup.md) | 개발 환경 설정 (Path Aliases 포함) | ✅ 완료 |
+| [test.md](dev/test.md) | 테스트 가이드 (Vitest + PixiJS) | ✅ 완료 |
+| [i18n.md](dev/i18n.md) | 국제화 가이드 (react-i18next) | ✅ 완료 |
+
+### 8. 🏗️ 기술 문서 (technical/)
+아키텍처 및 기술 스택 문서
 
 | 문서 | 설명 | 상태 |
 |------|------|------|
@@ -136,7 +145,7 @@
 
 ---
 
-### 8. 🔄 작업 프로세스 (workflow/)
+### 9. 🔄 작업 프로세스 (workflow/)
 팀 작업 프로세스 및 컨벤션
 
 | 문서 | 설명 | 상태 |
@@ -152,8 +161,11 @@
 ### 개발자 온보딩
 1. [CORE_DESIGN.md](CORE_DESIGN.md) 읽기 (필수)
 2. [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) 읽기
-3. [technical/architecture.md](technical/architecture.md) 읽기 ✅
-4. `workflow/git-workflow.md` 읽기 (작성 예정)
+3. [dev/setup.md](dev/setup.md) 읽기 - 개발 환경 설정 ✅
+4. [technical/architecture.md](technical/architecture.md) 읽기 - 코드 아키텍처 ✅
+5. [dev/test.md](dev/test.md) 읽기 - 테스트 환경 이해 ✅
+6. [dev/i18n.md](dev/i18n.md) 읽기 - 국제화 사용법 ✅
+7. `workflow/git-workflow.md` 읽기 (작성 예정)
 
 ### 새로운 문서 작성하기
 1. [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md)에서 적절한 폴더 확인
@@ -175,7 +187,10 @@
 - [x] 초기 컨셉 문서 작성
 - [x] 핵심 디자인 문서 작성
 - [x] 문서 폴더 구조 생성
-- [ ] 프로젝트 초기 설정
+- [x] 프로젝트 초기 설정 (React + PixiJS + Vite)
+- [x] 테스트 환경 구축 (Vitest + Canvas Mock)
+- [x] 국제화 설정 (react-i18next, 한국어 지원)
+- [x] Path Alias 설정 (@/, @components, @i18n, @test)
 - [ ] 기본 플레이어 이동
 - [ ] 자동 공격 무기 1-2개
 - [ ] 기본 적 AI
@@ -237,6 +252,10 @@
 
 | 날짜 | 내용 | 작성자 |
 |------|------|--------|
+| 2025-10-15 | dev/test.md, dev/i18n.md 작성 완료 | 개발팀 |
+| 2025-10-15 | 테스트 환경 구축 (Vitest + Canvas Mock) | 개발팀 |
+| 2025-10-15 | 국제화 설정 (react-i18next, 한국어) | 개발팀 |
+| 2025-10-15 | Path Alias 설정 완료 | 개발팀 |
 | 2025-10-14 | technical/architecture.md 작성 완료 | 개발팀 |
 | 2025-10-14 | README 업데이트 (architecture.md 링크 추가) | 개발팀 |
 | 2025-10-13 | 초기 문서 구조 생성 | 개발팀 |
@@ -245,6 +264,6 @@
 
 ---
 
-**문서 버전**: 1.1
-**최종 수정일**: 2025-10-14
+**문서 버전**: 1.2
+**최종 수정일**: 2025-10-15
 **작성자**: 개발팀
