@@ -124,8 +124,17 @@ export class LevelSystem {
     // 레벨업 선택지 생성
     const choices = this.generateLevelUpChoices();
 
+    // TODO: 레벨업 UI 구현 전까지는 일시정지 비활성화
+    // 레벨업 선택지를 콘솔에 출력
+    console.log('=== 레벨업 선택지 ===');
+    choices.forEach((choice, index) => {
+      console.log(`${index + 1}. [${choice.rarity}] ${choice.name} - ${choice.description}`);
+    });
+    console.log('====================');
+
     // 게임 일시정지 (선택 UI 표시 중)
-    this.pause();
+    // TODO: 레벨업 UI 구현 시 활성화
+    // this.pause();
 
     // 레벨업 콜백 호출
     this.onLevelUp?.(this.level, choices);

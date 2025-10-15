@@ -160,31 +160,29 @@ export class ExperienceGem extends Container {
     const dy = player.y - this.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // 자동 획득 범위 체크 (50픽셀)
-    if (distance < XP_BALANCE.pickupRadius) {
-      // 플레이어에게 빨려들어감 (자석 효과)
+    // 자동 획득 범위 체크 (50픽셀) - 한번 수집 시작하면 계속 추적
+    if (!this.isBeingCollected && distance < XP_BALANCE.pickupRadius) {
       this.isBeingCollected = true;
+    }
+
+    // 수집 중이면 플레이어에게 빨려들어감
+    if (this.isBeingCollected) {
+      // 자석 속도 점진적 증가
       this.magnetSpeed = Math.min(this.magnetSpeed + deltaTime * 1000, XP_BALANCE.gemSpeed);
 
       const moveDistance = this.magnetSpeed * deltaTime;
-      const ratio = moveDistance / distance;
+      const ratio = Math.min(moveDistance / distance, 1); // ratio가 1을 넘지 않도록
 
       this.x += dx * ratio;
       this.y += dy * ratio;
 
-      // 충분히 가까워지면 획득 (10픽셀)
-      if (distance < 10) {
+      // 수집 중일 때 시각 효과
+      this.scale.set(0.8 + Math.sin(this.animTime * 10) * 0.2);
+
+      // 충분히 가까워지면 획득 (30픽셀로 증가)
+      if (distance < 30) {
         this.collect(player);
       }
-    } else {
-      // 범위 밖이면 자석 효과 해제
-      this.magnetSpeed = 0;
-      this.isBeingCollected = false;
-    }
-
-    // 수집 중일 때 효과
-    if (this.isBeingCollected) {
-      this.scale.set(0.8 + Math.sin(this.animTime * 10) * 0.2);
     }
   }
 
