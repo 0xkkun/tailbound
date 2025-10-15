@@ -403,23 +403,96 @@ level-design/
 
 ---
 
+## 구현 상태
+
+### 소스 코드 구조 (src/)
+
+```
+src/
+├── config/ ✅                  # 게임 설정
+│   ├── game.config.ts ✅      # 게임 시스템 설정
+│   └── balance.config.ts ✅   # 밸런스 수치
+│
+├── game/ ✅
+│   ├── data/ ✅               # 게임 콘텐츠 데이터
+│   │   ├── weapons.ts ✅      # 무기 데이터베이스
+│   │   └── enemies.ts ✅      # 적 데이터베이스
+│   │
+│   ├── entities/ ✅           # 게임 엔티티
+│   │   ├── Player.ts ✅       # 플레이어
+│   │   ├── Enemy.ts ✅        # 적 (티어 지원)
+│   │   └── Projectile.ts ✅   # 투사체
+│   │
+│   ├── weapons/ ⏳            # 무기 구현
+│   │   ├── Weapon.ts ✅       # 무기 베이스 클래스
+│   │   ├── Talisman.ts ✅     # 부적 (구현 완료)
+│   │   ├── DokkaebiFireWeapon.ts ⏳  # 도깨비불 (데이터만)
+│   │   ├── MoktakSoundWeapon.ts ⏳   # 목탁 소리 (데이터만)
+│   │   └── JakduBladeWeapon.ts ⏳    # 작두날 (데이터만)
+│   │
+│   ├── scenes/ ✅             # 게임 씬
+│   │   └── GameScene.ts ✅    # 메인 게임 씬
+│   │
+│   └── utils/ ✅              # 유틸리티
+│       └── collision.ts ✅    # 충돌 감지
+│
+├── systems/ ⏳                # 게임 시스템
+│   ├── CombatSystem.ts ✅     # 전투 시스템
+│   ├── SpawnSystem.ts ✅      # 스폰 시스템
+│   ├── LevelSystem.ts ⏳      # 레벨 시스템 (미구현)
+│   ├── StatSystem.ts ⏳       # 스탯 시스템 (미구현)
+│   ├── EquipmentSystem.ts ⏳  # 장비 시스템 (미구현)
+│   └── PickupSystem.ts ⏳     # 픽업 시스템 (미구현)
+│
+├── components/ ✅             # React 컴포넌트
+│   └── GameContainer.tsx ✅   # 게임 컨테이너
+│
+├── hooks/ ✅                  # React 훅
+│   └── useGameState.ts ✅     # 게임 상태 관리
+│
+└── types/ ⏳                  # 타입 정의
+    ├── game.types.ts ✅       # 게임 타입
+    ├── stat.types.ts ⏳       # 스탯 타입 (미구현)
+    └── equipment.types.ts ⏳  # 장비 타입 (미구현)
+```
+
+**범례**:
+- ✅ 구현 완료
+- ⏳ 구현 예정 (데이터/구조만 준비됨)
+- ❌ 미구현
+
+### 현재 구현 수준
+
+**데이터 레이어**: 7.5/10 ✅
+- config/ 완성
+- game/data/ 완성
+- 4개 무기 전부 데이터 정의
+- 적 티어 시스템 완성
+
+**게임플레이**: 3.5/10 ⏳
+- 기본 전투 완성
+- 1개 무기 구현 (부적)
+- 레벨/스탯/장비 시스템 미구현
+
+---
+
 ## 문서 작성 우선순위
 
-### Phase 1: 프로토타입 단계
+### Phase 1: 프로토타입 단계 ✅
 
 1. ✅ `CORE_DESIGN.md` (완료)
 2. ✅ `FOLDER_STRUCTURE.md` (완료)
-3. ✅ `README.md` (다음 작업)
-4. `technical/architecture.md` (코드 작성 전)
-5. `design/combat-system.md` (첫 기능 구현)
+3. ✅ `technical/architecture.md` (완료)
+4. ✅ `implementation/DATA_LAYER.md` (완료)
+5. ✅ `implementation/GETTING_STARTED.md` (완료)
 
-### Phase 2: 핵심 게임플레이 단계
+### Phase 2: 핵심 게임플레이 단계 ⏳
 
-6. `design/stat-system.md`
+6. `design/stat-system.md` (스탯 시스템 구현 전)
 7. `design/equipment-system.md`
 8. `design/skill-system.md`
-9. `balance/weapons.md`
-10. `balance/enemies.md`
+9. ✅ `balance/weapons.md` (balance.config.ts로 대체됨)
+10. ✅ `balance/enemies.md` (balance.config.ts로 대체됨)
 
 ### Phase 3: 콘텐츠 확장 단계
 
