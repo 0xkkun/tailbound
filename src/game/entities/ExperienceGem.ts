@@ -167,8 +167,8 @@ export class ExperienceGem extends Container {
 
     // 수집 중이면 플레이어에게 빨려들어감
     if (this.isBeingCollected) {
-      // 자석 속도 점진적 증가
-      this.magnetSpeed = Math.min(this.magnetSpeed + deltaTime * 1000, XP_BALANCE.gemSpeed);
+      // 자석 속도 빠르게 증가 (1000 -> 2000으로 증가)
+      this.magnetSpeed = Math.min(this.magnetSpeed + deltaTime * 2000, XP_BALANCE.gemSpeed);
 
       const moveDistance = this.magnetSpeed * deltaTime;
       const ratio = Math.min(moveDistance / distance, 1); // ratio가 1을 넘지 않도록
@@ -179,8 +179,8 @@ export class ExperienceGem extends Container {
       // 수집 중일 때 시각 효과
       this.scale.set(0.8 + Math.sin(this.animTime * 10) * 0.2);
 
-      // 충분히 가까워지면 획득 (30픽셀로 증가)
-      if (distance < 30) {
+      // 충분히 가까워지면 획득 (플레이어 주변 여유 있게 60픽셀)
+      if (distance < 60) {
         this.collect(player);
       }
     }
