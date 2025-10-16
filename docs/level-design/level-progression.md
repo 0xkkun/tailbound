@@ -382,51 +382,55 @@ export class ExperienceBar extends Container {
 
 ## 밸런스 조정
 
-<!-- TODO: 난이도 시스템 구현 후 활성화
+<!-- TODO: 난이도 시스템 구현 후 활성화 -->
+<!--
 ### 난이도별 경험치 배율
 
 ```typescript
+// TODO: 난이도 시스템 구현 시 추가
 // config/balance.config.ts
-export const DIFFICULTY_MULTIPLIERS = {
-  easy: {
-    xpGain: 1.5,    // 150% 경험치
-    enemyXP: 1.0    // 기본 경험치 드랍
-  },
-  normal: {
-    xpGain: 1.0,    // 100% 경험치
-    enemyXP: 1.0
-  },
-  hard: {
-    xpGain: 0.8,    // 80% 경험치
-    enemyXP: 1.2    // 120% 경험치 드랍 (보상)
-  },
-  hell: {
-    xpGain: 0.7,    // 70% 경험치
-    enemyXP: 1.5    // 150% 경험치 드랍 (높은 보상)
-  }
-};
+// export const DIFFICULTY_MULTIPLIERS = {
+//   easy: {
+//     xpGain: 1.5,    // 150% 경험치
+//     enemyXP: 1.0    // 기본 경험치 드랍
+//   },
+//   normal: {
+//     xpGain: 1.0,    // 100% 경험치
+//     enemyXP: 1.0
+//   },
+//   hard: {
+//     xpGain: 0.8,    // 80% 경험치
+//     enemyXP: 1.2    // 120% 경험치 드랍 (보상)
+//   },
+//   hell: {
+//     xpGain: 0.7,    // 70% 경험치
+//     enemyXP: 1.5    // 150% 경험치 드랍 (높은 보상)
+//   }
+// };
 ```
 -->
 
-<!-- TODO: 아이템 시스템 구현 후 활성화
+<!-- TODO: 아이템 시스템 구현 후 활성화 -->
+<!--
 ### 경험치 부스터 아이템
 
 ```typescript
+// TODO: 아이템 시스템 구현 시 추가
 // 임시 버프
-export const XP_BOOSTERS = {
-  small: 1.2,   // +20% 경험치 (30초)
-  medium: 1.5,  // +50% 경험치 (30초)
-  large: 2.0    // +100% 경험치 (30초)
-};
+// export const XP_BOOSTERS = {
+//   small: 1.2,   // +20% 경험치 (30초)
+//   medium: 1.5,  // +50% 경험치 (30초)
+//   large: 2.0    // +100% 경험치 (30초)
+// };
 
 // 영구 업그레이드 (메타 진행)
-export const PERMANENT_XP_BONUS = {
-  level1: 1.05,  // +5% (혼 100개)
-  level2: 1.10,  // +10% (혼 300개)
-  level3: 1.15,  // +15% (혼 600개)
-  level4: 1.20,  // +20% (혼 1000개)
-  level5: 1.25   // +25% (혼 1500개)
-};
+// export const PERMANENT_XP_BONUS = {
+//   level1: 1.05,  // +5% (혼 100개)
+//   level2: 1.10,  // +10% (혼 300개)
+//   level3: 1.15,  // +15% (혼 600개)
+//   level4: 1.20,  // +20% (혼 1000개)
+//   level5: 1.25   // +25% (혼 1500개)
+// };
 ```
 -->
 
