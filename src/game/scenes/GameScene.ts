@@ -275,12 +275,16 @@ export class GameScene extends Container {
 
     // 3. 무기 업데이트 및 발사
     for (const weapon of this.weapons) {
-      weapon.update(deltaTime);
+      // 쿨다운 배율 적용 (쿨타임이 낮을수록 빠르게 발사)
+      const effectiveDeltaTime = deltaTime / this.player.cooldownMultiplier;
+      weapon.update(effectiveDeltaTime);
 
       // 발사
       const playerPos = { x: this.player.x, y: this.player.y };
       const newProjectiles = weapon.fire(playerPos, this.enemies);
       for (const proj of newProjectiles) {
+        // 공격력 배율 적용
+        proj.damage *= this.player.damageMultiplier;
         this.projectiles.push(proj);
         this.gameLayer.addChild(proj);
       }
@@ -408,12 +412,51 @@ export class GameScene extends Container {
   private handleLevelUpChoice(choiceId: string): void {
     console.log(`선택됨: ${choiceId}`);
 
-    // Player의 선택 처리 호출
+    // Player의 선택 처리 호출 (게임 재개)
     this.player.selectLevelUpChoice(choiceId);
 
-    // TODO: 실제 선택 적용
-    // - weapon_xxx: 무기 추가
-    // - stat_xxx: 스탯 증가
+    // 선택 적용
+    if (choiceId.startsWith('weapon_')) {
+      // 무기 추가
+      this.addWeapon(choiceId);
+    } else if (choiceId.startsWith('stat_')) {
+      // 스탯 업그레이드
+      this.player.applyStatUpgrade(choiceId);
+    }
+  }
+
+  /**
+   * 무기 추가
+   */
+  private addWeapon(weaponId: string): void {
+    console.log(`무기 추가: ${weaponId}`);
+
+    // TODO: 각 무기별 인스턴스 생성
+    switch (weaponId) {
+      case 'weapon_talisman': {
+        // 이미 부적이 있으면 업그레이드, 없으면 추가
+        const existingTalisman = this.weapons.find((w) => w instanceof Talisman);
+        if (existingTalisman) {
+          console.log('부적 업그레이드! (레벨 시스템 미구현)');
+        } else {
+          const talisman = new Talisman();
+          this.weapons.push(talisman);
+          console.log('부적 무기 추가 완료!');
+        }
+        break;
+      }
+      case 'weapon_dokkaebi':
+        console.log('도깨비불 무기는 아직 미구현입니다.');
+        break;
+      case 'weapon_moktak':
+        console.log('목탁 소리 무기는 아직 미구현입니다.');
+        break;
+      case 'weapon_jakdu':
+        console.log('작두날 무기는 아직 미구현입니다.');
+        break;
+      default:
+        console.warn(`알 수 없는 무기: ${weaponId}`);
+    }
   }
 
   /**
