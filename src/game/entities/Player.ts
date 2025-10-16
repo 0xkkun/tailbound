@@ -24,6 +24,13 @@ export class Player extends Container {
   public cooldownMultiplier: number = 1.0;
   public pickupRangeMultiplier: number = 1.0;
 
+  // 스탯 상한선
+  private readonly MAX_DAMAGE_MULTIPLIER = 5.0; // 500% (5배)
+  private readonly MAX_SPEED_MULTIPLIER = 2.0; // 200% (2배)
+  private readonly MIN_COOLDOWN_MULTIPLIER = 0.3; // 30% (쿨타임 70% 감소)
+  private readonly MAX_PICKUP_MULTIPLIER = 5.0; // 500% (5배)
+  private readonly MAX_HEALTH = 500; // 최대 체력
+
   // 레벨 시스템
   private levelSystem: LevelSystem;
   private levelText: Text;
@@ -153,28 +160,62 @@ export class Player extends Container {
       return;
     }
 
-    // 스탯 적용
+    // 스탯 적용 (상한선 체크)
     switch (statType) {
       case 'damage':
-        this.damageMultiplier += increment;
-        console.log(`공격력 증가! ${(this.damageMultiplier * 100).toFixed(0)}%`);
+        if (this.damageMultiplier >= this.MAX_DAMAGE_MULTIPLIER) {
+          console.log(`⚠️ 공격력이 최대치입니다! (${this.MAX_DAMAGE_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.damageMultiplier = Math.min(
+          this.damageMultiplier + increment,
+          this.MAX_DAMAGE_MULTIPLIER
+        );
+        console.log(`⚔️ 공격력 증가! ${(this.damageMultiplier * 100).toFixed(0)}%`);
         break;
       case 'speed':
-        this.speedMultiplier += increment;
-        console.log(`이동 속도 증가! ${(this.speedMultiplier * 100).toFixed(0)}%`);
+        if (this.speedMultiplier >= this.MAX_SPEED_MULTIPLIER) {
+          console.log(`⚠️ 이동 속도가 최대치입니다! (${this.MAX_SPEED_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.speedMultiplier = Math.min(
+          this.speedMultiplier + increment,
+          this.MAX_SPEED_MULTIPLIER
+        );
+        console.log(`🏃 이동 속도 증가! ${(this.speedMultiplier * 100).toFixed(0)}%`);
         break;
       case 'cooldown':
-        this.cooldownMultiplier -= increment; // 쿨타임은 감소
-        console.log(`쿨타임 감소! ${(this.cooldownMultiplier * 100).toFixed(0)}%`);
+        if (this.cooldownMultiplier <= this.MIN_COOLDOWN_MULTIPLIER) {
+          console.log(`⚠️ 쿨타임이 최소치입니다! (${this.MIN_COOLDOWN_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.cooldownMultiplier = Math.max(
+          this.cooldownMultiplier - increment,
+          this.MIN_COOLDOWN_MULTIPLIER
+        );
+        console.log(`⚡ 쿨타임 감소! ${(this.cooldownMultiplier * 100).toFixed(0)}%`);
         break;
-      case 'health':
-        this.maxHealth += increment;
-        this.health = Math.min(this.health + increment, this.maxHealth); // 회복 효과도
-        console.log(`최대 체력 증가! ${this.maxHealth}`);
+      case 'health': {
+        if (this.maxHealth >= this.MAX_HEALTH) {
+          console.log(`⚠️ 최대 체력이 한계입니다! (${this.MAX_HEALTH})`);
+          return;
+        }
+        const healthIncrease = Math.min(increment, this.MAX_HEALTH - this.maxHealth);
+        this.maxHealth += healthIncrease;
+        this.health = Math.min(this.health + healthIncrease, this.maxHealth); // 회복 효과도
+        console.log(`❤️ 최대 체력 증가! ${this.maxHealth}`);
         break;
+      }
       case 'pickup':
-        this.pickupRangeMultiplier += increment;
-        console.log(`획득 범위 증가! ${(this.pickupRangeMultiplier * 100).toFixed(0)}%`);
+        if (this.pickupRangeMultiplier >= this.MAX_PICKUP_MULTIPLIER) {
+          console.log(`⚠️ 획득 범위가 최대치입니다! (${this.MAX_PICKUP_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.pickupRangeMultiplier = Math.min(
+          this.pickupRangeMultiplier + increment,
+          this.MAX_PICKUP_MULTIPLIER
+        );
+        console.log(`🧲 획득 범위 증가! ${(this.pickupRangeMultiplier * 100).toFixed(0)}%`);
         break;
     }
   }
