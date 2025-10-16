@@ -3,6 +3,7 @@
  */
 
 import { GAME_CONFIG } from '@/config/game.config';
+import i18n from '@/i18n/config';
 
 /**
  * 레벨별 필요 경험치 계산
@@ -119,16 +120,23 @@ export class LevelSystem {
     this.currentXP -= requiredXP;
     this.level++;
 
-    console.log(`🎉 레벨업! Lv.${this.level}`);
+    console.log(i18n.t('level.levelUp', { level: this.level }));
 
     // 레벨업 선택지 생성
     const choices = this.generateLevelUpChoices();
 
     // TODO: 레벨업 UI 구현 전까지는 일시정지 비활성화
     // 레벨업 선택지를 콘솔에 출력
-    console.log('=== 레벨업 선택지 ===');
+    console.log(i18n.t('level.choicesTitle'));
     choices.forEach((choice, index) => {
-      console.log(`${index + 1}. [${choice.rarity}] ${choice.name} - ${choice.description}`);
+      console.log(
+        i18n.t('level.choiceFormat', {
+          index: index + 1,
+          rarity: choice.rarity,
+          name: choice.name,
+          description: choice.description,
+        })
+      );
     });
     console.log('====================');
 
@@ -162,29 +170,29 @@ export class LevelSystem {
       {
         id: 'weapon_talisman',
         type: 'weapon' as const,
-        name: '부적',
-        description: '자동으로 가장 가까운 적을 추적하는 부적을 발사합니다.',
+        name: i18n.t('weapons.talisman.name'),
+        description: i18n.t('weapons.talisman.description'),
         rarity: 'common' as const,
       },
       {
         id: 'weapon_dokkaebi',
         type: 'weapon' as const,
-        name: '도깨비불',
-        description: '플레이어 주변을 회전하는 푸른 불꽃을 소환합니다.',
+        name: i18n.t('weapons.dokkaebi.name'),
+        description: i18n.t('weapons.dokkaebi.description'),
         rarity: 'common' as const,
       },
       {
         id: 'weapon_moktak',
         type: 'weapon' as const,
-        name: '목탁 소리',
-        description: '주변의 모든 적에게 피해를 주는 음파를 발산합니다.',
+        name: i18n.t('weapons.moktak.name'),
+        description: i18n.t('weapons.moktak.description'),
         rarity: 'rare' as const,
       },
       {
         id: 'weapon_jakdu',
         type: 'weapon' as const,
-        name: '작두날',
-        description: '강력한 회전 베기로 주변 적을 처치합니다.',
+        name: i18n.t('weapons.jakdu.name'),
+        description: i18n.t('weapons.jakdu.description'),
         rarity: 'rare' as const,
       },
     ];
@@ -196,36 +204,36 @@ export class LevelSystem {
       {
         id: 'stat_damage_common',
         type: 'passive' as const,
-        name: '공격력 증가',
-        description: '모든 무기의 공격력이 2% 증가합니다.',
+        name: i18n.t('stats.damage.common.name'),
+        description: i18n.t('stats.damage.common.description'),
         rarity: 'common' as const,
       },
       {
         id: 'stat_speed_common',
         type: 'passive' as const,
-        name: '이동 속도 증가',
-        description: '이동 속도가 3% 증가합니다.',
+        name: i18n.t('stats.speed.common.name'),
+        description: i18n.t('stats.speed.common.description'),
         rarity: 'common' as const,
       },
       {
         id: 'stat_cooldown_common',
         type: 'passive' as const,
-        name: '쿨타임 감소',
-        description: '모든 무기의 쿨타임이 2% 감소합니다.',
+        name: i18n.t('stats.cooldown.common.name'),
+        description: i18n.t('stats.cooldown.common.description'),
         rarity: 'common' as const,
       },
       {
         id: 'stat_health_common',
         type: 'passive' as const,
-        name: '최대 체력 증가',
-        description: '최대 체력이 5 증가합니다.',
+        name: i18n.t('stats.health.common.name'),
+        description: i18n.t('stats.health.common.description'),
         rarity: 'common' as const,
       },
       {
         id: 'stat_pickup_common',
         type: 'passive' as const,
-        name: '획득 범위 증가',
-        description: '경험치 젬 획득 범위가 5% 증가합니다.',
+        name: i18n.t('stats.pickup.common.name'),
+        description: i18n.t('stats.pickup.common.description'),
         rarity: 'common' as const,
       },
 
@@ -233,36 +241,36 @@ export class LevelSystem {
       {
         id: 'stat_damage_rare',
         type: 'passive' as const,
-        name: '강화된 공격력',
-        description: '모든 무기의 공격력이 5% 증가합니다.',
+        name: i18n.t('stats.damage.rare.name'),
+        description: i18n.t('stats.damage.rare.description'),
         rarity: 'rare' as const,
       },
       {
         id: 'stat_speed_rare',
         type: 'passive' as const,
-        name: '빠른 발걸음',
-        description: '이동 속도가 7% 증가합니다.',
+        name: i18n.t('stats.speed.rare.name'),
+        description: i18n.t('stats.speed.rare.description'),
         rarity: 'rare' as const,
       },
       {
         id: 'stat_cooldown_rare',
         type: 'passive' as const,
-        name: '신속한 재장전',
-        description: '모든 무기의 쿨타임이 5% 감소합니다.',
+        name: i18n.t('stats.cooldown.rare.name'),
+        description: i18n.t('stats.cooldown.rare.description'),
         rarity: 'rare' as const,
       },
       {
         id: 'stat_health_rare',
         type: 'passive' as const,
-        name: '강인한 체력',
-        description: '최대 체력이 15 증가합니다.',
+        name: i18n.t('stats.health.rare.name'),
+        description: i18n.t('stats.health.rare.description'),
         rarity: 'rare' as const,
       },
       {
         id: 'stat_pickup_rare',
         type: 'passive' as const,
-        name: '자석 효과',
-        description: '경험치 젬 획득 범위가 15% 증가합니다.',
+        name: i18n.t('stats.pickup.rare.name'),
+        description: i18n.t('stats.pickup.rare.description'),
         rarity: 'rare' as const,
       },
 
@@ -270,36 +278,36 @@ export class LevelSystem {
       {
         id: 'stat_damage_epic',
         type: 'passive' as const,
-        name: '파괴적인 힘',
-        description: '모든 무기의 공격력이 10% 증가합니다.',
+        name: i18n.t('stats.damage.epic.name'),
+        description: i18n.t('stats.damage.epic.description'),
         rarity: 'epic' as const,
       },
       {
         id: 'stat_speed_epic',
         type: 'passive' as const,
-        name: '질풍같은 속도',
-        description: '이동 속도가 15% 증가합니다.',
+        name: i18n.t('stats.speed.epic.name'),
+        description: i18n.t('stats.speed.epic.description'),
         rarity: 'epic' as const,
       },
       {
         id: 'stat_cooldown_epic',
         type: 'passive' as const,
-        name: '무한 탄창',
-        description: '모든 무기의 쿨타임이 10% 감소합니다.',
+        name: i18n.t('stats.cooldown.epic.name'),
+        description: i18n.t('stats.cooldown.epic.description'),
         rarity: 'epic' as const,
       },
       {
         id: 'stat_health_epic',
         type: 'passive' as const,
-        name: '불굴의 의지',
-        description: '최대 체력이 30 증가합니다.',
+        name: i18n.t('stats.health.epic.name'),
+        description: i18n.t('stats.health.epic.description'),
         rarity: 'epic' as const,
       },
       {
         id: 'stat_pickup_epic',
         type: 'passive' as const,
-        name: '강력한 자기장',
-        description: '경험치 젬 획득 범위가 30% 증가합니다.',
+        name: i18n.t('stats.pickup.epic.name'),
+        description: i18n.t('stats.pickup.epic.description'),
         rarity: 'epic' as const,
       },
     ];
@@ -325,7 +333,7 @@ export class LevelSystem {
    * 레벨업 선택 처리
    */
   public selectChoice(choiceId: string): void {
-    console.log(`선택: ${choiceId}`);
+    console.log(i18n.t('level.selected', { choiceId }));
 
     // TODO: 실제 선택 효과 적용
     // - 무기 추가
