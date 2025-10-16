@@ -8,6 +8,7 @@ import { Enemy } from '@/game/entities/Enemy';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { Player } from '@/game/entities/Player';
 import { Projectile } from '@/game/entities/Projectile';
+import { LevelUpUI } from '@/game/ui/LevelUpUI';
 import { Talisman } from '@/game/weapons/Talisman';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { SpawnSystem } from '@/systems/SpawnSystem';
@@ -54,6 +55,7 @@ export class GameScene extends Container {
   private levelText!: Text;
   private xpBarBg!: Graphics;
   private xpBarFill!: Graphics;
+  private levelUpUI!: LevelUpUI;
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
@@ -97,6 +99,12 @@ export class GameScene extends Container {
     // 플레이어 생성
     this.player = new Player(this.screenWidth / 2, this.screenHeight / 2);
     this.gameLayer.addChild(this.player);
+
+    // 플레이어 레벨업 콜백 설정
+    this.player.onLevelUp = (level, choices) => {
+      console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
+      this.levelUpUI.show(choices);
+    };
 
     // 초기 무기: 부적
     const talisman = new Talisman();
@@ -174,6 +182,15 @@ export class GameScene extends Container {
     this.xpBarFill.x = 20;
     this.xpBarFill.y = 125;
     this.uiLayer.addChild(this.xpBarFill);
+
+    // 레벨업 UI
+    this.levelUpUI = new LevelUpUI();
+    this.uiLayer.addChild(this.levelUpUI);
+
+    // 레벨업 UI 선택 콜백
+    this.levelUpUI.onChoiceSelected = (choiceId: string) => {
+      this.handleLevelUpChoice(choiceId);
+    };
   }
 
   /**
@@ -237,6 +254,11 @@ export class GameScene extends Container {
    */
   private update(deltaTime: number): void {
     if (this.isGameOver) {
+      return;
+    }
+
+    // 레벨업 UI가 표시 중이면 게임 일시정지
+    if (this.levelUpUI.visible) {
       return;
     }
 
@@ -378,6 +400,20 @@ export class GameScene extends Container {
     this.xpBarFill.beginFill(0x00ff00);
     this.xpBarFill.drawRect(0, 0, 300 * progress, 15);
     this.xpBarFill.endFill();
+  }
+
+  /**
+   * 레벨업 선택 처리
+   */
+  private handleLevelUpChoice(choiceId: string): void {
+    console.log(`선택됨: ${choiceId}`);
+
+    // Player의 선택 처리 호출
+    this.player.selectLevelUpChoice(choiceId);
+
+    // TODO: 실제 선택 적용
+    // - weapon_xxx: 무기 추가
+    // - stat_xxx: 스탯 증가
   }
 
   /**
