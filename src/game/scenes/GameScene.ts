@@ -10,6 +10,7 @@ import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { Player } from '@/game/entities/Player';
 import { Projectile } from '@/game/entities/Projectile';
 import { LevelUpUI } from '@/game/ui/LevelUpUI';
+import { VirtualJoystick } from '@/game/ui/VirtualJoystick';
 import { Talisman } from '@/game/weapons/Talisman';
 import { CameraSystem } from '@/systems/CameraSystem';
 import { CombatSystem } from '@/systems/CombatSystem';
@@ -59,6 +60,7 @@ export class GameScene extends Container {
   private xpBarBg!: Graphics;
   private xpBarFill!: Graphics;
   private levelUpUI!: LevelUpUI;
+  private virtualJoystick?: VirtualJoystick;
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
@@ -209,6 +211,29 @@ export class GameScene extends Container {
     this.levelUpUI.onChoiceSelected = (choiceId: string) => {
       this.handleLevelUpChoice(choiceId);
     };
+
+    // 모바일 감지 및 가상 조이스틱 초기화
+    if (this.isMobileDevice()) {
+      this.virtualJoystick = new VirtualJoystick(this.screenWidth, this.screenHeight);
+      this.uiLayer.addChild(this.virtualJoystick.getContainer());
+      console.log('가상 조이스틱 활성화 (모바일 디바이스 감지)');
+    }
+  }
+
+  /**
+   * 모바일 디바이스 감지
+   */
+  private isMobileDevice(): boolean {
+    // 터치 지원 확인
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // User Agent 확인
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+      userAgent
+    );
+
+    return hasTouch && isMobileUA;
   }
 
   /**
@@ -240,6 +265,18 @@ export class GameScene extends Container {
     let x = 0;
     let y = 0;
 
+    // 조이스틱 입력 (모바일)
+    if (this.virtualJoystick) {
+      const joystickState = this.virtualJoystick.getState();
+      if (joystickState.active) {
+        // 조이스틱이 활성화되어 있으면 조이스틱 입력 사용
+        x = joystickState.x;
+        y = joystickState.y;
+        return { x, y };
+      }
+    }
+
+    // 키보드 입력 (PC)
     // WASD / 방향키
     if (this.keys.has('a') || this.keys.has('arrowleft')) x -= 1;
     if (this.keys.has('d') || this.keys.has('arrowright')) x += 1;
@@ -538,6 +575,9 @@ export class GameScene extends Container {
     for (const gem of this.experienceGems) {
       gem.destroy();
     }
+
+    // 가상 조이스틱 정리
+    this.virtualJoystick?.destroy();
 
     // 부모 destroy
     super.destroy({ children: true });
