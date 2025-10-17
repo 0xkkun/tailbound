@@ -2,7 +2,7 @@
  * 플레이어 엔티티
  */
 
-import { Container, Graphics, Text } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
 import { PLAYER_BALANCE } from '@/config/balance.config';
 import { LevelSystem, type LevelUpChoice } from '@/systems/LevelSystem';
@@ -37,6 +37,7 @@ export class Player extends Container {
 
   // 그래픽스
   private graphics: Graphics;
+  private sprite?: Sprite;
 
   // 입력 상태
   private currentInput: InputState = { x: 0, y: 0 };
@@ -62,9 +63,12 @@ export class Player extends Container {
       this.onLevelUp?.(level, choices);
     };
 
-    // 그래픽 생성
+    // 그래픽 생성 (히트박스 표시용, 개발 중에만)
     this.graphics = new Graphics();
     this.addChild(this.graphics);
+
+    // 스프라이트 비동기 로드
+    this.loadSprite();
 
     // 레벨 텍스트
     this.levelText = new Text({
@@ -81,6 +85,22 @@ export class Player extends Container {
     this.addChild(this.levelText);
 
     this.render();
+  }
+
+  /**
+   * 스프라이트 비동기 로드
+   */
+  private async loadSprite(): Promise<void> {
+    try {
+      const texture = await Assets.load('/assets/shaman.png');
+      this.sprite = new Sprite(texture);
+      this.sprite.anchor.set(0.5); // 중심점을 중앙으로
+      this.addChildAt(this.sprite, 0); // 그래픽보다 아래에 추가
+      this.render();
+    } catch (error) {
+      console.warn('Failed to load player sprite:', error);
+      // 스프라이트 로드 실패 시 기본 그래픽 사용
+    }
   }
 
   /**
@@ -278,6 +298,17 @@ export class Player extends Container {
       const effectiveSpeed = this.speed * this.speedMultiplier;
       this.x += normalizedX * effectiveSpeed * deltaTime;
       this.y += normalizedY * effectiveSpeed * deltaTime;
+
+      // 스프라이트 좌우 반전 (왼쪽: scale.x = -1, 오른쪽: scale.x = 1)
+      if (this.sprite && normalizedX !== 0) {
+        if (normalizedX < 0) {
+          // 왼쪽 이동 - 스프라이트 반전
+          this.sprite.scale.x = -Math.abs(this.sprite.scale.x);
+        } else {
+          // 오른쪽 이동 - 스프라이트 정상
+          this.sprite.scale.x = Math.abs(this.sprite.scale.x);
+        }
+      }
     }
 
     // 렌더링 업데이트 (무적 시간 깜빡임)
@@ -312,21 +343,32 @@ export class Player extends Container {
 
     this.graphics.clear();
 
-    // 무적 시간이면 깜빡임 효과
-    if (this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0) {
-      // 깜빡임 (반투명)
-      this.graphics.beginFill(0xff5555, 0.5);
+    // 스프라이트가 있으면 무적 시간 깜빡임을 스프라이트 알파로 처리
+    if (this.sprite) {
+      if (this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0) {
+        this.sprite.alpha = 0.5; // 깜빡임
+      } else {
+        this.sprite.alpha = 1.0; // 정상
+      }
+
+      // 히트박스 표시 (디버그용, 필요시 주석 처리)
+      // this.graphics.circle(0, 0, this.radius);
+      // this.graphics.stroke({ width: 1, color: 0xff0000, alpha: 0.3 });
     } else {
-      // 일반 (빨간색)
-      this.graphics.beginFill(0xff5555);
+      // 스프라이트가 없으면 기존 원형 그리기
+      // 무적 시간이면 깜빡임 효과
+      if (this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0) {
+        this.graphics.circle(0, 0, this.radius);
+        this.graphics.fill({ color: 0xff5555, alpha: 0.5 });
+      } else {
+        this.graphics.circle(0, 0, this.radius);
+        this.graphics.fill(0xff5555);
+      }
+
+      // 테두리
+      this.graphics.circle(0, 0, this.radius);
+      this.graphics.stroke({ width: 2, color: 0xffffff });
     }
-
-    this.graphics.drawCircle(0, 0, this.radius);
-    this.graphics.endFill();
-
-    // 테두리
-    this.graphics.lineStyle(2, 0xffffff);
-    this.graphics.drawCircle(0, 0, this.radius);
   }
 
   /**
@@ -335,6 +377,7 @@ export class Player extends Container {
   public destroy(): void {
     this.graphics.destroy();
     this.levelText.destroy();
+    this.sprite?.destroy();
     super.destroy({ children: true });
   }
 }
