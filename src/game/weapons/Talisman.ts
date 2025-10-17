@@ -3,7 +3,7 @@
  */
 
 import { calculateWeaponStats } from '@/game/data/weapons';
-import type { Enemy } from '@/game/entities/Enemy';
+import type { BaseEnemy } from '@/game/entities/enemies';
 import { Projectile } from '@/game/entities/Projectile';
 import { getDirection, getDistance } from '@/game/utils/collision';
 import type { Vector2 } from '@/types/game.types';
@@ -22,7 +22,7 @@ export class Talisman extends Weapon {
   /**
    * 발사
    */
-  public fire(playerPos: Vector2, enemies: Enemy[]): Projectile[] {
+  public fire(playerPos: Vector2, enemies: BaseEnemy[]): Projectile[] {
     if (!this.canFire()) {
       return [];
     }
@@ -62,12 +62,12 @@ export class Talisman extends Weapon {
   /**
    * 가장 가까운 적 찾기 (범위 내에서만)
    */
-  private findClosestEnemy(playerPos: Vector2, enemies: Enemy[]): Enemy | null {
+  private findClosestEnemy(playerPos: Vector2, enemies: BaseEnemy[]): BaseEnemy | null {
     if (enemies.length === 0) {
       return null;
     }
 
-    let closest: Enemy | null = null;
+    let closest: BaseEnemy | null = null;
     let minDistance = Infinity;
 
     for (const enemy of enemies) {

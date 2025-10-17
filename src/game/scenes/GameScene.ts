@@ -5,7 +5,7 @@
 import { Container, Graphics, Text } from 'pixi.js';
 
 import { GAME_CONFIG } from '@/config/game.config';
-import { Enemy } from '@/game/entities/Enemy';
+import { BaseEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { Player } from '@/game/entities/Player';
 import { Projectile } from '@/game/entities/Projectile';
@@ -28,7 +28,7 @@ export class GameScene extends Container {
 
   // 엔티티
   private player!: Player;
-  private enemies: Enemy[] = [];
+  private enemies: BaseEnemy[] = [];
   private projectiles: Projectile[] = [];
   private experienceGems: ExperienceGem[] = [];
 
@@ -100,8 +100,8 @@ export class GameScene extends Container {
    * 비동기 초기화 (스프라이트 preload 포함)
    */
   private async initAsync(): Promise<void> {
-    // 적 스프라이트 미리 로드
-    await Enemy.preloadSprites();
+    // 모든 적 타입 스프라이트 미리 로드
+    await Promise.all([SkeletonEnemy.preloadSprites(), TigerEnemy.preloadSprites()]);
 
     // 게임 초기화
     this.initGame();
@@ -620,7 +620,7 @@ export class GameScene extends Container {
     this.virtualJoystick?.destroy();
 
     // Static 캐시 정리 (게임 종료 시)
-    Enemy.clearCache();
+    BaseEnemy.clearAllCaches();
 
     // 부모 destroy
     super.destroy({ children: true });

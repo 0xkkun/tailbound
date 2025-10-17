@@ -1,5 +1,5 @@
 /**
- * 적 엔티티
+ * 베이스 적 엔티티 (추상 클래스)
  */
 
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
@@ -9,11 +9,11 @@ import type { EnemyTier } from '@/game/data/enemies';
 import { getDirection } from '@/game/utils/collision';
 import type { Vector2 } from '@/types/game.types';
 
-export class Enemy extends Container {
-  // Static 텍스처 캐시 (모든 Enemy 인스턴스가 공유)
-  private static spriteFrames: Texture[] | null = null;
-  private static isLoading: boolean = false;
-  private static loadPromise: Promise<void> | null = null;
+import type { EnemySpriteCache, EnemySpriteConfig } from './EnemySprite';
+
+export abstract class BaseEnemy extends Container {
+  // Static 텍스처 캐시는 각 서브클래스가 관리
+  protected static spriteCache: Map<string, EnemySpriteCache> = new Map();
 
   public id: string;
   public active: boolean = true;
@@ -28,12 +28,15 @@ export class Enemy extends Container {
   public xpDrop: number;
 
   // 그래픽스
-  private graphics: Graphics;
-  private sprite?: AnimatedSprite;
-  private color: number;
+  protected graphics: Graphics;
+  protected sprite?: AnimatedSprite;
+  protected color: number;
 
   // AI
-  private targetPosition: Vector2 | null = null;
+  protected targetPosition: Vector2 | null = null;
+
+  // 타임아웃 관리 (메모리 누수 방지)
+  private flashTimeoutId?: ReturnType<typeof setTimeout>;
 
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
     super();
@@ -75,84 +78,123 @@ export class Enemy extends Container {
   }
 
   /**
-   * 게임 시작 시 스프라이트 미리 로드 (static 메서드)
-   * GameScene 초기화 시 한 번만 호출
+   * 각 적 타입의 스프라이트 설정 반환 (서브클래스에서 구현)
    */
-  public static async preloadSprites(): Promise<void> {
-    // 이미 로드되었거나 로딩 중이면 기존 Promise 반환
-    if (Enemy.spriteFrames !== null) {
+  protected abstract getSpriteConfig(): EnemySpriteConfig;
+
+  /**
+   * 적 타입 이름 반환 (캐시 키로 사용)
+   */
+  protected abstract getEnemyType(): string;
+
+  /**
+   * 게임 시작 시 특정 적 타입의 스프라이트 미리 로드
+   */
+  public static async preloadSpriteType(
+    enemyType: string,
+    config: EnemySpriteConfig
+  ): Promise<void> {
+    // 캐시 확인
+    let cache = BaseEnemy.spriteCache.get(enemyType);
+
+    // 이미 로드 완료되었으면 즉시 반환
+    if (cache?.frames !== null) {
       return;
     }
-    if (Enemy.isLoading && Enemy.loadPromise) {
-      return Enemy.loadPromise;
+
+    // 로딩 중이면 기존 Promise 대기
+    if (cache?.isLoading && cache.loadPromise) {
+      return cache.loadPromise;
     }
 
-    Enemy.isLoading = true;
-    Enemy.loadPromise = (async () => {
+    // 캐시 생성 및 즉시 isLoading=true 설정 (race condition 방지)
+    if (!cache) {
+      cache = {
+        config,
+        frames: null,
+        isLoading: true, // 즉시 true로 설정
+        loadPromise: null,
+      };
+      BaseEnemy.spriteCache.set(enemyType, cache);
+    } else {
+      cache.isLoading = true;
+    }
+    cache.loadPromise = (async () => {
       try {
         // 스프라이트 시트 로드
-        const baseTexture = await Assets.load('/assets/skeleton-walk.png');
+        const baseTexture = await Assets.load(config.assetPath);
 
-        // 프레임 분할 (286x33 이미지, 13개 프레임)
-        const totalWidth = 286;
-        const frameCount = 13;
-        const frameWidthExact = totalWidth / frameCount; // 22.0769...
-        const frameHeight = 33;
+        // 프레임 분할
+        const frameWidthExact = config.totalWidth / config.frameCount;
 
         // 픽셀 아트용 필터링 설정
         baseTexture.source.scaleMode = 'nearest';
 
         const frames: Texture[] = [];
-        for (let i = 0; i < frameCount; i++) {
+        for (let i = 0; i < config.frameCount; i++) {
           // 실수 계산으로 정확한 경계 찾기
           const x = Math.floor(i * frameWidthExact);
-          const nextX = i === frameCount - 1 ? totalWidth : Math.floor((i + 1) * frameWidthExact);
+          const nextX =
+            i === config.frameCount - 1 ? config.totalWidth : Math.floor((i + 1) * frameWidthExact);
           const width = nextX - x;
 
           const frame = new Texture({
             source: baseTexture.source,
-            frame: new Rectangle(x, 0, width, frameHeight),
+            frame: new Rectangle(x, 0, width, config.height),
           });
           frames.push(frame);
         }
 
-        // Static 캐시에 저장
-        Enemy.spriteFrames = frames;
+        // 캐시에 저장
+        if (cache) {
+          cache.frames = frames;
+        }
 
         if (import.meta.env.DEV) {
-          console.log('[Enemy] Sprite frames preloaded successfully');
+          console.log(`[${enemyType}] Sprite frames preloaded successfully`);
         }
       } catch (error) {
-        console.error('[Enemy] Failed to preload sprite frames:', error);
-        Enemy.spriteFrames = null;
+        console.error(`[${enemyType}] Failed to preload sprite frames:`, error);
+        if (cache) {
+          cache.frames = null;
+        }
       } finally {
-        Enemy.isLoading = false;
+        if (cache) {
+          cache.isLoading = false;
+          cache.loadPromise = null; // Promise 참조 정리
+        }
       }
     })();
 
-    return Enemy.loadPromise;
+    return cache.loadPromise;
   }
 
   /**
    * 스프라이트 애니메이션 생성 (캐시된 텍스처 사용)
    */
-  private loadSprite(): void {
+  protected loadSprite(): void {
+    const enemyType = this.getEnemyType();
+    const cache = BaseEnemy.spriteCache.get(enemyType);
+
     // 캐시된 프레임이 없으면 스킵 (기본 그래픽 사용)
-    if (!Enemy.spriteFrames || Enemy.spriteFrames.length === 0) {
+    if (!cache || !cache.frames || cache.frames.length === 0) {
       if (import.meta.env.DEV) {
-        console.warn(`[Enemy ${this.id}] No cached sprite frames available`);
+        console.warn(`[${enemyType} ${this.id}] No cached sprite frames available`);
       }
       return;
     }
 
     try {
+      const config = this.getSpriteConfig();
+
       // 캐시된 프레임으로 AnimatedSprite 생성
-      this.sprite = new AnimatedSprite(Enemy.spriteFrames);
+      this.sprite = new AnimatedSprite(cache.frames);
       this.sprite.anchor.set(0.5);
-      this.sprite.scale.set(2); // 크기 2배 확대
+      this.sprite.scale.set(config.scale);
 
       // 티어별 애니메이션 속도 적용
-      const animationSpeed = ENEMY_BALANCE[this.tier].animationSpeed ?? 0.15;
+      const animationSpeed =
+        config.animationSpeed ?? ENEMY_BALANCE[this.tier].animationSpeed ?? 0.15;
       this.sprite.animationSpeed = animationSpeed;
       this.sprite.play();
 
@@ -172,7 +214,7 @@ export class Enemy extends Container {
       // 스프라이트 로드 완료 후 렌더링 업데이트
       this.render();
     } catch (error) {
-      console.error(`[Enemy ${this.id}] Failed to create sprite:`, error);
+      console.error(`[${enemyType} ${this.id}] Failed to create sprite:`, error);
       // 폴백: 기본 그래픽 사용
     }
   }
@@ -236,18 +278,24 @@ export class Enemy extends Container {
   /**
    * 피격 효과 (빨간색 깜빡임)
    */
-  private flashRed(): void {
+  protected flashRed(): void {
     if (this.destroyed || !this.graphics) {
       return;
+    }
+
+    // 이전 타임아웃 정리 (메모리 누수 방지)
+    if (this.flashTimeoutId !== undefined) {
+      clearTimeout(this.flashTimeoutId);
     }
 
     // 스프라이트가 있으면 색상 틴트로 효과 적용
     if (this.sprite) {
       this.sprite.tint = 0xff0000;
-      setTimeout(() => {
+      this.flashTimeoutId = setTimeout(() => {
         if (!this.destroyed && this.sprite) {
           this.sprite.tint = 0xffffff; // 원래 색으로
         }
+        this.flashTimeoutId = undefined;
       }, 100);
     } else {
       // 스프라이트 없으면 그래픽으로 표시
@@ -256,10 +304,11 @@ export class Enemy extends Container {
       this.graphics.fill(0xff0000);
 
       // 0.1초 후 원래 색으로
-      setTimeout(() => {
+      this.flashTimeoutId = setTimeout(() => {
         if (!this.destroyed && this.graphics) {
           this.render();
         }
+        this.flashTimeoutId = undefined;
       }, 100);
     }
   }
@@ -267,7 +316,7 @@ export class Enemy extends Container {
   /**
    * 렌더링
    */
-  private render(): void {
+  protected render(): void {
     if (this.destroyed || !this.graphics) {
       return;
     }
@@ -304,6 +353,12 @@ export class Enemy extends Container {
    * 정리
    */
   public destroy(): void {
+    // 타임아웃 정리 (메모리 누수 방지)
+    if (this.flashTimeoutId !== undefined) {
+      clearTimeout(this.flashTimeoutId);
+      this.flashTimeoutId = undefined;
+    }
+
     this.sprite?.stop();
     // 프레임은 static 캐시이므로 destroy하지 않음
     // sprite 인스턴스만 destroy
@@ -313,14 +368,17 @@ export class Enemy extends Container {
   }
 
   /**
-   * Static 캐시 정리 (게임 종료 시 호출)
+   * 모든 적 타입의 캐시 정리 (게임 종료 시 호출)
    */
-  public static clearCache(): void {
-    if (Enemy.spriteFrames) {
-      Enemy.spriteFrames.forEach((frame) => frame.destroy(false));
-      Enemy.spriteFrames = null;
+  public static clearAllCaches(): void {
+    for (const [, cache] of BaseEnemy.spriteCache.entries()) {
+      if (cache.frames) {
+        cache.frames.forEach((frame) => frame.destroy(false));
+        cache.frames = null;
+      }
+      cache.loadPromise = null;
+      cache.isLoading = false;
     }
-    Enemy.loadPromise = null;
-    Enemy.isLoading = false;
+    BaseEnemy.spriteCache.clear();
   }
 }

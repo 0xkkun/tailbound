@@ -4,7 +4,8 @@
 
 import { SPAWN_BALANCE } from '@/config/balance.config';
 import { selectEnemyTier } from '@/game/data/enemies';
-import { Enemy } from '@/game/entities/Enemy';
+import type { BaseEnemy } from '@/game/entities/enemies';
+import { SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
 import type { Vector2 } from '@/types/game.types';
 
 export class SpawnSystem {
@@ -31,7 +32,12 @@ export class SpawnSystem {
   /**
    * 업데이트
    */
-  public update(deltaTime: number, enemies: Enemy[], gameTime: number, playerPos: Vector2): void {
+  public update(
+    deltaTime: number,
+    enemies: BaseEnemy[],
+    gameTime: number,
+    playerPos: Vector2
+  ): void {
     this.gameTime = gameTime;
     this.spawnTimer += deltaTime;
 
@@ -47,7 +53,7 @@ export class SpawnSystem {
   /**
    * 웨이브 스폰 (여러 방향에서 소규모 그룹으로 생성)
    */
-  private spawnWave(playerPos: Vector2, enemies: Enemy[]): void {
+  private spawnWave(playerPos: Vector2, enemies: BaseEnemy[]): void {
     // 게임 시간에 따라 그룹 수 증가
     const timeBonus = Math.floor(this.gameTime / SPAWN_BALANCE.groupIncreaseInterval);
     const groupCount = Math.min(SPAWN_BALANCE.maxGroups, SPAWN_BALANCE.minGroups + timeBonus);
@@ -82,7 +88,13 @@ export class SpawnSystem {
         // 게임 시간에 따라 적 티어 선택
         const tier = selectEnemyTier(this.gameTime);
 
-        const enemy = new Enemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        // 랜덤하게 적 타입 선택 (50% 스켈레톤, 50% 호랑이)
+        const enemyType = Math.random() < 0.5 ? 'skeleton' : 'tiger';
+        const enemy =
+          enemyType === 'skeleton'
+            ? new SkeletonEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier)
+            : new TigerEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+
         enemies.push(enemy);
         totalSpawned++;
       }
