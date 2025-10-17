@@ -151,7 +151,7 @@ export const STAT_EFFECTS = {
  */
 export const XP_BALANCE = {
   gemRadius: 10,
-  gemSpeed: 200,
-  gemLifetime: 30, // 30초 후 사라짐
-  pickupRadius: 50, // 플레이어 근처에서 자동 획득
+  gemSpeed: 500, // 최대 속도 (200 -> 500으로 증가)
+  gemLifetime: 120, // 120초(2분) 후 사라짐 - 충분한 시간 제공
+  pickupRadius: 80, // 플레이어 근처에서 자동 획득 (50 -> 80으로 증가)
 } as const;

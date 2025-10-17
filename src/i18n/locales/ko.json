@@ -9,5 +9,101 @@
     "retry": "다시 시도",
     "cancel": "취소",
     "confirm": "확인"
+  },
+  "level": {
+    "levelUp": "🎉 레벨업! Lv.{{level}}",
+    "choicesTitle": "=== 레벨업 선택지 ===",
+    "choiceFormat": "{{index}}. [{{rarity}}] {{name}} - {{description}}",
+    "selected": "선택: {{choiceId}}"
+  },
+  "weapons": {
+    "talisman": {
+      "name": "부적",
+      "description": "자동으로 가장 가까운 적을 추적하는 부적을 발사합니다."
+    },
+    "dokkaebi": {
+      "name": "도깨비불",
+      "description": "플레이어 주변을 회전하는 푸른 불꽃을 소환합니다."
+    },
+    "moktak": {
+      "name": "목탁 소리",
+      "description": "주변의 모든 적에게 피해를 주는 음파를 발산합니다."
+    },
+    "jakdu": {
+      "name": "작두날",
+      "description": "강력한 회전 베기로 주변 적을 처치합니다."
+    }
+  },
+  "stats": {
+    "damage": {
+      "common": {
+        "name": "공격력 증가",
+        "description": "모든 무기의 공격력이 2% 증가합니다."
+      },
+      "rare": {
+        "name": "강화된 공격력",
+        "description": "모든 무기의 공격력이 5% 증가합니다."
+      },
+      "epic": {
+        "name": "파괴적인 힘",
+        "description": "모든 무기의 공격력이 10% 증가합니다."
+      }
+    },
+    "speed": {
+      "common": {
+        "name": "이동 속도 증가",
+        "description": "이동 속도가 3% 증가합니다."
+      },
+      "rare": {
+        "name": "빠른 발걸음",
+        "description": "이동 속도가 7% 증가합니다."
+      },
+      "epic": {
+        "name": "질풍같은 속도",
+        "description": "이동 속도가 15% 증가합니다."
+      }
+    },
+    "cooldown": {
+      "common": {
+        "name": "쿨타임 감소",
+        "description": "모든 무기의 쿨타임이 2% 감소합니다."
+      },
+      "rare": {
+        "name": "신속한 재장전",
+        "description": "모든 무기의 쿨타임이 5% 감소합니다."
+      },
+      "epic": {
+        "name": "무한 탄창",
+        "description": "모든 무기의 쿨타임이 10% 감소합니다."
+      }
+    },
+    "health": {
+      "common": {
+        "name": "최대 체력 증가",
+        "description": "최대 체력이 5 증가합니다."
+      },
+      "rare": {
+        "name": "강인한 체력",
+        "description": "최대 체력이 15 증가합니다."
+      },
+      "epic": {
+        "name": "불굴의 의지",
+        "description": "최대 체력이 30 증가합니다."
+      }
+    },
+    "pickup": {
+      "common": {
+        "name": "획득 범위 증가",
+        "description": "경험치 젬 획득 범위가 5% 증가합니다."
+      },
+      "rare": {
+        "name": "자석 효과",
+        "description": "경험치 젬 획득 범위가 15% 증가합니다."
+      },
+      "epic": {
+        "name": "강력한 자기장",
+        "description": "경험치 젬 획득 범위가 30% 증가합니다."
+      }
+    }
   }
 }

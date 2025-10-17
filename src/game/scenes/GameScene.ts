@@ -5,8 +5,10 @@
 import { Container, Graphics, Text } from 'pixi.js';
 
 import { Enemy } from '@/game/entities/Enemy';
+import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { Player } from '@/game/entities/Player';
 import { Projectile } from '@/game/entities/Projectile';
+import { LevelUpUI } from '@/game/ui/LevelUpUI';
 import { Talisman } from '@/game/weapons/Talisman';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { SpawnSystem } from '@/systems/SpawnSystem';
@@ -25,6 +27,7 @@ export class GameScene extends Container {
   private player!: Player;
   private enemies: Enemy[] = [];
   private projectiles: Projectile[] = [];
+  private experienceGems: ExperienceGem[] = [];
 
   // 무기
   private weapons: Talisman[] = [];
@@ -49,6 +52,10 @@ export class GameScene extends Container {
   private healthText!: Text;
   private scoreText!: Text;
   private timeText!: Text;
+  private levelText!: Text;
+  private xpBarBg!: Graphics;
+  private xpBarFill!: Graphics;
+  private levelUpUI!: LevelUpUI;
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
@@ -93,9 +100,22 @@ export class GameScene extends Container {
     this.player = new Player(this.screenWidth / 2, this.screenHeight / 2);
     this.gameLayer.addChild(this.player);
 
+    // 플레이어 레벨업 콜백 설정
+    this.player.onLevelUp = (level, choices) => {
+      console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
+      this.levelUpUI.show(choices);
+    };
+
     // 초기 무기: 부적
     const talisman = new Talisman();
     this.weapons.push(talisman);
+
+    // 적 처치 시 경험치 젬 드롭 콜백 설정
+    this.combatSystem.onEnemyKilled = (result) => {
+      const gem = new ExperienceGem(result.position.x, result.position.y, result.xpValue);
+      this.experienceGems.push(gem);
+      this.gameLayer.addChild(gem);
+    };
 
     console.log('게임 시작!');
   }
@@ -136,6 +156,41 @@ export class GameScene extends Container {
     this.timeText.x = this.screenWidth / 2;
     this.timeText.y = 20;
     this.uiLayer.addChild(this.timeText);
+
+    // 레벨 텍스트
+    this.levelText = new Text('Lv.1', {
+      fontFamily: 'Arial',
+      fontSize: 24,
+      fill: 0xffff00,
+      fontWeight: 'bold',
+    });
+    this.levelText.x = 20;
+    this.levelText.y = 90;
+    this.uiLayer.addChild(this.levelText);
+
+    // 경험치 바 배경
+    this.xpBarBg = new Graphics();
+    this.xpBarBg.beginFill(0x333333);
+    this.xpBarBg.drawRect(0, 0, 300, 15);
+    this.xpBarBg.endFill();
+    this.xpBarBg.x = 20;
+    this.xpBarBg.y = 125;
+    this.uiLayer.addChild(this.xpBarBg);
+
+    // 경험치 바 채우기
+    this.xpBarFill = new Graphics();
+    this.xpBarFill.x = 20;
+    this.xpBarFill.y = 125;
+    this.uiLayer.addChild(this.xpBarFill);
+
+    // 레벨업 UI
+    this.levelUpUI = new LevelUpUI();
+    this.uiLayer.addChild(this.levelUpUI);
+
+    // 레벨업 UI 선택 콜백
+    this.levelUpUI.onChoiceSelected = (choiceId: string) => {
+      this.handleLevelUpChoice(choiceId);
+    };
   }
 
   /**
@@ -202,6 +257,11 @@ export class GameScene extends Container {
       return;
     }
 
+    // 레벨업 UI가 표시 중이면 게임 일시정지
+    if (this.levelUpUI.visible) {
+      return;
+    }
+
     // 게임 시간 증가
     this.gameTime += deltaTime;
 
@@ -215,12 +275,16 @@ export class GameScene extends Container {
 
     // 3. 무기 업데이트 및 발사
     for (const weapon of this.weapons) {
-      weapon.update(deltaTime);
+      // 쿨다운 배율 적용 (쿨타임이 낮을수록 빠르게 발사)
+      const effectiveDeltaTime = deltaTime / this.player.cooldownMultiplier;
+      weapon.update(effectiveDeltaTime);
 
       // 발사
       const playerPos = { x: this.player.x, y: this.player.y };
       const newProjectiles = weapon.fire(playerPos, this.enemies);
       for (const proj of newProjectiles) {
+        // 공격력 배율 적용
+        proj.damage *= this.player.damageMultiplier;
         this.projectiles.push(proj);
         this.gameLayer.addChild(proj);
       }
@@ -231,14 +295,19 @@ export class GameScene extends Container {
       projectile.update(deltaTime);
     }
 
-    // 5. 적 업데이트
+    // 5. 경험치 젬 업데이트
+    for (const gem of this.experienceGems) {
+      gem.update(deltaTime, this.player);
+    }
+
+    // 6. 적 업데이트
     for (const enemy of this.enemies) {
       const playerPos = { x: this.player.x, y: this.player.y };
       enemy.setTarget(playerPos);
       enemy.update(deltaTime);
     }
 
-    // 6. 적 스폰
+    // 7. 적 스폰
     this.spawnSystem.update(deltaTime, this.enemies, this.gameTime);
 
     // 새로 생성된 적 게임 레이어에 추가
@@ -248,17 +317,17 @@ export class GameScene extends Container {
       }
     }
 
-    // 7. 전투 시스템 (충돌 및 데미지)
+    // 8. 전투 시스템 (충돌 및 데미지)
     const killed = this.combatSystem.update(this.player, this.enemies, this.projectiles);
     this.enemiesKilled += killed;
 
-    // 8. 정리 (죽은 엔티티 제거)
+    // 9. 정리 (죽은 엔티티 제거)
     this.cleanup();
 
-    // 9. UI 업데이트
+    // 10. UI 업데이트
     this.updateUI();
 
-    // 10. 난이도 증가 (10초마다)
+    // 11. 난이도 증가 (10초마다)
     if (Math.floor(this.gameTime) % 10 === 0 && this.gameTime > 1) {
       // 스폰 속도 증가 (중복 방지를 위해 소수점 체크)
       if (this.gameTime % 1 < deltaTime * 2) {
@@ -266,7 +335,7 @@ export class GameScene extends Container {
       }
     }
 
-    // 11. 게임 오버 체크
+    // 12. 게임 오버 체크
     if (!this.player.isAlive() && !this.isGameOver) {
       this.handleGameOver();
     }
@@ -297,6 +366,18 @@ export class GameScene extends Container {
       }
     }
     this.projectiles = activeProjectiles;
+
+    // 비활성 경험치 젬 제거
+    const activeGems: ExperienceGem[] = [];
+    for (const gem of this.experienceGems) {
+      if (!gem.active) {
+        this.gameLayer.removeChild(gem);
+        gem.destroy();
+      } else {
+        activeGems.push(gem);
+      }
+    }
+    this.experienceGems = activeGems;
   }
 
   /**
@@ -313,6 +394,69 @@ export class GameScene extends Container {
     const minutes = Math.floor(this.gameTime / 60);
     const seconds = Math.floor(this.gameTime % 60);
     this.timeText.text = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    // 레벨
+    this.levelText.text = `Lv.${this.player.getLevel()}`;
+
+    // 경험치 바
+    const progress = this.player.getLevelProgress();
+    this.xpBarFill.clear();
+    this.xpBarFill.beginFill(0x00ff00);
+    this.xpBarFill.drawRect(0, 0, 300 * progress, 15);
+    this.xpBarFill.endFill();
+  }
+
+  /**
+   * 레벨업 선택 처리
+   */
+  private handleLevelUpChoice(choiceId: string): void {
+    console.log(`선택됨: ${choiceId}`);
+
+    // Player의 선택 처리 호출 (게임 재개)
+    this.player.selectLevelUpChoice(choiceId);
+
+    // 선택 적용
+    if (choiceId.startsWith('weapon_')) {
+      // 무기 추가
+      this.addWeapon(choiceId);
+    } else if (choiceId.startsWith('stat_')) {
+      // 스탯 업그레이드
+      this.player.applyStatUpgrade(choiceId);
+    }
+  }
+
+  /**
+   * 무기 추가
+   */
+  private addWeapon(weaponId: string): void {
+    console.log(`무기 추가: ${weaponId}`);
+
+    // TODO: 각 무기별 인스턴스 생성
+    switch (weaponId) {
+      case 'weapon_talisman': {
+        // 이미 부적이 있으면 업그레이드, 없으면 추가
+        const existingTalisman = this.weapons.find((w) => w instanceof Talisman);
+        if (existingTalisman) {
+          console.log('부적 업그레이드! (레벨 시스템 미구현)');
+        } else {
+          const talisman = new Talisman();
+          this.weapons.push(talisman);
+          console.log('부적 무기 추가 완료!');
+        }
+        break;
+      }
+      case 'weapon_dokkaebi':
+        console.log('도깨비불 무기는 아직 미구현입니다.');
+        break;
+      case 'weapon_moktak':
+        console.log('목탁 소리 무기는 아직 미구현입니다.');
+        break;
+      case 'weapon_jakdu':
+        console.log('작두날 무기는 아직 미구현입니다.');
+        break;
+      default:
+        console.warn(`알 수 없는 무기: ${weaponId}`);
+    }
   }
 
   /**
@@ -368,6 +512,9 @@ export class GameScene extends Container {
     }
     for (const proj of this.projectiles) {
       proj.destroy();
+    }
+    for (const gem of this.experienceGems) {
+      gem.destroy();
     }
 
     // 부모 destroy
