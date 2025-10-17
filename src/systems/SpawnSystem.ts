@@ -151,4 +151,12 @@ export class SpawnSystem {
     );
     console.log(`스폰 간격 감소: ${this.spawnInterval.toFixed(1)}초`);
   }
+
+  /**
+   * 화면 크기 업데이트 (리사이즈 시)
+   */
+  public updateScreenSize(width: number, height: number): void {
+    this.screenWidth = width;
+    this.screenHeight = height;
+  }
 }

@@ -93,13 +93,24 @@ export class Player extends Container {
   private async loadSprite(): Promise<void> {
     try {
       const texture = await Assets.load('/assets/shaman.png');
+
+      // 로드 중 destroy될 수 있으므로 체크
+      if (this.destroyed) {
+        console.log('Player destroyed during sprite load');
+        return;
+      }
+
       this.sprite = new Sprite(texture);
       this.sprite.anchor.set(0.5); // 중심점을 중앙으로
-      this.addChildAt(this.sprite, 0); // 그래픽보다 아래에 추가
+
+      // graphics 아래에 추가되도록 보장
+      const graphicsIndex = this.getChildIndex(this.graphics);
+      this.addChildAt(this.sprite, Math.max(0, graphicsIndex));
+
       this.render();
     } catch (error) {
-      console.warn('Failed to load player sprite:', error);
-      // 스프라이트 로드 실패 시 기본 그래픽 사용
+      console.error('Failed to load player sprite:', error);
+      // 폴백: 기본 그래픽 렌더링 유지
     }
   }
 

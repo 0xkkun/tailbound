@@ -96,6 +96,7 @@ export class GameScene extends Container {
     this.initGame();
     this.initUI();
     this.setupInput();
+    this.setupResize();
 
     // 게임 루프 시작
     this.startGameLoop();
@@ -255,6 +256,34 @@ export class GameScene extends Container {
     this.once('destroyed', () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+    });
+  }
+
+  /**
+   * 화면 리사이즈 처리
+   */
+  private setupResize(): void {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      this.screenWidth = width;
+      this.screenHeight = height;
+
+      // 시스템 업데이트
+      this.cameraSystem.updateScreenSize(width, height);
+      this.spawnSystem.updateScreenSize(width, height);
+      this.virtualJoystick?.updateScreenSize(width, height);
+
+      // UI 요소 위치 조정
+      this.timeText.x = width / 2;
+
+      console.log(`화면 크기 변경: ${width}x${height}`);
+    };
+
+    window.addEventListener('resize', handleResize);
+    this.once('destroyed', () => {
+      window.removeEventListener('resize', handleResize);
     });
   }
 

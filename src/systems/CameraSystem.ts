@@ -29,6 +29,24 @@ export class CameraSystem {
   public y: number = 0;
 
   constructor(config: CameraConfig) {
+    // 입력 검증
+    if (config.screenWidth <= 0 || config.screenHeight <= 0) {
+      throw new Error(`Invalid screen dimensions: ${config.screenWidth}x${config.screenHeight}`);
+    }
+    if (config.worldWidth <= 0 || config.worldHeight <= 0) {
+      throw new Error(`Invalid world dimensions: ${config.worldWidth}x${config.worldHeight}`);
+    }
+    if (config.worldWidth < config.screenWidth) {
+      console.warn(
+        `World width (${config.worldWidth}) is smaller than screen width (${config.screenWidth}). Camera clamping may behave unexpectedly.`
+      );
+    }
+    if (config.worldHeight < config.screenHeight) {
+      console.warn(
+        `World height (${config.worldHeight}) is smaller than screen height (${config.screenHeight}). Camera clamping may behave unexpectedly.`
+      );
+    }
+
     this.screenWidth = config.screenWidth;
     this.screenHeight = config.screenHeight;
     this.worldWidth = config.worldWidth;

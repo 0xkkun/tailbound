@@ -127,10 +127,10 @@ export const SPAWN_BALANCE = {
 
   // 그룹 스폰 설정
   minGroupSize: 1, // 그룹당 최소 적 수
-  maxGroupSize: 4, // 그룹당 최대 적 수
-  minGroups: 2, // 최소 그룹 수
-  maxGroups: 4, // 최대 그룹 수
-  clusterRadius: 100, // 그룹 내 적들의 퍼짐 정도
+  maxGroupSize: 2, // 그룹당 최대 적 수
+  minGroups: 1, // 최소 그룹 수
+  maxGroups: 2, // 최대 그룹 수
+  clusterRadius: 200, // 그룹 내 적들의 퍼짐 정도
   groupIncreaseInterval: 60, // 초 단위, 그룹 수 증가 주기
 } as const;
 
