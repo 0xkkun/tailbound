@@ -160,8 +160,9 @@ export class ExperienceGem extends Container {
     const dy = player.y - this.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // 자석 범위 체크 (80픽셀) - 한번 수집 시작하면 계속 추적
-    if (!this.isBeingCollected && distance < XP_BALANCE.pickupRadius) {
+    // 자석 범위 체크 (기본 80픽셀 * 플레이어 배율) - 한번 수집 시작하면 계속 추적
+    const effectivePickupRadius = XP_BALANCE.pickupRadius * player.pickupRangeMultiplier;
+    if (!this.isBeingCollected && distance < effectivePickupRadius) {
       this.isBeingCollected = true;
     }
 

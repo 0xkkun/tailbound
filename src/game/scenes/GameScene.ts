@@ -8,6 +8,7 @@ import { Enemy } from '@/game/entities/Enemy';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { Player } from '@/game/entities/Player';
 import { Projectile } from '@/game/entities/Projectile';
+import { LevelUpUI } from '@/game/ui/LevelUpUI';
 import { Talisman } from '@/game/weapons/Talisman';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { SpawnSystem } from '@/systems/SpawnSystem';
@@ -54,6 +55,7 @@ export class GameScene extends Container {
   private levelText!: Text;
   private xpBarBg!: Graphics;
   private xpBarFill!: Graphics;
+  private levelUpUI!: LevelUpUI;
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
@@ -97,6 +99,12 @@ export class GameScene extends Container {
     // 플레이어 생성
     this.player = new Player(this.screenWidth / 2, this.screenHeight / 2);
     this.gameLayer.addChild(this.player);
+
+    // 플레이어 레벨업 콜백 설정
+    this.player.onLevelUp = (level, choices) => {
+      console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
+      this.levelUpUI.show(choices);
+    };
 
     // 초기 무기: 부적
     const talisman = new Talisman();
@@ -174,6 +182,15 @@ export class GameScene extends Container {
     this.xpBarFill.x = 20;
     this.xpBarFill.y = 125;
     this.uiLayer.addChild(this.xpBarFill);
+
+    // 레벨업 UI
+    this.levelUpUI = new LevelUpUI();
+    this.uiLayer.addChild(this.levelUpUI);
+
+    // 레벨업 UI 선택 콜백
+    this.levelUpUI.onChoiceSelected = (choiceId: string) => {
+      this.handleLevelUpChoice(choiceId);
+    };
   }
 
   /**
@@ -240,6 +257,11 @@ export class GameScene extends Container {
       return;
     }
 
+    // 레벨업 UI가 표시 중이면 게임 일시정지
+    if (this.levelUpUI.visible) {
+      return;
+    }
+
     // 게임 시간 증가
     this.gameTime += deltaTime;
 
@@ -253,12 +275,16 @@ export class GameScene extends Container {
 
     // 3. 무기 업데이트 및 발사
     for (const weapon of this.weapons) {
-      weapon.update(deltaTime);
+      // 쿨다운 배율 적용 (쿨타임이 낮을수록 빠르게 발사)
+      const effectiveDeltaTime = deltaTime / this.player.cooldownMultiplier;
+      weapon.update(effectiveDeltaTime);
 
       // 발사
       const playerPos = { x: this.player.x, y: this.player.y };
       const newProjectiles = weapon.fire(playerPos, this.enemies);
       for (const proj of newProjectiles) {
+        // 공격력 배율 적용
+        proj.damage *= this.player.damageMultiplier;
         this.projectiles.push(proj);
         this.gameLayer.addChild(proj);
       }
@@ -378,6 +404,59 @@ export class GameScene extends Container {
     this.xpBarFill.beginFill(0x00ff00);
     this.xpBarFill.drawRect(0, 0, 300 * progress, 15);
     this.xpBarFill.endFill();
+  }
+
+  /**
+   * 레벨업 선택 처리
+   */
+  private handleLevelUpChoice(choiceId: string): void {
+    console.log(`선택됨: ${choiceId}`);
+
+    // Player의 선택 처리 호출 (게임 재개)
+    this.player.selectLevelUpChoice(choiceId);
+
+    // 선택 적용
+    if (choiceId.startsWith('weapon_')) {
+      // 무기 추가
+      this.addWeapon(choiceId);
+    } else if (choiceId.startsWith('stat_')) {
+      // 스탯 업그레이드
+      this.player.applyStatUpgrade(choiceId);
+    }
+  }
+
+  /**
+   * 무기 추가
+   */
+  private addWeapon(weaponId: string): void {
+    console.log(`무기 추가: ${weaponId}`);
+
+    // TODO: 각 무기별 인스턴스 생성
+    switch (weaponId) {
+      case 'weapon_talisman': {
+        // 이미 부적이 있으면 업그레이드, 없으면 추가
+        const existingTalisman = this.weapons.find((w) => w instanceof Talisman);
+        if (existingTalisman) {
+          console.log('부적 업그레이드! (레벨 시스템 미구현)');
+        } else {
+          const talisman = new Talisman();
+          this.weapons.push(talisman);
+          console.log('부적 무기 추가 완료!');
+        }
+        break;
+      }
+      case 'weapon_dokkaebi':
+        console.log('도깨비불 무기는 아직 미구현입니다.');
+        break;
+      case 'weapon_moktak':
+        console.log('목탁 소리 무기는 아직 미구현입니다.');
+        break;
+      case 'weapon_jakdu':
+        console.log('작두날 무기는 아직 미구현입니다.');
+        break;
+      default:
+        console.warn(`알 수 없는 무기: ${weaponId}`);
+    }
   }
 
   /**

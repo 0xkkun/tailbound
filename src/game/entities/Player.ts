@@ -18,6 +18,19 @@ export class Player extends Container {
   public maxHealth: number = PLAYER_BALANCE.health;
   public speed: number = PLAYER_BALANCE.speed;
 
+  // 스탯 배율 (업그레이드로 증가)
+  public damageMultiplier: number = 1.0;
+  public speedMultiplier: number = 1.0;
+  public cooldownMultiplier: number = 1.0;
+  public pickupRangeMultiplier: number = 1.0;
+
+  // 스탯 상한선
+  private readonly MAX_DAMAGE_MULTIPLIER = 5.0; // 500% (5배)
+  private readonly MAX_SPEED_MULTIPLIER = 2.0; // 200% (2배)
+  private readonly MIN_COOLDOWN_MULTIPLIER = 0.3; // 30% (쿨타임 70% 감소)
+  private readonly MAX_PICKUP_MULTIPLIER = 5.0; // 500% (5배)
+  private readonly MAX_HEALTH = 500; // 최대 체력
+
   // 레벨 시스템
   private levelSystem: LevelSystem;
   private levelText: Text;
@@ -119,6 +132,95 @@ export class Player extends Container {
   }
 
   /**
+   * 스탯 업그레이드 적용
+   */
+  public applyStatUpgrade(statId: string): void {
+    // 스탯 ID 파싱 (예: stat_damage_common -> damage, common)
+    const parts = statId.split('_');
+    if (parts.length !== 3 || parts[0] !== 'stat') {
+      console.warn(`Invalid stat ID: ${statId}`);
+      return;
+    }
+
+    const statType = parts[1]; // damage, speed, cooldown, health, pickup
+    const rarity = parts[2]; // common, rare, epic
+
+    // 등급별 증가량 정의
+    const increments: Record<string, Record<string, number>> = {
+      damage: { common: 0.02, rare: 0.05, epic: 0.1 },
+      speed: { common: 0.03, rare: 0.07, epic: 0.15 },
+      cooldown: { common: 0.02, rare: 0.05, epic: 0.1 },
+      health: { common: 5, rare: 15, epic: 30 },
+      pickup: { common: 0.05, rare: 0.15, epic: 0.3 },
+    };
+
+    const increment = increments[statType]?.[rarity];
+    if (increment === undefined) {
+      console.warn(`Unknown stat type or rarity: ${statType}, ${rarity}`);
+      return;
+    }
+
+    // 스탯 적용 (상한선 체크)
+    switch (statType) {
+      case 'damage':
+        if (this.damageMultiplier >= this.MAX_DAMAGE_MULTIPLIER) {
+          console.log(`⚠️ 공격력이 최대치입니다! (${this.MAX_DAMAGE_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.damageMultiplier = Math.min(
+          this.damageMultiplier + increment,
+          this.MAX_DAMAGE_MULTIPLIER
+        );
+        console.log(`⚔️ 공격력 증가! ${(this.damageMultiplier * 100).toFixed(0)}%`);
+        break;
+      case 'speed':
+        if (this.speedMultiplier >= this.MAX_SPEED_MULTIPLIER) {
+          console.log(`⚠️ 이동 속도가 최대치입니다! (${this.MAX_SPEED_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.speedMultiplier = Math.min(
+          this.speedMultiplier + increment,
+          this.MAX_SPEED_MULTIPLIER
+        );
+        console.log(`🏃 이동 속도 증가! ${(this.speedMultiplier * 100).toFixed(0)}%`);
+        break;
+      case 'cooldown':
+        if (this.cooldownMultiplier <= this.MIN_COOLDOWN_MULTIPLIER) {
+          console.log(`⚠️ 쿨타임이 최소치입니다! (${this.MIN_COOLDOWN_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.cooldownMultiplier = Math.max(
+          this.cooldownMultiplier - increment,
+          this.MIN_COOLDOWN_MULTIPLIER
+        );
+        console.log(`⚡ 쿨타임 감소! ${(this.cooldownMultiplier * 100).toFixed(0)}%`);
+        break;
+      case 'health': {
+        if (this.maxHealth >= this.MAX_HEALTH) {
+          console.log(`⚠️ 최대 체력이 한계입니다! (${this.MAX_HEALTH})`);
+          return;
+        }
+        const healthIncrease = Math.min(increment, this.MAX_HEALTH - this.maxHealth);
+        this.maxHealth += healthIncrease;
+        this.health = Math.min(this.health + healthIncrease, this.maxHealth); // 회복 효과도
+        console.log(`❤️ 최대 체력 증가! ${this.maxHealth}`);
+        break;
+      }
+      case 'pickup':
+        if (this.pickupRangeMultiplier >= this.MAX_PICKUP_MULTIPLIER) {
+          console.log(`⚠️ 획득 범위가 최대치입니다! (${this.MAX_PICKUP_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.pickupRangeMultiplier = Math.min(
+          this.pickupRangeMultiplier + increment,
+          this.MAX_PICKUP_MULTIPLIER
+        );
+        console.log(`🧲 획득 범위 증가! ${(this.pickupRangeMultiplier * 100).toFixed(0)}%`);
+        break;
+    }
+  }
+
+  /**
    * 레벨업 효과
    */
   private playLevelUpEffect(): void {
@@ -172,8 +274,10 @@ export class Player extends Container {
       const normalizedX = length > 0 ? this.currentInput.x / length : 0;
       const normalizedY = length > 0 ? this.currentInput.y / length : 0;
 
-      this.x += normalizedX * this.speed * deltaTime;
-      this.y += normalizedY * this.speed * deltaTime;
+      // 스피드 배율 적용
+      const effectiveSpeed = this.speed * this.speedMultiplier;
+      this.x += normalizedX * effectiveSpeed * deltaTime;
+      this.y += normalizedY * effectiveSpeed * deltaTime;
     }
 
     // 렌더링 업데이트 (무적 시간 깜빡임)
