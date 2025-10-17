@@ -92,6 +92,17 @@ export class GameScene extends Container {
       worldHeight: GAME_CONFIG.world.height,
     });
 
+    // 비동기 초기화 시작
+    this.initAsync();
+  }
+
+  /**
+   * 비동기 초기화 (스프라이트 preload 포함)
+   */
+  private async initAsync(): Promise<void> {
+    // 적 스프라이트 미리 로드
+    await Enemy.preloadSprites();
+
     // 게임 초기화
     this.initGame();
     this.initUI();
@@ -607,6 +618,9 @@ export class GameScene extends Container {
 
     // 가상 조이스틱 정리
     this.virtualJoystick?.destroy();
+
+    // Static 캐시 정리 (게임 종료 시)
+    Enemy.clearCache();
 
     // 부모 destroy
     super.destroy({ children: true });

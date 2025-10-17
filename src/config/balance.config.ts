@@ -28,6 +28,7 @@ export const ENEMY_BALANCE = {
     damage: 10,
     radius: 30,
     xpDrop: 5,
+    animationSpeed: 0.15,
   },
   // 정예 적 (추후 구현)
   elite: {
@@ -36,6 +37,7 @@ export const ENEMY_BALANCE = {
     damage: 20,
     radius: 40,
     xpDrop: 25,
+    animationSpeed: 0.2,
   },
   // 보스 적 (추후 구현)
   boss: {
@@ -44,6 +46,7 @@ export const ENEMY_BALANCE = {
     damage: 30,
     radius: 60,
     xpDrop: 100,
+    animationSpeed: 0.25,
   },
 } as const;
 
