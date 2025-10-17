@@ -120,10 +120,18 @@ export const WEAPON_BALANCE = {
  * 스폰 밸런스
  */
 export const SPAWN_BALANCE = {
-  initialInterval: 2.0, // 초기 스폰 간격 (초)
-  minInterval: 0.5, // 최소 스폰 간격
-  intervalReduction: 0.1, // 난이도 증가 시 감소량
-  spawnMargin: 50, // 화면 밖 스폰 마진
+  initialInterval: 3.0, // 초기 웨이브 간격 (초)
+  minInterval: 1.0, // 최소 웨이브 간격
+  intervalReduction: 0.15, // 난이도 증가 시 감소량
+  spawnMargin: 100, // 화면 밖 스폰 마진
+
+  // 그룹 스폰 설정
+  minGroupSize: 1, // 그룹당 최소 적 수
+  maxGroupSize: 4, // 그룹당 최대 적 수
+  minGroups: 2, // 최소 그룹 수
+  maxGroups: 4, // 최대 그룹 수
+  clusterRadius: 100, // 그룹 내 적들의 퍼짐 정도
+  groupIncreaseInterval: 60, // 초 단위, 그룹 수 증가 주기
 } as const;
 
 /**

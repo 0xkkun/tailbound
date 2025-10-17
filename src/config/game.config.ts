@@ -10,6 +10,12 @@ export const GAME_CONFIG = {
     backgroundColor: 0x0a0a15,
   },
 
+  // 월드(맵) 설정
+  world: {
+    width: 3200, // 맵 너비 (화면의 약 2.5배)
+    height: 2400, // 맵 높이 (화면의 약 3.3배)
+  },
+
   // 게임 시간
   time: {
     victoryTime: 600, // 10분 생존 시 승리

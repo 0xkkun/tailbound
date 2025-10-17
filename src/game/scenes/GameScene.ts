@@ -4,12 +4,14 @@
 
 import { Container, Graphics, Text } from 'pixi.js';
 
+import { GAME_CONFIG } from '@/config/game.config';
 import { Enemy } from '@/game/entities/Enemy';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { Player } from '@/game/entities/Player';
 import { Projectile } from '@/game/entities/Projectile';
 import { LevelUpUI } from '@/game/ui/LevelUpUI';
 import { Talisman } from '@/game/weapons/Talisman';
+import { CameraSystem } from '@/systems/CameraSystem';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { SpawnSystem } from '@/systems/SpawnSystem';
 import type { GameResult, InputState } from '@/types/game.types';
@@ -35,6 +37,7 @@ export class GameScene extends Container {
   // 시스템
   private combatSystem: CombatSystem;
   private spawnSystem: SpawnSystem;
+  private cameraSystem: CameraSystem;
 
   // 게임 상태
   private gameTime: number = 0;
@@ -74,7 +77,18 @@ export class GameScene extends Container {
 
     // 시스템 초기화
     this.combatSystem = new CombatSystem();
-    this.spawnSystem = new SpawnSystem(screenWidth, screenHeight);
+    this.spawnSystem = new SpawnSystem(
+      GAME_CONFIG.world.width,
+      GAME_CONFIG.world.height,
+      screenWidth,
+      screenHeight
+    );
+    this.cameraSystem = new CameraSystem({
+      screenWidth,
+      screenHeight,
+      worldWidth: GAME_CONFIG.world.width,
+      worldHeight: GAME_CONFIG.world.height,
+    });
 
     // 게임 초기화
     this.initGame();
@@ -89,15 +103,20 @@ export class GameScene extends Container {
    * 게임 초기화
    */
   private initGame(): void {
-    // 배경
+    // 월드 배경
     const bg = new Graphics();
-    bg.beginFill(0x0a0a15);
-    bg.drawRect(0, 0, this.screenWidth, this.screenHeight);
-    bg.endFill();
+    bg.rect(0, 0, GAME_CONFIG.world.width, GAME_CONFIG.world.height);
+    bg.fill(0x0a0a15);
     this.gameLayer.addChild(bg);
 
-    // 플레이어 생성
-    this.player = new Player(this.screenWidth / 2, this.screenHeight / 2);
+    // 월드 경계선 (시각화용)
+    const border = new Graphics();
+    border.rect(0, 0, GAME_CONFIG.world.width, GAME_CONFIG.world.height);
+    border.stroke({ width: 4, color: 0x444444 });
+    this.gameLayer.addChild(border);
+
+    // 플레이어 생성 (월드 중앙에)
+    this.player = new Player(GAME_CONFIG.world.width / 2, GAME_CONFIG.world.height / 2);
     this.gameLayer.addChild(this.player);
 
     // 플레이어 레벨업 콜백 설정
@@ -170,9 +189,8 @@ export class GameScene extends Container {
 
     // 경험치 바 배경
     this.xpBarBg = new Graphics();
-    this.xpBarBg.beginFill(0x333333);
-    this.xpBarBg.drawRect(0, 0, 300, 15);
-    this.xpBarBg.endFill();
+    this.xpBarBg.rect(0, 0, 300, 15);
+    this.xpBarBg.fill(0x333333);
     this.xpBarBg.x = 20;
     this.xpBarBg.y = 125;
     this.uiLayer.addChild(this.xpBarBg);
@@ -271,9 +289,13 @@ export class GameScene extends Container {
 
     // 2. 플레이어 업데이트
     this.player.update(deltaTime);
-    this.player.clampToScreen(this.screenWidth, this.screenHeight);
+    this.player.clampToScreen(GAME_CONFIG.world.width, GAME_CONFIG.world.height);
 
-    // 3. 무기 업데이트 및 발사
+    // 3. 카메라 업데이트 (플레이어 추적)
+    this.cameraSystem.followTarget(this.player.x, this.player.y);
+    this.cameraSystem.applyToContainer(this.gameLayer);
+
+    // 4. 무기 업데이트 및 발사
     for (const weapon of this.weapons) {
       // 쿨다운 배율 적용 (쿨타임이 낮을수록 빠르게 발사)
       const effectiveDeltaTime = deltaTime / this.player.cooldownMultiplier;
@@ -290,25 +312,26 @@ export class GameScene extends Container {
       }
     }
 
-    // 4. 투사체 업데이트
+    // 5. 투사체 업데이트
     for (const projectile of this.projectiles) {
       projectile.update(deltaTime);
     }
 
-    // 5. 경험치 젬 업데이트
+    // 6. 경험치 젬 업데이트
     for (const gem of this.experienceGems) {
       gem.update(deltaTime, this.player);
     }
 
-    // 6. 적 업데이트
+    // 7. 적 업데이트
     for (const enemy of this.enemies) {
       const playerPos = { x: this.player.x, y: this.player.y };
       enemy.setTarget(playerPos);
       enemy.update(deltaTime);
     }
 
-    // 7. 적 스폰
-    this.spawnSystem.update(deltaTime, this.enemies, this.gameTime);
+    // 8. 적 스폰 (플레이어 위치 기준)
+    const playerPos = { x: this.player.x, y: this.player.y };
+    this.spawnSystem.update(deltaTime, this.enemies, this.gameTime, playerPos);
 
     // 새로 생성된 적 게임 레이어에 추가
     for (const enemy of this.enemies) {
@@ -317,17 +340,17 @@ export class GameScene extends Container {
       }
     }
 
-    // 8. 전투 시스템 (충돌 및 데미지)
+    // 9. 전투 시스템 (충돌 및 데미지)
     const killed = this.combatSystem.update(this.player, this.enemies, this.projectiles);
     this.enemiesKilled += killed;
 
-    // 9. 정리 (죽은 엔티티 제거)
+    // 10. 정리 (죽은 엔티티 제거)
     this.cleanup();
 
-    // 10. UI 업데이트
+    // 11. UI 업데이트
     this.updateUI();
 
-    // 11. 난이도 증가 (10초마다)
+    // 12. 난이도 증가 (10초마다)
     if (Math.floor(this.gameTime) % 10 === 0 && this.gameTime > 1) {
       // 스폰 속도 증가 (중복 방지를 위해 소수점 체크)
       if (this.gameTime % 1 < deltaTime * 2) {
@@ -335,7 +358,7 @@ export class GameScene extends Container {
       }
     }
 
-    // 12. 게임 오버 체크
+    // 13. 게임 오버 체크
     if (!this.player.isAlive() && !this.isGameOver) {
       this.handleGameOver();
     }
@@ -356,7 +379,7 @@ export class GameScene extends Container {
     // 비활성 투사체 제거
     const activeProjectiles: Projectile[] = [];
     for (const proj of this.projectiles) {
-      if (!proj.active || proj.isOutOfBounds(this.screenWidth, this.screenHeight)) {
+      if (!proj.active || proj.isOutOfBounds(GAME_CONFIG.world.width, GAME_CONFIG.world.height)) {
         // 비활성화된 투사체 제거
         this.gameLayer.removeChild(proj);
         proj.destroy();
@@ -401,9 +424,8 @@ export class GameScene extends Container {
     // 경험치 바
     const progress = this.player.getLevelProgress();
     this.xpBarFill.clear();
-    this.xpBarFill.beginFill(0x00ff00);
-    this.xpBarFill.drawRect(0, 0, 300 * progress, 15);
-    this.xpBarFill.endFill();
+    this.xpBarFill.rect(0, 0, 300 * progress, 15);
+    this.xpBarFill.fill(0x00ff00);
   }
 
   /**

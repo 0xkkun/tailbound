@@ -12,6 +12,7 @@ import { Weapon } from './Weapon';
 
 export class Talisman extends Weapon {
   private projectileCount: number = 0;
+  private readonly MAX_FIRE_RANGE = 600; // 최대 발사 거리 (화면 크기 정도)
 
   constructor() {
     const stats = calculateWeaponStats('talisman', 1);
@@ -59,7 +60,7 @@ export class Talisman extends Weapon {
   }
 
   /**
-   * 가장 가까운 적 찾기
+   * 가장 가까운 적 찾기 (범위 내에서만)
    */
   private findClosestEnemy(playerPos: Vector2, enemies: Enemy[]): Enemy | null {
     if (enemies.length === 0) {
@@ -76,7 +77,9 @@ export class Talisman extends Weapon {
 
       const enemyPos = { x: enemy.x, y: enemy.y };
       const distance = getDistance(playerPos, enemyPos);
-      if (distance < minDistance) {
+
+      // 최대 발사 거리 내에 있고, 가장 가까운 적만 선택
+      if (distance <= this.MAX_FIRE_RANGE && distance < minDistance) {
         minDistance = distance;
         closest = enemy;
       }
