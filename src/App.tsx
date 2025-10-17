@@ -1,4 +1,4 @@
-import I18nExample from '@components/I18nExample';
+// import I18nExample from '@components/I18nExample';
 import { Application, extend } from '@pixi/react';
 import { Container } from 'pixi.js';
 
@@ -13,7 +13,7 @@ extend({
 export default function App() {
   return (
     <>
-      <I18nExample />
+      {/* <I18nExample /> */}
       {/* We'll wrap our components with an <Application> component to provide
           the Pixi.js Application context */}
       <Application background={'#1a1a2e'} resizeTo={window}>

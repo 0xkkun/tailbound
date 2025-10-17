@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useApplication } from '@pixi/react';
-import { Container, Graphics, Text } from 'pixi.js';
 
+import { GameScene } from '../game/scenes/GameScene';
 import { LobbyScene } from '../game/scenes/LobbyScene';
 import { useGameState } from '../hooks/useGameState';
 
@@ -9,6 +9,7 @@ export const GameContainer = () => {
   const { app } = useApplication();
   const { gamePhase, startGame } = useGameState();
   const lobbySceneRef = useRef<LobbyScene | null>(null);
+  const gameSceneRef = useRef<GameScene | null>(null);
 
   // 화면 리사이즈 처리
   useEffect(() => {
@@ -60,35 +61,28 @@ export const GameContainer = () => {
         }
       };
     } else if (gamePhase === 'playing') {
-      // Game scene (placeholder for now)
+      // Game scene
       console.log('게임 시작됨!');
 
-      // Create a simple placeholder for the game scene
-      const gameContainer = new Container();
+      // Create GameScene
+      const gameScene = new GameScene(app.screen.width, app.screen.height);
 
-      // Add background
-      const bg = new Graphics();
-      bg.beginFill(0x0a0a15);
-      bg.drawRect(0, 0, app.screen.width, app.screen.height);
-      bg.endFill();
-      gameContainer.addChild(bg);
+      // Connect game over callback
+      gameScene.onGameOver = (result) => {
+        console.log('게임 오버!', result);
+        // TODO: 게임 오버 처리 (로비로 돌아가기 등)
+        // setGamePhase('lobby'); 등
+      };
 
-      // Add placeholder text
-      const placeholderText = new Text('게임 화면 (구현 예정)', {
-        fontFamily: 'Nanum Gothic',
-        fontSize: 48,
-        fill: 0xffffff,
-      });
-      placeholderText.anchor.set(0.5);
-      placeholderText.x = app.screen.width / 2;
-      placeholderText.y = app.screen.height / 2;
-      gameContainer.addChild(placeholderText);
-
-      app.stage.addChild(gameContainer);
+      app.stage.addChild(gameScene);
+      gameSceneRef.current = gameScene;
 
       return () => {
-        gameContainer.destroy({ children: true });
-        app.stage.removeChild(gameContainer);
+        if (gameSceneRef.current) {
+          gameSceneRef.current.destroy();
+          app.stage.removeChild(gameSceneRef.current);
+          gameSceneRef.current = null;
+        }
       };
     }
   }, [gamePhase, startGame, app]);

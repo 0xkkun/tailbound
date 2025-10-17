@@ -1,0 +1,99 @@
+/**
+ * 부적 무기 (투사체 발사)
+ */
+
+import { calculateWeaponStats } from '@/game/data/weapons';
+import type { Enemy } from '@/game/entities/Enemy';
+import { Projectile } from '@/game/entities/Projectile';
+import { getDirection, getDistance } from '@/game/utils/collision';
+import type { Vector2 } from '@/types/game.types';
+
+import { Weapon } from './Weapon';
+
+export class Talisman extends Weapon {
+  private projectileCount: number = 0;
+
+  constructor() {
+    const stats = calculateWeaponStats('talisman', 1);
+    super('부적', stats.damage, stats.cooldown);
+  }
+
+  /**
+   * 발사
+   */
+  public fire(playerPos: Vector2, enemies: Enemy[]): Projectile[] {
+    if (!this.canFire()) {
+      return [];
+    }
+
+    const projectiles: Projectile[] = [];
+
+    // 가장 가까운 적 찾기
+    const target = this.findClosestEnemy(playerPos, enemies);
+
+    if (!target) {
+      // 적이 없으면 발사하지 않음
+      return [];
+    }
+
+    // 타겟을 향한 방향 계산
+    const targetPos = { x: target.x, y: target.y };
+    const direction = getDirection(playerPos, targetPos);
+
+    // 투사체 생성
+    const projectile = new Projectile(
+      `talisman_${this.projectileCount++}`,
+      playerPos.x,
+      playerPos.y,
+      direction,
+      0xffff00 // 노란색
+    );
+
+    projectile.damage = this.damage;
+    projectiles.push(projectile);
+
+    // 쿨다운 리셋
+    this.resetCooldown();
+
+    return projectiles;
+  }
+
+  /**
+   * 가장 가까운 적 찾기
+   */
+  private findClosestEnemy(playerPos: Vector2, enemies: Enemy[]): Enemy | null {
+    if (enemies.length === 0) {
+      return null;
+    }
+
+    let closest: Enemy | null = null;
+    let minDistance = Infinity;
+
+    for (const enemy of enemies) {
+      if (!enemy.active || !enemy.isAlive()) {
+        continue;
+      }
+
+      const enemyPos = { x: enemy.x, y: enemy.y };
+      const distance = getDistance(playerPos, enemyPos);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closest = enemy;
+      }
+    }
+
+    return closest;
+  }
+
+  /**
+   * 레벨업
+   */
+  public levelUp(): void {
+    super.levelUp();
+
+    // 레벨에 따른 스탯 재계산
+    const stats = calculateWeaponStats('talisman', this.level);
+    this.damage = stats.damage;
+    this.cooldown = stats.cooldown;
+  }
+}
