@@ -2,32 +2,27 @@
  * 게임 씬 - 메인 게임 로직
  */
 
-import { Container, Graphics, Text } from 'pixi.js';
+import { Graphics, Text } from 'pixi.js';
 
 import { GAME_CONFIG } from '@/config/game.config';
 import { BaseEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { Player } from '@/game/entities/Player';
+import { Portal } from '@/game/entities/Portal';
 import { Projectile } from '@/game/entities/Projectile';
 import { LevelUpUI } from '@/game/ui/LevelUpUI';
-import { VirtualJoystick } from '@/game/ui/VirtualJoystick';
+import { PortalIndicator } from '@/game/ui/PortalIndicator';
 import { Talisman } from '@/game/weapons/Talisman';
-import { CameraSystem } from '@/systems/CameraSystem';
+import type { PlayerSnapshot } from '@/hooks/useGameState';
 import { CombatSystem } from '@/systems/CombatSystem';
+import { PortalSpawner } from '@/systems/PortalSpawner';
 import { SpawnSystem } from '@/systems/SpawnSystem';
-import type { GameResult, InputState } from '@/types/game.types';
+import type { GameResult } from '@/types/game.types';
 
-export class GameScene extends Container {
-  // 화면 크기
-  private screenWidth: number;
-  private screenHeight: number;
+import { BaseGameScene } from './BaseGameScene';
 
-  // 레이어
-  private gameLayer: Container;
-  private uiLayer: Container;
-
+export class OverworldGameScene extends BaseGameScene {
   // 엔티티
-  private player!: Player;
   private enemies: BaseEnemy[] = [];
   private projectiles: Projectile[] = [];
   private experienceGems: ExperienceGem[] = [];
@@ -38,19 +33,17 @@ export class GameScene extends Container {
   // 시스템
   private combatSystem: CombatSystem;
   private spawnSystem: SpawnSystem;
-  private cameraSystem: CameraSystem;
+  private portalSpawner: PortalSpawner;
+
+  // 포탈
+  private portal: Portal | null = null;
+  private portalSpawnTriggered: boolean = false;
 
   // 게임 상태
   private gameTime: number = 0;
   private enemiesKilled: number = 0;
   private isGameOver: boolean = false;
-
-  // 게임 루프
-  private gameLoopId?: number;
-  private lastTime: number = 0;
-
-  // 입력 상태
-  private keys: Set<string> = new Set();
+  private bossDefeated: boolean = false; // 보스 처치 여부
 
   // UI 요소
   private healthText!: Text;
@@ -60,79 +53,69 @@ export class GameScene extends Container {
   private xpBarBg!: Graphics;
   private xpBarFill!: Graphics;
   private levelUpUI!: LevelUpUI;
-  private virtualJoystick?: VirtualJoystick;
+  private portalIndicator!: PortalIndicator;
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
+  public onEnterBoundary?: () => void;
 
-  constructor(screenWidth: number, screenHeight: number) {
-    super();
-
-    this.screenWidth = screenWidth;
-    this.screenHeight = screenHeight;
-
-    // 레이어 초기화
-    this.gameLayer = new Container();
-    this.uiLayer = new Container();
-    this.addChild(this.gameLayer);
-    this.addChild(this.uiLayer);
+  constructor(screenWidth: number, screenHeight: number, playerSnapshot?: PlayerSnapshot | null) {
+    super({
+      screenWidth,
+      screenHeight,
+      worldWidth: GAME_CONFIG.world.overworld.width,
+      worldHeight: GAME_CONFIG.world.overworld.height,
+      playerSnapshot,
+    });
 
     // 시스템 초기화
     this.combatSystem = new CombatSystem();
     this.spawnSystem = new SpawnSystem(
-      GAME_CONFIG.world.width,
-      GAME_CONFIG.world.height,
+      GAME_CONFIG.world.overworld.width,
+      GAME_CONFIG.world.overworld.height,
       screenWidth,
       screenHeight
     );
-    this.cameraSystem = new CameraSystem({
-      screenWidth,
-      screenHeight,
-      worldWidth: GAME_CONFIG.world.width,
-      worldHeight: GAME_CONFIG.world.height,
-    });
-
-    // 비동기 초기화 시작
-    this.initAsync();
+    this.portalSpawner = new PortalSpawner();
   }
 
   /**
-   * 비동기 초기화 (스프라이트 preload 포함)
+   * 에셋 로딩 오버라이드 (적 스프라이트 추가 로딩)
    */
-  private async initAsync(): Promise<void> {
+  protected async loadAssets(): Promise<void> {
+    await super.loadAssets();
     // 모든 적 타입 스프라이트 미리 로드
     await Promise.all([SkeletonEnemy.preloadSprites(), TigerEnemy.preloadSprites()]);
-
-    // 게임 초기화
-    this.initGame();
-    this.initUI();
-    this.setupInput();
-    this.setupResize();
-
-    // 게임 루프 시작
-    this.startGameLoop();
   }
 
   /**
-   * 게임 초기화
+   * 플레이어 생성 (BaseGameScene abstract 메서드 구현)
    */
-  private initGame(): void {
+  protected createPlayer(): void {
     // 월드 배경
     const bg = new Graphics();
-    bg.rect(0, 0, GAME_CONFIG.world.width, GAME_CONFIG.world.height);
+    bg.rect(0, 0, GAME_CONFIG.world.overworld.width, GAME_CONFIG.world.overworld.height);
     bg.fill(0x0a0a15);
     this.gameLayer.addChild(bg);
 
     // 월드 경계선 (시각화용)
     const border = new Graphics();
-    border.rect(0, 0, GAME_CONFIG.world.width, GAME_CONFIG.world.height);
+    border.rect(0, 0, GAME_CONFIG.world.overworld.width, GAME_CONFIG.world.overworld.height);
     border.stroke({ width: 4, color: 0x444444 });
     this.gameLayer.addChild(border);
 
     // 플레이어 생성 (월드 중앙에)
-    this.player = new Player(GAME_CONFIG.world.width / 2, GAME_CONFIG.world.height / 2);
+    this.player = new Player(
+      GAME_CONFIG.world.overworld.width / 2,
+      GAME_CONFIG.world.overworld.height / 2
+    );
     this.gameLayer.addChild(this.player);
+  }
 
+  /**
+   * 씬 초기화 (BaseGameScene abstract 메서드 구현)
+   */
+  protected async initScene(): Promise<void> {
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
       console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
@@ -149,6 +132,17 @@ export class GameScene extends Container {
       this.experienceGems.push(gem);
       this.gameLayer.addChild(gem);
     };
+
+    // UI 초기화
+    this.initUI();
+
+    // 개발 환경: 5초 후 자동으로 보스 처치 이벤트 발생
+    if (import.meta.env.DEV) {
+      setTimeout(() => {
+        console.log('[DEV] 자동 보스 처치 (5초 후)');
+        this.handleBossDefeat();
+      }, 5000);
+    }
 
     console.log('게임 시작!');
   }
@@ -224,130 +218,15 @@ export class GameScene extends Container {
       this.handleLevelUpChoice(choiceId);
     };
 
-    // 모바일 감지 및 가상 조이스틱 초기화
-    if (this.isMobileDevice()) {
-      this.virtualJoystick = new VirtualJoystick(this.screenWidth, this.screenHeight);
-      this.uiLayer.addChild(this.virtualJoystick.getContainer());
-      console.log('가상 조이스틱 활성화 (모바일 디바이스 감지)');
-    }
+    // 포탈 인디케이터
+    this.portalIndicator = new PortalIndicator();
+    this.uiLayer.addChild(this.portalIndicator);
   }
 
   /**
-   * 모바일 디바이스 감지
+   * 씬 업데이트 (BaseGameScene abstract 메서드 구현)
    */
-  private isMobileDevice(): boolean {
-    // 터치 지원 확인
-    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-    // User Agent 확인
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-      userAgent
-    );
-
-    return hasTouch && isMobileUA;
-  }
-
-  /**
-   * 입력 설정
-   */
-  private setupInput(): void {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      this.keys.add(e.key.toLowerCase());
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      this.keys.delete(e.key.toLowerCase());
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    // 정리 시 이벤트 제거
-    this.once('destroyed', () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    });
-  }
-
-  /**
-   * 화면 리사이즈 처리
-   */
-  private setupResize(): void {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-
-      this.screenWidth = width;
-      this.screenHeight = height;
-
-      // 시스템 업데이트
-      this.cameraSystem.updateScreenSize(width, height);
-      this.spawnSystem.updateScreenSize(width, height);
-      this.virtualJoystick?.updateScreenSize(width, height);
-
-      // UI 요소 위치 조정
-      this.timeText.x = width / 2;
-
-      console.log(`화면 크기 변경: ${width}x${height}`);
-    };
-
-    window.addEventListener('resize', handleResize);
-    this.once('destroyed', () => {
-      window.removeEventListener('resize', handleResize);
-    });
-  }
-
-  /**
-   * 입력 상태 계산
-   */
-  private getInputState(): InputState {
-    let x = 0;
-    let y = 0;
-
-    // 조이스틱 입력 (모바일)
-    if (this.virtualJoystick) {
-      const joystickState = this.virtualJoystick.getState();
-      if (joystickState.active) {
-        // 조이스틱이 활성화되어 있으면 조이스틱 입력 사용
-        x = joystickState.x;
-        y = joystickState.y;
-        return { x, y };
-      }
-    }
-
-    // 키보드 입력 (PC)
-    // WASD / 방향키
-    if (this.keys.has('a') || this.keys.has('arrowleft')) x -= 1;
-    if (this.keys.has('d') || this.keys.has('arrowright')) x += 1;
-    if (this.keys.has('w') || this.keys.has('arrowup')) y -= 1;
-    if (this.keys.has('s') || this.keys.has('arrowdown')) y += 1;
-
-    return { x, y };
-  }
-
-  /**
-   * 게임 루프 시작
-   */
-  private startGameLoop(): void {
-    this.lastTime = performance.now();
-
-    const loop = (currentTime: number) => {
-      const deltaTime = (currentTime - this.lastTime) / 1000; // 초 단위
-      this.lastTime = currentTime;
-
-      this.update(deltaTime);
-
-      this.gameLoopId = requestAnimationFrame(loop);
-    };
-
-    this.gameLoopId = requestAnimationFrame(loop);
-  }
-
-  /**
-   * 업데이트
-   */
-  private update(deltaTime: number): void {
+  protected updateScene(deltaTime: number): void {
     if (this.isGameOver) {
       return;
     }
@@ -360,17 +239,8 @@ export class GameScene extends Container {
     // 게임 시간 증가
     this.gameTime += deltaTime;
 
-    // 1. 입력 처리
-    const input = this.getInputState();
-    this.player.setInput(input);
-
-    // 2. 플레이어 업데이트
-    this.player.update(deltaTime);
-    this.player.clampToScreen(GAME_CONFIG.world.width, GAME_CONFIG.world.height);
-
-    // 3. 카메라 업데이트 (플레이어 추적)
-    this.cameraSystem.followTarget(this.player.x, this.player.y);
-    this.cameraSystem.applyToContainer(this.gameLayer);
+    // 1. 플레이어 업데이트 (BaseGameScene의 메서드 사용)
+    this.updatePlayer(deltaTime);
 
     // 4. 무기 업데이트 및 발사
     for (const weapon of this.weapons) {
@@ -427,7 +297,10 @@ export class GameScene extends Container {
     // 11. UI 업데이트
     this.updateUI();
 
-    // 12. 난이도 증가 (10초마다)
+    // 12. 포탈 시스템 업데이트
+    this.updatePortal(deltaTime);
+
+    // 13. 난이도 증가 (10초마다)
     if (Math.floor(this.gameTime) % 10 === 0 && this.gameTime > 1) {
       // 스폰 속도 증가 (중복 방지를 위해 소수점 체크)
       if (this.gameTime % 1 < deltaTime * 2) {
@@ -435,7 +308,7 @@ export class GameScene extends Container {
       }
     }
 
-    // 13. 게임 오버 체크
+    // 14. 게임 오버 체크
     if (!this.player.isAlive() && !this.isGameOver) {
       this.handleGameOver();
     }
@@ -456,7 +329,10 @@ export class GameScene extends Container {
     // 비활성 투사체 제거
     const activeProjectiles: Projectile[] = [];
     for (const proj of this.projectiles) {
-      if (!proj.active || proj.isOutOfBounds(GAME_CONFIG.world.width, GAME_CONFIG.world.height)) {
+      if (
+        !proj.active ||
+        proj.isOutOfBounds(GAME_CONFIG.world.overworld.width, GAME_CONFIG.world.overworld.height)
+      ) {
         // 비활성화된 투사체 제거
         this.gameLayer.removeChild(proj);
         proj.destroy();
@@ -503,6 +379,52 @@ export class GameScene extends Container {
     this.xpBarFill.clear();
     this.xpBarFill.rect(0, 0, 300 * progress, 15);
     this.xpBarFill.fill(0x00ff00);
+  }
+
+  /**
+   * 보스 처치 이벤트 핸들러
+   */
+  private handleBossDefeat(): void {
+    this.bossDefeated = true;
+    console.log('보스 처치! 포탈 생성 준비...');
+  }
+
+  /**
+   * 포탈 시스템 업데이트
+   */
+  private updatePortal(deltaTime: number): void {
+    // 보스 처치 시 포탈 생성
+    if (this.bossDefeated && !this.portalSpawnTriggered) {
+      console.log('포탈 생성!');
+      const newPortal = this.portalSpawner.triggerSpawn(this.player);
+      if (newPortal) {
+        this.portal = newPortal;
+        this.portal.onEnter = () => {
+          console.log('포탈 진입! 경계 맵으로 이동...');
+          this.onEnterBoundary?.();
+        };
+        this.gameLayer.addChild(this.portal);
+      }
+      this.portalSpawnTriggered = true;
+    }
+
+    // 포탈 애니메이션 및 충돌 체크
+    if (this.portal) {
+      this.portal.update(deltaTime);
+      this.portal.checkPlayerCollision(this.player.x, this.player.y);
+
+      // 포탈 인디케이터 업데이트
+      this.portalIndicator.update(
+        this.player.x,
+        this.player.y,
+        this.portal.x,
+        this.portal.y,
+        this.screenWidth,
+        this.screenHeight,
+        this.gameLayer.x,
+        this.gameLayer.y
+      );
+    }
   }
 
   /**
@@ -596,35 +518,39 @@ export class GameScene extends Container {
   }
 
   /**
+   * 화면 크기 업데이트 오버라이드
+   */
+  public updateScreenSize(width: number, height: number): void {
+    super.updateScreenSize(width, height);
+
+    // 씬별 추가 업데이트
+    this.spawnSystem.updateScreenSize(width, height);
+    this.timeText.x = width / 2;
+  }
+
+  /**
    * 정리
    */
   public destroy(): void {
-    // 게임 루프 중지
-    if (this.gameLoopId !== undefined) {
-      cancelAnimationFrame(this.gameLoopId);
+    if (this.isReady) {
+      // 엔티티 정리
+      for (const enemy of this.enemies) {
+        enemy.destroy();
+      }
+      for (const proj of this.projectiles) {
+        proj.destroy();
+      }
+      for (const gem of this.experienceGems) {
+        gem.destroy();
+      }
+
+      // Static 캐시 정리 (게임 종료 시)
+      BaseEnemy.clearAllCaches();
     }
 
-    // 엔티티 정리
-    this.player?.destroy();
-    for (const enemy of this.enemies) {
-      enemy.destroy();
-    }
-    for (const proj of this.projectiles) {
-      proj.destroy();
-    }
-    for (const gem of this.experienceGems) {
-      gem.destroy();
-    }
+    // 부모 destroy 호출
+    super.destroy();
 
-    // 가상 조이스틱 정리
-    this.virtualJoystick?.destroy();
-
-    // Static 캐시 정리 (게임 종료 시)
-    BaseEnemy.clearAllCaches();
-
-    // 부모 destroy
-    super.destroy({ children: true });
-
-    console.log('GameScene 정리 완료');
+    console.log('OverworldGameScene 정리 완료');
   }
 }
