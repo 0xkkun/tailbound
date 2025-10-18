@@ -64,14 +64,11 @@ export class AoEEffect extends Container {
   private render(): void {
     this.circle.clear();
 
-    // 외곽선만 그리기 (채우기 없음)
-    this.circle.lineStyle(4, this.color, 0.8);
-    this.circle.drawCircle(0, 0, this.radius);
-
-    // 또는 반투명 채우기
-    // this.circle.beginFill(this.color, 0.3);
-    // this.circle.drawCircle(0, 0, this.radius);
-    // this.circle.endFill();
+    // 반투명 채우기 + 외곽선
+    this.circle.circle(0, 0, this.radius);
+    this.circle.fill({ color: this.color, alpha: 0.3 });
+    this.circle.circle(0, 0, this.radius);
+    this.circle.stroke({ width: 4, color: this.color, alpha: 0.8 });
   }
 
   /**
