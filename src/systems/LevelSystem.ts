@@ -323,8 +323,11 @@ export class LevelSystem {
       },
     ];
 
-    // 무기와 스탯 업그레이드를 합침
+    // 무기 비율을 높이기 위해 무기를 여러 번 추가 (가중치 효과)
+    // 무기 4개 x 3배 = 12개, 스탯 15개 -> 총 27개 중 무기 비율 44%
     allPossibleChoices.push(...weapons);
+    allPossibleChoices.push(...weapons); // 2번째
+    allPossibleChoices.push(...weapons); // 3번째
     allPossibleChoices.push(...statUpgrades);
 
     // Fisher-Yates 셔플 알고리즘으로 완전한 랜덤 보장
