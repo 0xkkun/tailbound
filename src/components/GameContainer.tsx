@@ -1,15 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { useApplication } from '@pixi/react';
 
-import { GameScene } from '../game/scenes/GameScene';
+import { BoundaryGameScene } from '../game/scenes/game/BoundaryGameScene';
+import { OverworldGameScene } from '../game/scenes/game/OverworldGameScene';
 import { LobbyScene } from '../game/scenes/LobbyScene';
 import { useGameState } from '../hooks/useGameState';
 
 export const GameContainer = () => {
   const { app } = useApplication();
-  const { gamePhase, startGame } = useGameState();
+  const { gamePhase, playerSnapshot, startGame, enterBoundary, continueToStage2 } = useGameState();
   const lobbySceneRef = useRef<LobbyScene | null>(null);
-  const gameSceneRef = useRef<GameScene | null>(null);
+  const overworldSceneRef = useRef<OverworldGameScene | null>(null);
+  const boundarySceneRef = useRef<BoundaryGameScene | null>(null);
 
   // 화면 리사이즈 처리
   useEffect(() => {
@@ -64,28 +66,66 @@ export const GameContainer = () => {
       // Game scene
       console.log('게임 시작됨!');
 
-      // Create GameScene
-      const gameScene = new GameScene(app.screen.width, app.screen.height);
+      // Create OverworldGameScene (playerSnapshot 전달)
+      const overworldScene = new OverworldGameScene(
+        app.screen.width,
+        app.screen.height,
+        playerSnapshot
+      );
 
       // Connect game over callback
-      gameScene.onGameOver = (result) => {
+      overworldScene.onGameOver = (result) => {
         console.log('게임 오버!', result);
         // TODO: 게임 오버 처리 (로비로 돌아가기 등)
         // setGamePhase('lobby'); 등
       };
 
-      app.stage.addChild(gameScene);
-      gameSceneRef.current = gameScene;
+      // Connect boundary enter callback
+      overworldScene.onEnterBoundary = () => {
+        console.log('경계로 진입!');
+        const player = overworldScene.getPlayer();
+        enterBoundary(player);
+      };
+
+      app.stage.addChild(overworldScene);
+      overworldSceneRef.current = overworldScene;
 
       return () => {
-        if (gameSceneRef.current) {
-          gameSceneRef.current.destroy();
-          app.stage.removeChild(gameSceneRef.current);
-          gameSceneRef.current = null;
+        if (overworldSceneRef.current) {
+          overworldSceneRef.current.destroy();
+          app.stage.removeChild(overworldSceneRef.current);
+          overworldSceneRef.current = null;
+        }
+      };
+    } else if (gamePhase === 'boundary') {
+      // Boundary scene
+      console.log('경계 맵 진입!');
+
+      // Create BoundaryGameScene (playerSnapshot 전달)
+      const boundaryScene = new BoundaryGameScene(
+        app.screen.width,
+        app.screen.height,
+        playerSnapshot
+      );
+
+      // 다음 스테이지로 진행 콜백 연결
+      boundaryScene.onContinueToStage2 = () => {
+        console.log('스테이지 2로 진행');
+        continueToStage2();
+      };
+
+      app.stage.addChild(boundaryScene);
+      boundarySceneRef.current = boundaryScene;
+
+      return () => {
+        if (boundarySceneRef.current) {
+          boundarySceneRef.current.destroy();
+          app.stage.removeChild(boundarySceneRef.current);
+          boundarySceneRef.current = null;
         }
       };
     }
-  }, [gamePhase, startGame, app]);
+  }, [gamePhase, playerSnapshot, startGame, enterBoundary, continueToStage2, app]);
 
   return null;
 };
