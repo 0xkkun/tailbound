@@ -12,6 +12,7 @@ export interface KillResult {
   enemy: BaseEnemy;
   position: { x: number; y: number };
   xpValue: number;
+  dropPotion: boolean; // 체력 포션 드랍 여부 (10% 확률)
 }
 
 export class CombatSystem {
@@ -48,11 +49,15 @@ export class CombatSystem {
             // 경험치 값은 enemy 객체에서 직접 가져옴
             const xpValue = enemy.xpDrop;
 
-            // 적 처치 콜백 호출 (경험치 젬 드랍용)
+            // 체력 포션 드랍 확률 (10%)
+            const dropPotion = Math.random() < 0.1;
+
+            // 적 처치 콜백 호출 (경험치 젬 및 포션 드랍용)
             this.onEnemyKilled?.({
               enemy,
               position: { x: enemy.x, y: enemy.y },
               xpValue,
+              dropPotion,
             });
           }
 
