@@ -14,18 +14,17 @@ export class OrbitalEntity extends Container {
   public damage: number = 10;
   public radius: number = 15; // 엔티티 크기 (충돌 판정)
 
-  private angle: number; // 현재 각도 (라디안)
+  private orbitAngle: number; // 현재 각도 (라디안)
   private angularSpeed: number; // 회전 속도 (rad/s)
   private orbitRadius: number; // 궤도 반경
 
   // 시각화
   private orb: Graphics | Sprite;
-  private texture: any = null;
 
   constructor(angle: number, orbitRadius: number, angularSpeed: number, color: number = 0x00ffff) {
     super();
 
-    this.angle = angle;
+    this.orbitAngle = angle;
     this.orbitRadius = orbitRadius;
     this.angularSpeed = angularSpeed;
 
@@ -42,16 +41,16 @@ export class OrbitalEntity extends Container {
    */
   public update(deltaTime: number, player: Player): void {
     // 각도 증가 (반시계 방향)
-    this.angle += this.angularSpeed * deltaTime;
+    this.orbitAngle += this.angularSpeed * deltaTime;
 
     // 각도가 2π를 넘으면 정규화
-    if (this.angle > Math.PI * 2) {
-      this.angle -= Math.PI * 2;
+    if (this.orbitAngle > Math.PI * 2) {
+      this.orbitAngle -= Math.PI * 2;
     }
 
     // 위치 계산 (플레이어 중심으로 회전)
-    this.x = player.x + Math.cos(this.angle) * this.orbitRadius;
-    this.y = player.y + Math.sin(this.angle) * this.orbitRadius;
+    this.x = player.x + Math.cos(this.orbitAngle) * this.orbitRadius;
+    this.y = player.y + Math.sin(this.orbitAngle) * this.orbitRadius;
 
     // 회전 애니메이션 (선택)
     this.rotation += deltaTime * 2;
@@ -62,13 +61,13 @@ export class OrbitalEntity extends Container {
    */
   public async loadTexture(path: string): Promise<void> {
     try {
-      this.texture = await Assets.load(path);
+      const loadedTexture = await Assets.load(path);
 
       // Graphics 제거하고 Sprite로 교체
       this.removeChild(this.orb);
       (this.orb as Graphics).destroy();
 
-      this.orb = new Sprite(this.texture);
+      this.orb = new Sprite(loadedTexture);
       (this.orb as Sprite).anchor.set(0.5);
       this.addChild(this.orb);
 

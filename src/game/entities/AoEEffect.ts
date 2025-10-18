@@ -89,6 +89,13 @@ export class AoEEffect extends Container {
   }
 
   /**
+   * 피해를 줬다고 표시 (별칭)
+   */
+  public markEnemyHit(): void {
+    this.markAsHit();
+  }
+
+  /**
    * 정리
    */
   public destroy(): void {
