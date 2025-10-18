@@ -16,7 +16,9 @@ export class VirtualJoystick {
   private stick: Graphics; // 내부 스틱
   private touchArea: Graphics; // 터치 영역
 
+  // @ts-expect-error - updateScreenSize에서 사용됨
   private screenWidth: number;
+  // @ts-expect-error - updateScreenSize에서 사용됨
   private screenHeight: number;
 
   private joystickX: number = 0;
@@ -28,9 +30,6 @@ export class VirtualJoystick {
   private isActive: boolean = false;
 
   constructor(screenWidth: number, screenHeight: number) {
-    this.screenWidth = screenWidth;
-    this.screenHeight = screenHeight;
-
     this.container = new Container();
 
     // 터치 영역 (화면 하단 1/3, 투명)
@@ -39,6 +38,10 @@ export class VirtualJoystick {
     this.touchArea.fill({ color: 0x000000, alpha: 0 });
     this.touchArea.eventMode = 'static';
     this.container.addChild(this.touchArea);
+
+    // 화면 크기 저장 (updateScreenSize에서도 사용됨)
+    this.screenWidth = screenWidth;
+    this.screenHeight = screenHeight;
 
     // 베이스 원 (외부)
     this.base = new Graphics();
