@@ -69,6 +69,7 @@ export class LevelSystem {
   private currentXP: number = 0;
   private totalXP: number = 0;
   private isPaused: boolean = false;
+  private pendingLevelUps: number = 0; // 대기 중인 레벨업 수
 
   // 콜백
   public onLevelUp?: (level: number, choices: LevelUpChoice[]) => void;
@@ -86,6 +87,7 @@ export class LevelSystem {
     this.currentXP = 0;
     this.totalXP = 0;
     this.isPaused = false;
+    this.pendingLevelUps = 0;
   }
 
   /**
@@ -122,37 +124,46 @@ export class LevelSystem {
 
     console.log(i18n.t('level.levelUp', { level: this.level }));
 
-    // 레벨업 선택지 생성
-    const choices = this.generateLevelUpChoices();
-
-    // TODO: 레벨업 UI 구현 전까지는 일시정지 비활성화
-    // 레벨업 선택지를 콘솔에 출력
-    console.log(i18n.t('level.choicesTitle'));
-    choices.forEach((choice, index) => {
-      console.log(
-        i18n.t('level.choiceFormat', {
-          index: index + 1,
-          rarity: choice.rarity,
-          name: choice.name,
-          description: choice.description,
-        })
-      );
-    });
-    console.log('====================');
-
-    // 게임 일시정지 (선택 UI 표시 중)
-    // TODO: 레벨업 UI 구현 시 활성화
-    // this.pause();
-
-    // 레벨업 콜백 호출
-    this.onLevelUp?.(this.level, choices);
-
-    // 추가 레벨업 체크 (남은 경험치로)
-    if (this.level < GAME_CONFIG.levelUp.maxLevel) {
+    // 추가 레벨업 체크 (남은 경험치로) - 먼저 모든 레벨업 처리
+    let additionalLevelUps = 0;
+    while (this.level < GAME_CONFIG.levelUp.maxLevel) {
       const nextRequired = getRequiredXP(this.level + 1);
       if (this.currentXP >= nextRequired) {
-        this.levelUp();
+        this.currentXP -= nextRequired;
+        this.level++;
+        additionalLevelUps++;
+        console.log(i18n.t('level.levelUp', { level: this.level }));
+      } else {
+        break;
       }
+    }
+
+    // 대기 중인 레벨업이 없으면 첫 번째 레벨업 UI 표시
+    if (this.pendingLevelUps === 0) {
+      // 레벨업 선택지 생성
+      const choices = this.generateLevelUpChoices();
+
+      console.log(i18n.t('level.choicesTitle'));
+      choices.forEach((choice, index) => {
+        console.log(
+          i18n.t('level.choiceFormat', {
+            index: index + 1,
+            rarity: choice.rarity,
+            name: choice.name,
+            description: choice.description,
+          })
+        );
+      });
+      console.log('====================');
+
+      // 레벨업 콜백 호출
+      this.onLevelUp?.(this.level, choices);
+
+      // 추가 레벨업이 있으면 대기열에 추가
+      this.pendingLevelUps = additionalLevelUps;
+    } else {
+      // 이미 UI가 표시 중이면 대기열에 추가
+      this.pendingLevelUps += 1 + additionalLevelUps;
     }
   }
 
@@ -340,8 +351,32 @@ export class LevelSystem {
     // - 스탯 증가
     // - 체력 회복 등
 
-    // 게임 재개
-    this.resume();
+    // 대기 중인 레벨업이 있으면 다음 레벨업 UI 표시
+    if (this.pendingLevelUps > 0) {
+      this.pendingLevelUps--;
+
+      // 다음 레벨업 선택지 생성
+      const choices = this.generateLevelUpChoices();
+
+      console.log(i18n.t('level.choicesTitle'));
+      choices.forEach((choice, index) => {
+        console.log(
+          i18n.t('level.choiceFormat', {
+            index: index + 1,
+            rarity: choice.rarity,
+            name: choice.name,
+            description: choice.description,
+          })
+        );
+      });
+      console.log('====================');
+
+      // 레벨업 콜백 호출 (다음 레벨업 UI 표시)
+      this.onLevelUp?.(this.level, choices);
+    } else {
+      // 대기 중인 레벨업이 없으면 게임 재개
+      this.resume();
+    }
   }
 
   /**
