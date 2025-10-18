@@ -2,7 +2,7 @@
  * 무기 베이스 클래스
  */
 
-import type { Enemy } from '@/game/entities/Enemy';
+import type { BaseEnemy } from '@/game/entities/enemies';
 import type { Projectile } from '@/game/entities/Projectile';
 import type { Vector2 } from '@/types/game.types';
 
@@ -42,7 +42,7 @@ export abstract class Weapon {
    * 무기 발사 (추상 메서드)
    * @returns 생성된 투사체 배열
    */
-  public abstract fire(playerPos: Vector2, enemies: Enemy[]): Projectile[];
+  public abstract fire(playerPos: Vector2, enemies: BaseEnemy[]): Projectile[];
 
   /**
    * 쿨다운 리셋

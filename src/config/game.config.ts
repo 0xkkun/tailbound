@@ -10,6 +10,25 @@ export const GAME_CONFIG = {
     backgroundColor: 0x0a0a15,
   },
 
+  // 월드(맵) 설정
+  world: {
+    // 상계 (Overworld) - 전투 맵
+    overworld: {
+      width: 3200, // 맵 너비 (화면의 약 2.5배)
+      height: 2400, // 맵 높이 (화면의 약 3.3배)
+    },
+    // 경계 (Boundary) - NPC 상호작용 맵
+    boundary: {
+      width: 1200,
+      height: 900,
+    },
+    // 하계 (Underworld) - 추후 구현
+    underworld: {
+      width: 3200,
+      height: 2400,
+    },
+  },
+
   // 게임 시간
   time: {
     victoryTime: 600, // 10분 생존 시 승리
@@ -38,5 +57,20 @@ export const GAME_CONFIG = {
   ui: {
     healthBarHeight: 4,
     healthBarOffset: -40,
+  },
+
+  // 인터랙션 설정
+  interaction: {
+    npcProximityRadius: 100, // NPC와의 상호작용 거리
+    portalCollisionRadius: 80, // 포탈 충돌 감지 거리
+  },
+
+  // 포탈 설정
+  portal: {
+    spawnDistanceMin: 400, // 플레이어로부터 최소 거리
+    spawnDistanceMax: 600, // 플레이어로부터 최대 거리
+    radius: 80, // 포탈 크기
+    animationSpeed: 2.0, // 회전 속도
+    pulseSpeed: 3.0, // 펄스 속도
   },
 } as const;

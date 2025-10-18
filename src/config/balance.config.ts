@@ -28,6 +28,7 @@ export const ENEMY_BALANCE = {
     damage: 10,
     radius: 30,
     xpDrop: 5,
+    animationSpeed: 0.15,
   },
   // 정예 적 (추후 구현)
   elite: {
@@ -36,6 +37,7 @@ export const ENEMY_BALANCE = {
     damage: 20,
     radius: 40,
     xpDrop: 25,
+    animationSpeed: 0.2,
   },
   // 보스 적 (추후 구현)
   boss: {
@@ -44,6 +46,7 @@ export const ENEMY_BALANCE = {
     damage: 30,
     radius: 60,
     xpDrop: 100,
+    animationSpeed: 0.25,
   },
 } as const;
 
@@ -120,10 +123,18 @@ export const WEAPON_BALANCE = {
  * 스폰 밸런스
  */
 export const SPAWN_BALANCE = {
-  initialInterval: 2.0, // 초기 스폰 간격 (초)
-  minInterval: 0.5, // 최소 스폰 간격
-  intervalReduction: 0.1, // 난이도 증가 시 감소량
-  spawnMargin: 50, // 화면 밖 스폰 마진
+  initialInterval: 3.0, // 초기 웨이브 간격 (초)
+  minInterval: 1.0, // 최소 웨이브 간격
+  intervalReduction: 0.15, // 난이도 증가 시 감소량
+  spawnMargin: 100, // 화면 밖 스폰 마진
+
+  // 그룹 스폰 설정
+  minGroupSize: 1, // 그룹당 최소 적 수
+  maxGroupSize: 2, // 그룹당 최대 적 수
+  minGroups: 1, // 최소 그룹 수
+  maxGroups: 2, // 최대 그룹 수
+  clusterRadius: 200, // 그룹 내 적들의 퍼짐 정도
+  groupIncreaseInterval: 60, // 초 단위, 그룹 수 증가 주기
 } as const;
 
 /**
