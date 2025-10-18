@@ -12,8 +12,8 @@ import type { Vector2 } from '@/types/game.types';
 import type { EnemySpriteCache, EnemySpriteConfig } from './EnemySprite';
 
 export abstract class BaseEnemy extends Container {
-  // Static 텍스처 캐시는 각 서브클래스가 관리
-  protected static spriteCache: Map<string, EnemySpriteCache> = new Map();
+  // Static 텍스처 캐시 - 모든 적 타입이 공유
+  private static spriteCache: Map<string, EnemySpriteCache> = new Map();
 
   public id: string;
   public active: boolean = true;
@@ -98,7 +98,7 @@ export abstract class BaseEnemy extends Container {
     let cache = BaseEnemy.spriteCache.get(enemyType);
 
     // 이미 로드 완료되었으면 즉시 반환
-    if (cache?.frames !== null) {
+    if (cache?.frames && cache.frames.length > 0) {
       return;
     }
 
@@ -176,11 +176,9 @@ export abstract class BaseEnemy extends Container {
     const enemyType = this.getEnemyType();
     const cache = BaseEnemy.spriteCache.get(enemyType);
 
-    // 캐시된 프레임이 없으면 스킵 (기본 그래픽 사용)
-    if (!cache || !cache.frames || cache.frames.length === 0) {
-      if (import.meta.env.DEV) {
-        console.warn(`[${enemyType} ${this.id}] No cached sprite frames available`);
-      }
+    // 캐시가 없거나 프레임이 없으면 스킵 (기본 그래픽 사용)
+    if (!cache || cache.isLoading || !cache.frames || cache.frames.length === 0) {
+      console.error(`[${enemyType} ${this.id}] Failed to load sprite:`, cache);
       return;
     }
 

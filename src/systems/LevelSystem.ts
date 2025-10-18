@@ -389,6 +389,21 @@ export class LevelSystem {
     return this.totalXP;
   }
 
+  /**
+   * totalXP 설정 (스테이지 전환 시 복원용)
+   */
+  public setTotalXP(xp: number): void {
+    this.totalXP = xp;
+    this.level = calculateLevel(xp);
+
+    // currentXP 재계산
+    let accumulated = 0;
+    for (let lv = 1; lv < this.level; lv++) {
+      accumulated += getRequiredXP(lv + 1);
+    }
+    this.currentXP = xp - accumulated;
+  }
+
   public isPausedForLevelUp(): boolean {
     return this.isPaused;
   }
