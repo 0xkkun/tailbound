@@ -67,6 +67,8 @@ export class OverworldGameScene extends BaseGameScene {
   private xpBarFill!: Graphics;
   private levelUpUI!: LevelUpUI;
   private portalIndicator!: PortalIndicator;
+  private settingsButton!: Container;
+  private settingsMenu: Container | null = null;
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
@@ -182,7 +184,10 @@ export class OverworldGameScene extends BaseGameScene {
    * UI 초기화
    */
   private initUI(): void {
-    // 체력 텍스트
+    // zIndex 정렬 활성화
+    this.uiLayer.sortableChildren = true;
+
+    // 체력 텍스트 (톱니바퀴 아래)
     this.healthText = new Text('HP: 100/100', {
       fontFamily: 'Arial',
       fontSize: 24,
@@ -190,7 +195,7 @@ export class OverworldGameScene extends BaseGameScene {
       fontWeight: 'bold',
     });
     this.healthText.x = 20;
-    this.healthText.y = 20;
+    this.healthText.y = 50; // 톱니바퀴 아래로 이동
     this.uiLayer.addChild(this.healthText);
 
     // 점수 텍스트
@@ -200,7 +205,7 @@ export class OverworldGameScene extends BaseGameScene {
       fill: 0xffffff,
     });
     this.scoreText.x = 20;
-    this.scoreText.y = 55;
+    this.scoreText.y = 85; // 아래로 이동
     this.uiLayer.addChild(this.scoreText);
 
     // 시간 텍스트
@@ -223,7 +228,7 @@ export class OverworldGameScene extends BaseGameScene {
       fontWeight: 'bold',
     });
     this.levelText.x = 20;
-    this.levelText.y = 90;
+    this.levelText.y = 110;
     this.uiLayer.addChild(this.levelText);
 
     // 경험치 바 배경
@@ -231,7 +236,7 @@ export class OverworldGameScene extends BaseGameScene {
     this.xpBarBg.rect(0, 0, 300, 15);
     this.xpBarBg.fill(0x333333);
     this.xpBarBg.x = 20;
-    this.xpBarBg.y = 125;
+    this.xpBarBg.y = 145;
     this.uiLayer.addChild(this.xpBarBg);
 
     // 경험치 바 채우기
@@ -252,6 +257,10 @@ export class OverworldGameScene extends BaseGameScene {
     // 포탈 인디케이터
     this.portalIndicator = new PortalIndicator();
     this.uiLayer.addChild(this.portalIndicator);
+
+    // 설정 버튼 (우측 상단)
+    this.settingsButton = this.createSettingsButton();
+    this.uiLayer.addChild(this.settingsButton);
   }
 
   /**
@@ -886,6 +895,150 @@ export class OverworldGameScene extends BaseGameScene {
   }
 
   /**
+   * 설정 버튼 생성 (좌측 상단)
+   */
+  private createSettingsButton(): Container {
+    const buttonContainer = new Container();
+    buttonContainer.x = 30; // 왼쪽 상단 (경험치 바 옆)
+    buttonContainer.y = 30;
+    buttonContainer.zIndex = 1000; // 다른 UI보다 위에
+
+    // 설정 아이콘 (톱니바퀴 이모지)
+    const icon = new Text({
+      text: '⚙️',
+      style: {
+        fontSize: 40,
+      },
+    });
+    icon.anchor.set(0.5);
+    buttonContainer.addChild(icon);
+
+    // 인터랙션 활성화
+    buttonContainer.eventMode = 'static';
+    buttonContainer.cursor = 'pointer';
+
+    // 호버 효과
+    buttonContainer.on('pointerover', () => {
+      buttonContainer.scale.set(1.1);
+    });
+
+    buttonContainer.on('pointerout', () => {
+      buttonContainer.scale.set(1.0);
+    });
+
+    // 클릭 시 설정 메뉴 토글
+    buttonContainer.on('pointerdown', () => {
+      console.log('설정 버튼 클릭!');
+      this.toggleSettingsMenu();
+    });
+
+    return buttonContainer;
+  }
+
+  /**
+   * 설정 메뉴 토글
+   */
+  private toggleSettingsMenu(): void {
+    if (this.settingsMenu) {
+      // 메뉴 닫기
+      this.uiLayer.removeChild(this.settingsMenu);
+      this.settingsMenu.destroy();
+      this.settingsMenu = null;
+    } else {
+      // 메뉴 열기
+      this.settingsMenu = this.createSettingsMenu();
+      this.uiLayer.addChild(this.settingsMenu);
+    }
+  }
+
+  /**
+   * 설정 메뉴 생성
+   */
+  private createSettingsMenu(): Container {
+    const menuContainer = new Container();
+    menuContainer.zIndex = 9999;
+
+    const centerX = this.screenWidth / 2;
+    const centerY = this.screenHeight / 2;
+
+    // 반투명 오버레이
+    const overlay = new Graphics();
+    overlay.rect(0, 0, this.screenWidth, this.screenHeight);
+    overlay.fill({ color: 0x000000, alpha: 0.7 });
+    overlay.eventMode = 'static'; // 클릭 차단
+    menuContainer.addChild(overlay);
+
+    // 메뉴 배경
+    const menuBg = new Graphics();
+    menuBg.rect(centerX - 200, centerY - 150, 400, 300);
+    menuBg.fill(0x2a2a2a);
+    menuBg.stroke({ width: 3, color: 0x555555 });
+    menuContainer.addChild(menuBg);
+
+    // 메뉴 제목
+    const titleText = new Text({
+      text: '설정',
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 32,
+        fill: 0xffffff,
+        fontWeight: 'bold',
+      },
+    });
+    titleText.anchor.set(0.5);
+    titleText.x = centerX;
+    titleText.y = centerY - 100;
+    menuContainer.addChild(titleText);
+
+    // 게임 다시하기 버튼
+    const restartButton = this.createButton(
+      '게임 다시하기',
+      centerX,
+      centerY - 20,
+      300,
+      60,
+      0x228b22
+    );
+    restartButton.on('pointerdown', (event) => {
+      console.log('설정 메뉴: 게임 다시하기');
+      event.stopPropagation(); // 이벤트 전파 중단
+      this.toggleSettingsMenu(); // 메뉴 닫기
+      // 약간의 지연 후 실행 (이벤트 전파 방지)
+      setTimeout(() => {
+        this.onRestartGame?.();
+      }, 100);
+    });
+    menuContainer.addChild(restartButton);
+
+    // 로비로 돌아가기 버튼
+    const lobbyButton = this.createButton(
+      '로비로 돌아가기',
+      centerX,
+      centerY + 60,
+      300,
+      60,
+      0x4169e1
+    );
+    lobbyButton.on('pointerdown', (event) => {
+      console.log('설정 메뉴: 로비로 돌아가기');
+      event.stopPropagation(); // 이벤트 전파 중단
+      this.toggleSettingsMenu(); // 메뉴 닫기
+      // 약간의 지연 후 실행 (이벤트 전파 방지)
+      setTimeout(() => {
+        this.onReturnToLobby?.();
+      }, 100);
+    });
+    menuContainer.addChild(lobbyButton);
+
+    // 오버레이 클릭 시 메뉴 닫기
+    overlay.on('pointerdown', () => {
+      this.toggleSettingsMenu();
+    });
+
+    return menuContainer;
+  }
+
+  /**
    * 화면 크기 업데이트 오버라이드
    */
   public updateScreenSize(width: number, height: number): void {
@@ -894,6 +1047,11 @@ export class OverworldGameScene extends BaseGameScene {
     // 씬별 추가 업데이트
     this.spawnSystem.updateScreenSize(width, height);
     this.timeText.x = width / 2;
+
+    // 설정 버튼 위치 업데이트 (왼쪽 상단 고정)
+    if (this.settingsButton) {
+      this.settingsButton.x = 350;
+    }
   }
 
   /**
