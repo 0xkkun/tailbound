@@ -8,7 +8,7 @@ import { useGameState } from '../hooks/useGameState';
 
 export const GameContainer = () => {
   const { app } = useApplication();
-  const { gamePhase, playerSnapshot, startGame, enterBoundary, continueToStage2 } = useGameState();
+  const { gamePhase, playerSnapshot, gameKey, startGame, enterBoundary, continueToStage2, returnToLobby, restartGame } = useGameState();
   const lobbySceneRef = useRef<LobbyScene | null>(null);
   const overworldSceneRef = useRef<OverworldGameScene | null>(null);
   const boundarySceneRef = useRef<BoundaryGameScene | null>(null);
@@ -76,8 +76,18 @@ export const GameContainer = () => {
       // Connect game over callback
       overworldScene.onGameOver = (result) => {
         console.log('게임 오버!', result);
-        // TODO: 게임 오버 처리 (로비로 돌아가기 등)
-        // setGamePhase('lobby'); 등
+      };
+
+      // Connect return to lobby callback
+      overworldScene.onReturnToLobby = () => {
+        console.log('로비로 돌아가기');
+        returnToLobby();
+      };
+
+      // Connect restart game callback
+      overworldScene.onRestartGame = () => {
+        console.log('게임 다시하기');
+        restartGame();
       };
 
       // Connect boundary enter callback
@@ -125,7 +135,7 @@ export const GameContainer = () => {
         }
       };
     }
-  }, [gamePhase, playerSnapshot, startGame, enterBoundary, continueToStage2, app]);
+  }, [gamePhase, playerSnapshot, gameKey, startGame, enterBoundary, continueToStage2, returnToLobby, restartGame, app]);
 
   return null;
 };

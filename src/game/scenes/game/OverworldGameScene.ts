@@ -2,7 +2,7 @@
  * 게임 씬 - 메인 게임 로직
  */
 
-import { Assets, Graphics, Text, TilingSprite } from 'pixi.js';
+import { Assets, Container, Graphics, Text, TilingSprite } from 'pixi.js';
 
 import { POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
@@ -23,6 +23,7 @@ import { MoktakSoundWeapon } from '@/game/weapons/MoktakSoundWeapon';
 import { Talisman } from '@/game/weapons/Talisman';
 import type { Weapon } from '@/game/weapons/Weapon';
 import type { PlayerSnapshot } from '@/hooks/useGameState';
+import i18n from '@/i18n/config';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { PortalSpawner } from '@/systems/PortalSpawner';
 import { SpawnSystem } from '@/systems/SpawnSystem';
@@ -69,6 +70,8 @@ export class OverworldGameScene extends BaseGameScene {
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
+  public onReturnToLobby?: () => void;
+  public onRestartGame?: () => void;
   public onEnterBoundary?: () => void;
 
   constructor(screenWidth: number, screenHeight: number, playerSnapshot?: PlayerSnapshot | null) {
@@ -730,31 +733,156 @@ export class OverworldGameScene extends BaseGameScene {
     console.log(`생존 시간: ${Math.floor(this.gameTime)}초`);
     console.log(`처치한 적: ${this.enemiesKilled}마리`);
 
-    // 게임 오버 UI 표시
-    const gameOverText = new Text('GAME OVER', {
-      fontFamily: 'Arial',
-      fontSize: 72,
-      fill: 0xff0000,
-      fontWeight: 'bold',
+    const centerX = this.screenWidth / 2;
+    const centerY = this.screenHeight / 2;
+
+    // 게임 오버 UI 컨테이너 생성 (최상위 레이어)
+    const gameOverContainer = new Container();
+    gameOverContainer.zIndex = 10000; // 모든 UI보다 위에 표시
+    this.uiLayer.addChild(gameOverContainer);
+
+    // 반투명 오버레이 (다른 UI 클릭 차단)
+    const overlay = new Graphics();
+    overlay.rect(0, 0, this.screenWidth, this.screenHeight);
+    overlay.fill({ color: 0x000000, alpha: 0.8 });
+    overlay.eventMode = 'static'; // 클릭 차단
+    gameOverContainer.addChild(overlay);
+
+    // 게임 오버 타이틀
+    const gameOverText = new Text({
+      text: i18n.t('gameOver.title'),
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 72,
+        fill: 0xff0000,
+        fontWeight: 'bold',
+      },
     });
     gameOverText.anchor.set(0.5);
-    gameOverText.x = this.screenWidth / 2;
-    gameOverText.y = this.screenHeight / 2;
-    this.uiLayer.addChild(gameOverText);
+    gameOverText.x = centerX;
+    gameOverText.y = centerY - 150;
+    gameOverContainer.addChild(gameOverText);
 
-    // 콜백 호출
+    // 생존 시간 표시
+    const timeText = new Text({
+      text: i18n.t('gameOver.survivalTime', { time: Math.floor(this.gameTime) }),
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        fill: 0xffffff,
+      },
+    });
+    timeText.anchor.set(0.5);
+    timeText.x = centerX;
+    timeText.y = centerY - 80;
+    gameOverContainer.addChild(timeText);
+
+    // 처치한 적 표시
+    const killsText = new Text({
+      text: i18n.t('gameOver.enemiesKilled', { count: this.enemiesKilled }),
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        fill: 0xffffff,
+      },
+    });
+    killsText.anchor.set(0.5);
+    killsText.x = centerX;
+    killsText.y = centerY - 40;
+    gameOverContainer.addChild(killsText);
+
+    // 로비로 돌아가기 버튼
+    const lobbyButton = this.createButton(
+      i18n.t('gameOver.returnToLobby'),
+      centerX,
+      centerY + 40,
+      300,
+      60,
+      0x4169e1
+    );
+    lobbyButton.on('pointerdown', () => {
+      console.log('로비로 돌아가기 버튼 클릭!');
+      this.onReturnToLobby?.();
+    });
+    gameOverContainer.addChild(lobbyButton);
+
+    // 게임 다시하기 버튼
+    const restartButton = this.createButton(
+      i18n.t('gameOver.restart'),
+      centerX,
+      centerY + 120,
+      300,
+      60,
+      0x228b22
+    );
+    restartButton.on('pointerdown', () => {
+      console.log('게임 다시하기 버튼 클릭!');
+      this.onRestartGame?.();
+    });
+    gameOverContainer.addChild(restartButton);
+
+    // 게임 오버 결과 콜백
     if (this.onGameOver) {
       const result: GameResult = {
         score: this.enemiesKilled * 100,
         time: Math.floor(this.gameTime),
         enemiesKilled: this.enemiesKilled,
       };
-
-      // 3초 후 콜백 호출
-      setTimeout(() => {
-        this.onGameOver?.(result);
-      }, 3000);
+      this.onGameOver(result);
     }
+  }
+
+  /**
+   * 버튼 생성 헬퍼 함수
+   */
+  private createButton(
+    text: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: number
+  ): Container {
+    const buttonContainer = new Container();
+    buttonContainer.x = x;
+    buttonContainer.y = y;
+
+    // 버튼 배경
+    const bg = new Graphics();
+    bg.rect(-width / 2, -height / 2, width, height);
+    bg.fill(color);
+    buttonContainer.addChild(bg);
+
+    // 버튼 텍스트
+    const buttonText = new Text({
+      text,
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        fill: 0xffffff,
+        fontWeight: 'bold',
+      },
+    });
+    buttonText.anchor.set(0.5);
+    buttonContainer.addChild(buttonText);
+
+    // 인터랙션 활성화
+    buttonContainer.eventMode = 'static';
+    buttonContainer.cursor = 'pointer';
+
+    // 호버 효과
+    buttonContainer.on('pointerover', () => {
+      bg.clear();
+      bg.rect(-width / 2, -height / 2, width, height);
+      bg.fill(color);
+      bg.alpha = 0.8;
+    });
+
+    buttonContainer.on('pointerout', () => {
+      bg.alpha = 1.0;
+    });
+
+    return buttonContainer;
   }
 
   /**
