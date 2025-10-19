@@ -276,6 +276,11 @@ export class OverworldGameScene extends BaseGameScene {
       return;
     }
 
+    // 설정 메뉴가 열려있으면 게임 일시정지
+    if (this.settingsMenu) {
+      return;
+    }
+
     // 게임 시간 증가
     this.gameTime += deltaTime;
 
@@ -970,7 +975,7 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 메뉴 배경
     const menuBg = new Graphics();
-    menuBg.rect(centerX - 200, centerY - 150, 400, 300);
+    menuBg.rect(centerX - 200, centerY - 180, 400, 380);
     menuBg.fill(0x2a2a2a);
     menuBg.stroke({ width: 3, color: 0x555555 });
     menuContainer.addChild(menuBg);
@@ -987,14 +992,30 @@ export class OverworldGameScene extends BaseGameScene {
     });
     titleText.anchor.set(0.5);
     titleText.x = centerX;
-    titleText.y = centerY - 100;
+    titleText.y = centerY - 130;
     menuContainer.addChild(titleText);
+
+    // 게임으로 돌아가기 버튼
+    const resumeButton = this.createButton(
+      '게임으로 돌아가기',
+      centerX,
+      centerY - 60,
+      300,
+      60,
+      0x888888
+    );
+    resumeButton.on('pointerdown', (event) => {
+      console.log('설정 메뉴: 게임으로 돌아가기');
+      event.stopPropagation(); // 이벤트 전파 중단
+      this.toggleSettingsMenu(); // 메뉴 닫기 (게임 재개)
+    });
+    menuContainer.addChild(resumeButton);
 
     // 게임 다시하기 버튼
     const restartButton = this.createButton(
       '게임 다시하기',
       centerX,
-      centerY - 20,
+      centerY + 20,
       300,
       60,
       0x228b22
@@ -1014,7 +1035,7 @@ export class OverworldGameScene extends BaseGameScene {
     const lobbyButton = this.createButton(
       '로비로 돌아가기',
       centerX,
-      centerY + 60,
+      centerY + 100,
       300,
       60,
       0x4169e1
