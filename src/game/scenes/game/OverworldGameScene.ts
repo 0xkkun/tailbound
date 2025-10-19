@@ -4,6 +4,7 @@
 
 import { Graphics, Text } from 'pixi.js';
 
+import { POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
 import { AoEEffect } from '@/game/entities/AoEEffect';
 import { BaseEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
@@ -325,8 +326,8 @@ export class OverworldGameScene extends BaseGameScene {
                 `[AoE] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
               );
 
-              // 체력 포션 드랍 확률 (10%)
-              const dropPotion = Math.random() < 0.1;
+              // 체력 포션 드랍 확률
+              const dropPotion = Math.random() < POTION_BALANCE.dropRate;
 
               this.combatSystem.onEnemyKilled?.({
                 enemy,
@@ -369,8 +370,8 @@ export class OverworldGameScene extends BaseGameScene {
               `[Melee] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
             );
 
-            // 체력 포션 드랍 확률 (10%)
-            const dropPotion = Math.random() < 0.1;
+            // 체력 포션 드랍 확률
+            const dropPotion = Math.random() < POTION_BALANCE.dropRate;
 
             this.combatSystem.onEnemyKilled?.({
               enemy,
@@ -404,8 +405,8 @@ export class OverworldGameScene extends BaseGameScene {
                   `[Orbital] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
                 );
 
-                // 체력 포션 드랍 확률 (10%)
-                const dropPotion = Math.random() < 0.1;
+                // 체력 포션 드랍 확률
+                const dropPotion = Math.random() < POTION_BALANCE.dropRate;
 
                 this.combatSystem.onEnemyKilled?.({
                   enemy,

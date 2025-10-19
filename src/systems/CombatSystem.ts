@@ -2,6 +2,7 @@
  * 전투 시스템 (충돌 감지 및 데미지 처리)
  */
 
+import { POTION_BALANCE } from '@/config/balance.config';
 import type { BaseEnemy } from '@/game/entities/enemies';
 import type { Player } from '@/game/entities/Player';
 import type { Projectile } from '@/game/entities/Projectile';
@@ -49,8 +50,8 @@ export class CombatSystem {
             // 경험치 값은 enemy 객체에서 직접 가져옴
             const xpValue = enemy.xpDrop;
 
-            // 체력 포션 드랍 확률 (10%)
-            const dropPotion = Math.random() < 0.1;
+            // 체력 포션 드랍 확률
+            const dropPotion = Math.random() < POTION_BALANCE.dropRate;
 
             // 적 처치 콜백 호출 (경험치 젬 및 포션 드랍용)
             this.onEnemyKilled?.({

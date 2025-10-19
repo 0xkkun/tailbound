@@ -166,3 +166,14 @@ export const XP_BALANCE = {
   gemLifetime: 120, // 120초(2분) 후 사라짐 - 충분한 시간 제공
   pickupRadius: 80, // 플레이어 근처에서 자동 획득 (50 -> 80으로 증가)
 } as const;
+
+/**
+ * 체력 포션 드랍 밸런스
+ */
+export const POTION_BALANCE = {
+  dropRate: 0.1, // 10% 확률로 드랍
+  healAmount: 0.5, // 최대 체력의 50% 회복
+  attractRadius: 80, // 플레이어 근처에서 자동으로 끌려옴
+  attractSpeed: 300, // 끌려오는 속도
+  radius: 12, // 포션 크기
+} as const;

@@ -7,15 +7,17 @@
 
 import { Container, Sprite, Text } from 'pixi.js';
 
+import { POTION_BALANCE } from '@/config/balance.config';
+
 import type { Player } from './Player';
 
 export class HealthPotion extends Container {
   public active: boolean = true;
-  public radius: number = 12; // 포션 크기
+  public radius: number = POTION_BALANCE.radius;
 
-  private healAmount: number = 0.5; // 50% 회복
-  private attractRadius: number = 80; // 플레이어 근처에서 끌려오는 범위
-  private attractSpeed: number = 300; // 끌려오는 속도 (픽셀/초)
+  private healAmount: number = POTION_BALANCE.healAmount;
+  private attractRadius: number = POTION_BALANCE.attractRadius;
+  private attractSpeed: number = POTION_BALANCE.attractSpeed;
   private isAttracted: boolean = false;
 
   // 시각 효과
