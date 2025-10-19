@@ -242,7 +242,7 @@ export class OverworldGameScene extends BaseGameScene {
     // 경험치 바 채우기
     this.xpBarFill = new Graphics();
     this.xpBarFill.x = 20;
-    this.xpBarFill.y = 125;
+    this.xpBarFill.y = 145;
     this.uiLayer.addChild(this.xpBarFill);
 
     // 레벨업 UI
