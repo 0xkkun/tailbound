@@ -59,6 +59,14 @@ export const GAME_CONFIG = {
     healthBarOffset: -40,
   },
 
+  // 레이어 z-index 설정
+  layers: {
+    game: 0, // 게임 월드 (배경, 엔티티 등)
+    joystick: 10, // 조이스틱 터치 영역
+    ui: 20, // 일반 UI (체력바, 경험치바, 대화창 등)
+    topUI: 30, // 최상위 UI (설정 버튼 등, 모든 터치 이벤트보다 위)
+  },
+
   // 인터랙션 설정
   interaction: {
     npcProximityRadius: 100, // NPC와의 상호작용 거리

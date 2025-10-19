@@ -5,6 +5,7 @@
 
 import { Assets, Container } from 'pixi.js';
 
+import { GAME_CONFIG } from '@/config/game.config';
 import { Player } from '@/game/entities/Player';
 import { VirtualJoystick } from '@/game/ui/VirtualJoystick';
 import type { PlayerSnapshot } from '@/hooks/useGameState';
@@ -55,11 +56,18 @@ export abstract class BaseGameScene extends Container {
     this.worldWidth = config.worldWidth;
     this.worldHeight = config.worldHeight;
 
-    // 레이어 초기화
+    // 레이어 초기화 (z-index 설정)
     this.gameLayer = new Container();
+    this.gameLayer.zIndex = GAME_CONFIG.layers.game; // 게임 월드 (최하위)
+
     this.uiLayer = new Container();
+    this.uiLayer.zIndex = GAME_CONFIG.layers.ui; // UI 레이어 (조이스틱보다 위)
+
     this.addChild(this.gameLayer);
     this.addChild(this.uiLayer);
+
+    // sortableChildren 활성화 (z-index가 작동하도록)
+    this.sortableChildren = true;
 
     // 카메라 시스템 초기화
     this.cameraSystem = new CameraSystem({
