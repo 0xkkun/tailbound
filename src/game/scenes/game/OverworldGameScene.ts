@@ -4,10 +4,12 @@
 
 import { Graphics, Text } from 'pixi.js';
 
+import { POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
 import { AoEEffect } from '@/game/entities/AoEEffect';
 import { BaseEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
+import { HealthPotion } from '@/game/entities/HealthPotion';
 import { MeleeSwing } from '@/game/entities/MeleeSwing';
 import { Player } from '@/game/entities/Player';
 import { Portal } from '@/game/entities/Portal';
@@ -33,6 +35,7 @@ export class OverworldGameScene extends BaseGameScene {
   private enemies: BaseEnemy[] = [];
   private projectiles: Projectile[] = [];
   private experienceGems: ExperienceGem[] = [];
+  private healthPotions: HealthPotion[] = [];
   private aoeEffects: AoEEffect[] = [];
   private meleeSwings: MeleeSwing[] = [];
 
@@ -135,11 +138,19 @@ export class OverworldGameScene extends BaseGameScene {
     const talisman = new Talisman();
     this.weapons.push(talisman);
 
-    // 적 처치 시 경험치 젬 드롭 콜백 설정
+    // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
     this.combatSystem.onEnemyKilled = (result) => {
+      // 경험치 젬 드롭
       const gem = new ExperienceGem(result.position.x, result.position.y, result.xpValue);
       this.experienceGems.push(gem);
       this.gameLayer.addChild(gem);
+
+      // 체력 포션 드롭 (10% 확률)
+      if (result.dropPotion) {
+        const potion = new HealthPotion(result.position.x, result.position.y);
+        this.healthPotions.push(potion);
+        this.gameLayer.addChild(potion);
+      }
     };
 
     // UI 초기화
@@ -315,10 +326,14 @@ export class OverworldGameScene extends BaseGameScene {
                 `[AoE] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
               );
 
+              // 체력 포션 드랍 확률
+              const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
               this.combatSystem.onEnemyKilled?.({
                 enemy,
                 position: { x: enemy.x, y: enemy.y },
                 xpValue: enemy.xpDrop,
+                dropPotion,
               });
             }
           }
@@ -355,10 +370,14 @@ export class OverworldGameScene extends BaseGameScene {
               `[Melee] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
             );
 
+            // 체력 포션 드랍 확률
+            const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
             this.combatSystem.onEnemyKilled?.({
               enemy,
               position: { x: enemy.x, y: enemy.y },
               xpValue: enemy.xpDrop,
+              dropPotion,
             });
           }
         }
@@ -386,10 +405,14 @@ export class OverworldGameScene extends BaseGameScene {
                   `[Orbital] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
                 );
 
+                // 체력 포션 드랍 확률
+                const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
                 this.combatSystem.onEnemyKilled?.({
                   enemy,
                   position: { x: enemy.x, y: enemy.y },
                   xpValue: enemy.xpDrop,
+                  dropPotion,
                 });
               }
             }
@@ -401,6 +424,11 @@ export class OverworldGameScene extends BaseGameScene {
     // 9. 경험치 젬 업데이트
     for (const gem of this.experienceGems) {
       gem.update(deltaTime, this.player);
+    }
+
+    // 9-1. 체력 포션 업데이트
+    for (const potion of this.healthPotions) {
+      potion.update(deltaTime, this.player);
     }
 
     // 10. 적 업데이트
@@ -512,6 +540,18 @@ export class OverworldGameScene extends BaseGameScene {
       }
     }
     this.experienceGems = activeGems;
+
+    // 비활성 체력 포션 제거
+    const activePotions: HealthPotion[] = [];
+    for (const potion of this.healthPotions) {
+      if (!potion.active) {
+        this.gameLayer.removeChild(potion);
+        potion.destroy();
+      } else {
+        activePotions.push(potion);
+      }
+    }
+    this.healthPotions = activePotions;
   }
 
   /**
@@ -747,6 +787,9 @@ export class OverworldGameScene extends BaseGameScene {
       }
       for (const gem of this.experienceGems) {
         gem.destroy();
+      }
+      for (const potion of this.healthPotions) {
+        potion.destroy();
       }
 
       // Static 캐시 정리 (게임 종료 시)
