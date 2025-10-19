@@ -2,9 +2,10 @@
  * 플레이어 엔티티
  */
 
-import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
+import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Text, Texture } from 'pixi.js';
 
 import { PLAYER_BALANCE } from '@/config/balance.config';
+import { PLAYER_SPRITE_CONFIG } from '@/config/sprite.config';
 import { LevelSystem, type LevelUpChoice } from '@/systems/LevelSystem';
 import type { InputState } from '@/types/game.types';
 
@@ -36,11 +37,13 @@ export class Player extends Container {
   private levelText: Text;
 
   // 그래픽스
-  private graphics: Graphics;
-  private sprite?: Sprite;
+  private graphics?: Graphics;
+  private sprite?: AnimatedSprite;
+  private frames: Texture[] = [];
 
   // 입력 상태
   private currentInput: InputState = { x: 0, y: 0 };
+  private lastMovingState: boolean = false;
 
   // 무적 시간 (피격 후)
   private invincibleTime: number = 0;
@@ -63,9 +66,11 @@ export class Player extends Container {
       this.onLevelUp?.(level, choices);
     };
 
-    // 그래픽 생성 (히트박스 표시용, 개발 중에만)
-    this.graphics = new Graphics();
-    this.addChild(this.graphics);
+    // 그래픽 생성 (히트박스 표시용, 개발 모드에서만)
+    if (import.meta.env.DEV) {
+      this.graphics = new Graphics();
+      this.addChild(this.graphics);
+    }
 
     // 스프라이트 비동기 로드
     this.loadSprite();
@@ -84,7 +89,8 @@ export class Player extends Container {
     this.levelText.y = -this.radius - 20;
     this.addChild(this.levelText);
 
-    this.render();
+    // 초기 디버그 렌더링 (스프라이트 로드 전 폴백)
+    this.renderDebug();
   }
 
   /**
@@ -92,7 +98,7 @@ export class Player extends Container {
    */
   private async loadSprite(): Promise<void> {
     try {
-      const texture = await Assets.load('/assets/shaman.png');
+      const texture = await Assets.load('/assets/shaman-walk.png');
 
       // 로드 중 destroy될 수 있으므로 체크
       if (this.destroyed) {
@@ -100,14 +106,48 @@ export class Player extends Container {
         return;
       }
 
-      this.sprite = new Sprite(texture);
+      // 스프라이트시트를 프레임으로 분할 (가로로 나열됨)
+      const frameCount = PLAYER_SPRITE_CONFIG.walk.frameCount;
+      const frameWidth = texture.width / frameCount;
+      const frameHeight = texture.height;
+
+      for (let i = 0; i < frameCount; i++) {
+        const frame = new Texture({
+          source: texture.source,
+          frame: new Rectangle(i * frameWidth, 0, frameWidth, frameHeight),
+        });
+        this.frames.push(frame);
+      }
+
+      // AnimatedSprite 생성
+      this.sprite = new AnimatedSprite(this.frames);
       this.sprite.anchor.set(0.5); // 중심점을 중앙으로
+      this.sprite.animationSpeed = PLAYER_SPRITE_CONFIG.walk.animationSpeed;
+      this.sprite.loop = true;
+      this.sprite.visible = true;
+      this.sprite.alpha = 1.0;
 
       // graphics 아래에 추가되도록 보장
-      const graphicsIndex = this.getChildIndex(this.graphics);
-      this.addChildAt(this.sprite, Math.max(0, graphicsIndex));
+      if (this.graphics) {
+        const graphicsIndex = this.getChildIndex(this.graphics);
+        this.addChildAt(this.sprite, Math.max(0, graphicsIndex));
+      } else {
+        this.addChildAt(this.sprite, 0);
+      }
 
-      this.render();
+      // graphics 정리 (스프라이트가 로드되었으므로)
+      this.renderDebug();
+
+      console.log('Player sprite loaded successfully:', {
+        frameCount,
+        width: frameWidth,
+        height: frameHeight,
+        textureWidth: texture.width,
+        textureHeight: texture.height,
+        spriteVisible: this.sprite.visible,
+        spriteAlpha: this.sprite.alpha,
+        childIndex: this.getChildIndex(this.sprite),
+      });
     } catch (error) {
       console.error('Failed to load player sprite:', error);
       // 폴백: 기본 그래픽 렌더링 유지
@@ -292,12 +332,17 @@ export class Player extends Container {
    */
   public update(deltaTime: number): void {
     // 무적 시간 감소
+    const wasInvincible = this.invincibleTime > 0;
     if (this.invincibleTime > 0) {
       this.invincibleTime -= deltaTime;
     }
+    const isInvincible = this.invincibleTime > 0;
+
+    // 이동 여부 체크
+    const isMoving = this.currentInput.x !== 0 || this.currentInput.y !== 0;
 
     // 이동 처리
-    if (this.currentInput.x !== 0 || this.currentInput.y !== 0) {
+    if (isMoving) {
       // 대각선 이동 시 속도 정규화
       const length = Math.sqrt(
         this.currentInput.x * this.currentInput.x + this.currentInput.y * this.currentInput.y
@@ -312,18 +357,24 @@ export class Player extends Container {
 
       // 스프라이트 좌우 반전 (왼쪽: scale.x = -1, 오른쪽: scale.x = 1)
       if (this.sprite && normalizedX !== 0) {
-        if (normalizedX < 0) {
-          // 왼쪽 이동 - 스프라이트 반전
-          this.sprite.scale.x = -Math.abs(this.sprite.scale.x);
-        } else {
-          // 오른쪽 이동 - 스프라이트 정상
-          this.sprite.scale.x = Math.abs(this.sprite.scale.x);
-        }
+        this.sprite.scale.x = normalizedX < 0 ? -1 : 1;
       }
     }
 
-    // 렌더링 업데이트 (무적 시간 깜빡임)
-    this.render();
+    // 애니메이션 상태 변경 시에만 play/stop
+    if (isMoving !== this.lastMovingState) {
+      if (isMoving && this.sprite) {
+        this.sprite.play();
+      } else if (this.sprite) {
+        this.sprite.gotoAndStop(0);
+      }
+      this.lastMovingState = isMoving;
+    }
+
+    // 무적 상태 변경 시에만 시각 효과 업데이트
+    if (wasInvincible !== isInvincible || isInvincible) {
+      this.updateInvincibilityVisuals();
+    }
   }
 
   /**
@@ -345,28 +396,30 @@ export class Player extends Container {
   }
 
   /**
-   * 렌더링
+   * 무적 시각 효과 업데이트
    */
-  private render(): void {
-    if (this.destroyed || !this.graphics) {
+  private updateInvincibilityVisuals(): void {
+    if (!this.sprite) return;
+
+    if (this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0) {
+      this.sprite.alpha = 0.5; // 깜빡임
+    } else {
+      this.sprite.alpha = 1.0; // 정상
+    }
+  }
+
+  /**
+   * 렌더링 (개발 모드 디버그용)
+   */
+  private renderDebug(): void {
+    if (this.destroyed) {
       return;
     }
 
-    this.graphics.clear();
+    // 스프라이트가 없으면 폴백 그래픽 표시
+    if (!this.sprite && this.graphics) {
+      this.graphics.clear();
 
-    // 스프라이트가 있으면 무적 시간 깜빡임을 스프라이트 알파로 처리
-    if (this.sprite) {
-      if (this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0) {
-        this.sprite.alpha = 0.5; // 깜빡임
-      } else {
-        this.sprite.alpha = 1.0; // 정상
-      }
-
-      // 히트박스 표시 (디버그용, 필요시 주석 처리)
-      // this.graphics.circle(0, 0, this.radius);
-      // this.graphics.stroke({ width: 1, color: 0xff0000, alpha: 0.3 });
-    } else {
-      // 스프라이트가 없으면 기존 원형 그리기
       // 무적 시간이면 깜빡임 효과
       if (this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0) {
         this.graphics.circle(0, 0, this.radius);
@@ -379,6 +432,15 @@ export class Player extends Container {
       // 테두리
       this.graphics.circle(0, 0, this.radius);
       this.graphics.stroke({ width: 2, color: 0xffffff });
+      // TODO: 히트박스 표시, 환경에 따라 결정
+      // } else if (this.graphics && import.meta.env.DEV) {
+      //   // 개발 모드에서 히트박스만 표시 (스프라이트가 있을 때)
+      //   this.graphics.clear();
+      //   this.graphics.circle(0, 0, this.radius);
+      //   this.graphics.stroke({ width: 1, color: 0xff0000, alpha: 0.3 });
+    } else if (this.graphics) {
+      // 스프라이트가 있으면 graphics 제거
+      this.graphics.clear();
     }
   }
 
@@ -386,9 +448,15 @@ export class Player extends Container {
    * 정리
    */
   public destroy(): void {
-    this.graphics.destroy();
+    // 텍스처 정리
+    this.frames.forEach((frame) => frame.destroy(true));
+    this.frames = [];
+
+    // 그래픽 요소 정리
+    this.graphics?.destroy();
     this.levelText.destroy();
-    this.sprite?.destroy();
+    this.sprite?.destroy({ texture: false });
+
     super.destroy({ children: true });
   }
 }
