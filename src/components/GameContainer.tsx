@@ -8,7 +8,16 @@ import { useGameState } from '../hooks/useGameState';
 
 export const GameContainer = () => {
   const { app } = useApplication();
-  const { gamePhase, playerSnapshot, gameKey, startGame, enterBoundary, continueToStage2, returnToLobby, restartGame } = useGameState();
+  const {
+    gamePhase,
+    playerSnapshot,
+    gameKey,
+    startGame,
+    enterBoundary,
+    continueToStage2,
+    returnToLobby,
+    restartGame,
+  } = useGameState();
   const lobbySceneRef = useRef<LobbyScene | null>(null);
   const overworldSceneRef = useRef<OverworldGameScene | null>(null);
   const boundarySceneRef = useRef<BoundaryGameScene | null>(null);
@@ -135,7 +144,17 @@ export const GameContainer = () => {
         }
       };
     }
-  }, [gamePhase, playerSnapshot, gameKey, startGame, enterBoundary, continueToStage2, returnToLobby, restartGame, app]);
+  }, [
+    gamePhase,
+    playerSnapshot,
+    gameKey,
+    startGame,
+    enterBoundary,
+    continueToStage2,
+    returnToLobby,
+    restartGame,
+    app,
+  ]);
 
   return null;
 };
