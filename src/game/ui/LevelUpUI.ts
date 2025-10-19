@@ -76,21 +76,21 @@ export class LevelUpUI extends Container {
   }
 
   /**
-   * 선택 카드 생성
+   * 선택 카드 생성 (세로 정렬)
    */
   private createCards(): void {
     const cardWidth = 300;
-    const cardHeight = 200;
-    const cardSpacing = 30;
-    const totalWidth = cardWidth * 3 + cardSpacing * 2;
+    const cardHeight = 150; // 세로 정렬이므로 카드 높이 줄임
+    const cardSpacing = 20;
+    const totalHeight = cardHeight * 3 + cardSpacing * 2;
 
-    const startX = (window.innerWidth - totalWidth) / 2;
-    const startY = (window.innerHeight - cardHeight) / 2;
+    const startX = (window.innerWidth - cardWidth) / 2;
+    const startY = (window.innerHeight - totalHeight) / 2;
 
     for (let i = 0; i < this.choices.length; i++) {
       const choice = this.choices[i];
-      const x = startX + i * (cardWidth + cardSpacing);
-      const y = startY;
+      const x = startX;
+      const y = startY + i * (cardHeight + cardSpacing);
 
       const card = this.createCard(choice, x, y, cardWidth, cardHeight);
       this.choiceCards.push(card);
