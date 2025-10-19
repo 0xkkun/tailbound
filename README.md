@@ -34,6 +34,26 @@ http://localhost:5173에서 확인 가능합니다.
 pnpm build
 ```
 
+### 배포 (Vercel)
+
+조직 저장소에서 GitHub App 권한 없이 개인 스코프로 배포:
+
+```bash
+# 방법 1: 로컬 빌드 후 배포 (빠름)
+vercel build --prod
+vercel deploy --prebuilt --prod
+
+# 방법 2: Vercel 서버에서 빌드 (간단)
+vercel deploy --prod
+```
+
+**최초 배포 시 설정:**
+- Scope: `ferv0r2's projects` (개인 계정)
+- Link to existing project: No
+- GitHub 연결 여부: No (권한 이슈 회피)
+
+**주의:** Git 연동 없이 배포하므로 자동 배포는 안 되며, 매번 수동으로 `vercel deploy` 실행 필요.
+
 ### 테스트
 
 ```bash
