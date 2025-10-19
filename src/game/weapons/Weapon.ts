@@ -2,9 +2,14 @@
  * 무기 베이스 클래스
  */
 
+import type { AoEEffect } from '@/game/entities/AoEEffect';
 import type { BaseEnemy } from '@/game/entities/enemies';
+import type { MeleeSwing } from '@/game/entities/MeleeSwing';
 import type { Projectile } from '@/game/entities/Projectile';
 import type { Vector2 } from '@/types/game.types';
+
+// 무기가 발사할 수 있는 엔티티 타입들
+export type WeaponEntity = Projectile | AoEEffect | MeleeSwing;
 
 export abstract class Weapon {
   // 무기 정보
@@ -40,9 +45,9 @@ export abstract class Weapon {
 
   /**
    * 무기 발사 (추상 메서드)
-   * @returns 생성된 투사체 배열
+   * @returns 생성된 엔티티 배열 (투사체, AoE, 근접 등)
    */
-  public abstract fire(playerPos: Vector2, enemies: BaseEnemy[]): Projectile[];
+  public abstract fire(playerPos: Vector2, enemies: BaseEnemy[]): WeaponEntity[];
 
   /**
    * 쿨다운 리셋

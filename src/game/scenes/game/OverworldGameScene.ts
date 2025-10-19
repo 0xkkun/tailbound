@@ -2,17 +2,26 @@
  * 게임 씬 - 메인 게임 로직
  */
 
-import { Graphics, Text } from 'pixi.js';
+import { Assets, Graphics, Text, TilingSprite } from 'pixi.js';
 
+import { POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
+import { AoEEffect } from '@/game/entities/AoEEffect';
 import { BaseEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
+import { HealthPotion } from '@/game/entities/HealthPotion';
+import { MeleeSwing } from '@/game/entities/MeleeSwing';
 import { Player } from '@/game/entities/Player';
 import { Portal } from '@/game/entities/Portal';
 import { Projectile } from '@/game/entities/Projectile';
 import { LevelUpUI } from '@/game/ui/LevelUpUI';
 import { PortalIndicator } from '@/game/ui/PortalIndicator';
+import { checkCircleCollision } from '@/game/utils/collision';
+import { DokkaebiFireWeapon } from '@/game/weapons/DokkaebiFireWeapon';
+import { JakduBladeWeapon } from '@/game/weapons/JakduBladeWeapon';
+import { MoktakSoundWeapon } from '@/game/weapons/MoktakSoundWeapon';
 import { Talisman } from '@/game/weapons/Talisman';
+import type { Weapon } from '@/game/weapons/Weapon';
 import type { PlayerSnapshot } from '@/hooks/useGameState';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { PortalSpawner } from '@/systems/PortalSpawner';
@@ -26,9 +35,12 @@ export class OverworldGameScene extends BaseGameScene {
   private enemies: BaseEnemy[] = [];
   private projectiles: Projectile[] = [];
   private experienceGems: ExperienceGem[] = [];
+  private healthPotions: HealthPotion[] = [];
+  private aoeEffects: AoEEffect[] = [];
+  private meleeSwings: MeleeSwing[] = [];
 
   // 무기
-  private weapons: Talisman[] = [];
+  private weapons: Weapon[] = [];
 
   // 시스템
   private combatSystem: CombatSystem;
@@ -85,17 +97,25 @@ export class OverworldGameScene extends BaseGameScene {
   protected async loadAssets(): Promise<void> {
     await super.loadAssets();
     // 모든 적 타입 스프라이트 미리 로드
-    await Promise.all([SkeletonEnemy.preloadSprites(), TigerEnemy.preloadSprites()]);
+    await Promise.all([
+      SkeletonEnemy.preloadSprites(),
+      TigerEnemy.preloadSprites(),
+      Assets.load('/assets/bottom.png'), // 바닥 타일
+    ]);
   }
 
   /**
    * 플레이어 생성 (BaseGameScene abstract 메서드 구현)
    */
   protected createPlayer(): void {
-    // 월드 배경
-    const bg = new Graphics();
-    bg.rect(0, 0, GAME_CONFIG.world.overworld.width, GAME_CONFIG.world.overworld.height);
-    bg.fill(0x0a0a15);
+    // 월드 배경 (타일링)
+    const texture = Assets.get('/assets/bottom.png');
+    const bg = new TilingSprite({
+      texture,
+      width: GAME_CONFIG.world.overworld.width,
+      height: GAME_CONFIG.world.overworld.height,
+    });
+    bg.tileScale.set(1, 1); // 32x32 원본 크기 사용
     this.gameLayer.addChild(bg);
 
     // 월드 경계선 (시각화용)
@@ -126,11 +146,19 @@ export class OverworldGameScene extends BaseGameScene {
     const talisman = new Talisman();
     this.weapons.push(talisman);
 
-    // 적 처치 시 경험치 젬 드롭 콜백 설정
+    // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
     this.combatSystem.onEnemyKilled = (result) => {
+      // 경험치 젬 드롭
       const gem = new ExperienceGem(result.position.x, result.position.y, result.xpValue);
       this.experienceGems.push(gem);
       this.gameLayer.addChild(gem);
+
+      // 체력 포션 드롭 (10% 확률)
+      if (result.dropPotion) {
+        const potion = new HealthPotion(result.position.x, result.position.y);
+        this.healthPotions.push(potion);
+        this.gameLayer.addChild(potion);
+      }
     };
 
     // UI 초기화
@@ -248,14 +276,33 @@ export class OverworldGameScene extends BaseGameScene {
       const effectiveDeltaTime = deltaTime / this.player.cooldownMultiplier;
       weapon.update(effectiveDeltaTime);
 
-      // 발사
+      // 궤도형 무기 (DokkaebiFireWeapon) 업데이트
+      if (weapon instanceof DokkaebiFireWeapon) {
+        weapon.updateOrbitals(deltaTime, this.player);
+      }
+
+      // 발사 (투사체형, AoE형, 근접형)
       const playerPos = { x: this.player.x, y: this.player.y };
-      const newProjectiles = weapon.fire(playerPos, this.enemies);
-      for (const proj of newProjectiles) {
-        // 공격력 배율 적용
-        proj.damage *= this.player.damageMultiplier;
-        this.projectiles.push(proj);
-        this.gameLayer.addChild(proj);
+      const fireResult = weapon.fire(playerPos, this.enemies);
+
+      // 결과 타입에 따라 분기 처리
+      for (const entity of fireResult) {
+        if (entity instanceof AoEEffect) {
+          // AoE 이펙트
+          entity.damage *= this.player.damageMultiplier;
+          this.aoeEffects.push(entity);
+          this.gameLayer.addChild(entity);
+        } else if (entity instanceof MeleeSwing) {
+          // 근접 휘두르기
+          entity.damage *= this.player.damageMultiplier;
+          this.meleeSwings.push(entity);
+          this.gameLayer.addChild(entity);
+        } else {
+          // 일반 투사체 (Projectile)
+          entity.damage *= this.player.damageMultiplier;
+          this.projectiles.push(entity);
+          this.gameLayer.addChild(entity);
+        }
       }
     }
 
@@ -264,19 +311,142 @@ export class OverworldGameScene extends BaseGameScene {
       projectile.update(deltaTime);
     }
 
-    // 6. 경험치 젬 업데이트
+    // 6. AoE 이펙트 업데이트 및 충돌
+    for (const aoe of this.aoeEffects) {
+      aoe.update(deltaTime);
+
+      // AoE 범위 내 적에게 데미지 (한 번만)
+      if (!aoe.hasHitEnemy()) {
+        for (const enemy of this.enemies) {
+          if (!enemy.active || !enemy.isAlive()) continue;
+
+          const dx = enemy.x - aoe.x;
+          const dy = enemy.y - aoe.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance <= aoe.radius) {
+            enemy.takeDamage(aoe.damage);
+
+            if (!enemy.isAlive()) {
+              enemy.active = false;
+              this.enemiesKilled++;
+              console.log(
+                `[AoE] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
+              );
+
+              // 체력 포션 드랍 확률
+              const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
+              this.combatSystem.onEnemyKilled?.({
+                enemy,
+                position: { x: enemy.x, y: enemy.y },
+                xpValue: enemy.xpDrop,
+                dropPotion,
+              });
+            }
+          }
+        }
+        aoe.markEnemyHit();
+      }
+    }
+
+    // 7. 근접 휘두르기 업데이트 및 충돌
+    for (const swing of this.meleeSwings) {
+      swing.update(deltaTime);
+
+      // 각도 범위 내 적에게 데미지
+      for (const enemy of this.enemies) {
+        if (!enemy.active || !enemy.isAlive()) continue;
+
+        // 이미 이 휘두르기에 맞은 적은 스킵
+        const enemyId = `${enemy.x}_${enemy.y}`; // 간단한 ID
+        if (swing.hasHitEnemy(enemyId)) continue;
+
+        const dx = enemy.x - swing.x;
+        const dy = enemy.y - swing.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx);
+
+        if (swing.isInRange(angle, distance)) {
+          enemy.takeDamage(swing.damage);
+          swing.markEnemyHit(enemyId);
+
+          if (!enemy.isAlive()) {
+            enemy.active = false;
+            this.enemiesKilled++;
+            console.log(
+              `[Melee] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
+            );
+
+            // 체력 포션 드랍 확률
+            const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
+            this.combatSystem.onEnemyKilled?.({
+              enemy,
+              position: { x: enemy.x, y: enemy.y },
+              xpValue: enemy.xpDrop,
+              dropPotion,
+            });
+          }
+        }
+      }
+    }
+
+    // 8. 궤도형 무기 충돌 (DokkaebiFireWeapon)
+    for (const weapon of this.weapons) {
+      if (weapon instanceof DokkaebiFireWeapon) {
+        const orbitals = weapon.getOrbitals();
+        for (const orbital of orbitals) {
+          if (!orbital.active) continue;
+
+          for (const enemy of this.enemies) {
+            if (!enemy.active || !enemy.isAlive()) continue;
+
+            // 궤도와 적 충돌 체크 (원형 충돌)
+            if (checkCircleCollision(orbital, enemy)) {
+              enemy.takeDamage(orbital.damage);
+
+              if (!enemy.isAlive()) {
+                enemy.active = false;
+                this.enemiesKilled++;
+                console.log(
+                  `[Orbital] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
+                );
+
+                // 체력 포션 드랍 확률
+                const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
+                this.combatSystem.onEnemyKilled?.({
+                  enemy,
+                  position: { x: enemy.x, y: enemy.y },
+                  xpValue: enemy.xpDrop,
+                  dropPotion,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 9. 경험치 젬 업데이트
     for (const gem of this.experienceGems) {
       gem.update(deltaTime, this.player);
     }
 
-    // 7. 적 업데이트
+    // 9-1. 체력 포션 업데이트
+    for (const potion of this.healthPotions) {
+      potion.update(deltaTime, this.player);
+    }
+
+    // 10. 적 업데이트
     for (const enemy of this.enemies) {
       const playerPos = { x: this.player.x, y: this.player.y };
       enemy.setTarget(playerPos);
       enemy.update(deltaTime);
     }
 
-    // 8. 적 스폰 (플레이어 위치 기준)
+    // 11. 적 스폰 (플레이어 위치 기준)
     const playerPos = { x: this.player.x, y: this.player.y };
     this.spawnSystem.update(deltaTime, this.enemies, this.gameTime, playerPos);
 
@@ -287,11 +457,11 @@ export class OverworldGameScene extends BaseGameScene {
       }
     }
 
-    // 9. 전투 시스템 (충돌 및 데미지)
+    // 12. 전투 시스템 (투사체 충돌 및 데미지)
     const killed = this.combatSystem.update(this.player, this.enemies, this.projectiles);
     this.enemiesKilled += killed;
 
-    // 10. 정리 (죽은 엔티티 제거)
+    // 13. 정리 (죽은 엔티티 제거)
     this.cleanup();
 
     // 11. UI 업데이트
@@ -343,6 +513,30 @@ export class OverworldGameScene extends BaseGameScene {
     }
     this.projectiles = activeProjectiles;
 
+    // 비활성 AoE 이펙트 제거
+    const activeAoE: AoEEffect[] = [];
+    for (const aoe of this.aoeEffects) {
+      if (!aoe.active) {
+        this.gameLayer.removeChild(aoe);
+        aoe.destroy();
+      } else {
+        activeAoE.push(aoe);
+      }
+    }
+    this.aoeEffects = activeAoE;
+
+    // 비활성 근접 휘두르기 제거
+    const activeSwings: MeleeSwing[] = [];
+    for (const swing of this.meleeSwings) {
+      if (!swing.active) {
+        this.gameLayer.removeChild(swing);
+        swing.destroy();
+      } else {
+        activeSwings.push(swing);
+      }
+    }
+    this.meleeSwings = activeSwings;
+
     // 비활성 경험치 젬 제거
     const activeGems: ExperienceGem[] = [];
     for (const gem of this.experienceGems) {
@@ -354,6 +548,18 @@ export class OverworldGameScene extends BaseGameScene {
       }
     }
     this.experienceGems = activeGems;
+
+    // 비활성 체력 포션 제거
+    const activePotions: HealthPotion[] = [];
+    for (const potion of this.healthPotions) {
+      if (!potion.active) {
+        this.gameLayer.removeChild(potion);
+        potion.destroy();
+      } else {
+        activePotions.push(potion);
+      }
+    }
+    this.healthPotions = activePotions;
   }
 
   /**
@@ -452,13 +658,13 @@ export class OverworldGameScene extends BaseGameScene {
   private addWeapon(weaponId: string): void {
     console.log(`무기 추가: ${weaponId}`);
 
-    // TODO: 각 무기별 인스턴스 생성
     switch (weaponId) {
       case 'weapon_talisman': {
         // 이미 부적이 있으면 업그레이드, 없으면 추가
         const existingTalisman = this.weapons.find((w) => w instanceof Talisman);
         if (existingTalisman) {
-          console.log('부적 업그레이드! (레벨 시스템 미구현)');
+          existingTalisman.levelUp();
+          console.log(`부적 레벨업! Lv.${existingTalisman.level}`);
         } else {
           const talisman = new Talisman();
           this.weapons.push(talisman);
@@ -466,15 +672,49 @@ export class OverworldGameScene extends BaseGameScene {
         }
         break;
       }
-      case 'weapon_dokkaebi':
-        console.log('도깨비불 무기는 아직 미구현입니다.');
+      case 'weapon_dokkaebi': {
+        // 이미 도깨비불이 있으면 업그레이드, 없으면 추가
+        const existingDokkaebi = this.weapons.find((w) => w instanceof DokkaebiFireWeapon);
+        if (existingDokkaebi) {
+          existingDokkaebi.levelUp();
+          // 레벨업 시 궤도 재생성
+          (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.player, this.gameLayer);
+          console.log(`도깨비불 레벨업! Lv.${existingDokkaebi.level}`);
+        } else {
+          const dokkaebi = new DokkaebiFireWeapon();
+          this.weapons.push(dokkaebi);
+          // 최초 생성 시 궤도 생성
+          dokkaebi.spawnOrbitals(this.player, this.gameLayer);
+          console.log('도깨비불 무기 추가 완료!');
+        }
         break;
-      case 'weapon_moktak':
-        console.log('목탁 소리 무기는 아직 미구현입니다.');
+      }
+      case 'weapon_moktak': {
+        // 이미 목탁이 있으면 업그레이드, 없으면 추가
+        const existingMoktak = this.weapons.find((w) => w instanceof MoktakSoundWeapon);
+        if (existingMoktak) {
+          existingMoktak.levelUp();
+          console.log(`목탁 소리 레벨업! Lv.${existingMoktak.level}`);
+        } else {
+          const moktak = new MoktakSoundWeapon();
+          this.weapons.push(moktak);
+          console.log('목탁 소리 무기 추가 완료!');
+        }
         break;
-      case 'weapon_jakdu':
-        console.log('작두날 무기는 아직 미구현입니다.');
+      }
+      case 'weapon_jakdu': {
+        // 이미 작두날이 있으면 업그레이드, 없으면 추가
+        const existingJakdu = this.weapons.find((w) => w instanceof JakduBladeWeapon);
+        if (existingJakdu) {
+          existingJakdu.levelUp();
+          console.log(`작두날 레벨업! Lv.${existingJakdu.level}`);
+        } else {
+          const jakdu = new JakduBladeWeapon();
+          this.weapons.push(jakdu);
+          console.log('작두날 무기 추가 완료!');
+        }
         break;
+      }
       default:
         console.warn(`알 수 없는 무기: ${weaponId}`);
     }
@@ -533,6 +773,13 @@ export class OverworldGameScene extends BaseGameScene {
    */
   public destroy(): void {
     if (this.isReady) {
+      // 무기 정리 (궤도형 무기 특별 처리)
+      for (const weapon of this.weapons) {
+        if (weapon instanceof DokkaebiFireWeapon) {
+          weapon.destroyOrbitals(this.gameLayer);
+        }
+      }
+
       // 엔티티 정리
       for (const enemy of this.enemies) {
         enemy.destroy();
@@ -540,8 +787,17 @@ export class OverworldGameScene extends BaseGameScene {
       for (const proj of this.projectiles) {
         proj.destroy();
       }
+      for (const aoe of this.aoeEffects) {
+        aoe.destroy();
+      }
+      for (const swing of this.meleeSwings) {
+        swing.destroy();
+      }
       for (const gem of this.experienceGems) {
         gem.destroy();
+      }
+      for (const potion of this.healthPotions) {
+        potion.destroy();
       }
 
       // Static 캐시 정리 (게임 종료 시)
