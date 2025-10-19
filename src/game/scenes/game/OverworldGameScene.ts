@@ -2,7 +2,7 @@
  * 게임 씬 - 메인 게임 로직
  */
 
-import { Graphics, Text } from 'pixi.js';
+import { Assets, Graphics, Text, TilingSprite } from 'pixi.js';
 
 import { POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
@@ -97,17 +97,25 @@ export class OverworldGameScene extends BaseGameScene {
   protected async loadAssets(): Promise<void> {
     await super.loadAssets();
     // 모든 적 타입 스프라이트 미리 로드
-    await Promise.all([SkeletonEnemy.preloadSprites(), TigerEnemy.preloadSprites()]);
+    await Promise.all([
+      SkeletonEnemy.preloadSprites(),
+      TigerEnemy.preloadSprites(),
+      Assets.load('/assets/bottom.png'), // 바닥 타일
+    ]);
   }
 
   /**
    * 플레이어 생성 (BaseGameScene abstract 메서드 구현)
    */
   protected createPlayer(): void {
-    // 월드 배경
-    const bg = new Graphics();
-    bg.rect(0, 0, GAME_CONFIG.world.overworld.width, GAME_CONFIG.world.overworld.height);
-    bg.fill(0x0a0a15);
+    // 월드 배경 (타일링)
+    const texture = Assets.get('/assets/bottom.png');
+    const bg = new TilingSprite({
+      texture,
+      width: GAME_CONFIG.world.overworld.width,
+      height: GAME_CONFIG.world.overworld.height,
+    });
+    bg.tileScale.set(1, 1); // 32x32 원본 크기 사용
     this.gameLayer.addChild(bg);
 
     // 월드 경계선 (시각화용)

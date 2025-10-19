@@ -3,7 +3,7 @@
  * BaseGameScene을 확장하여 NPC와 DialogSystem만 추가
  */
 
-import { Graphics, Text } from 'pixi.js';
+import { Assets, Graphics, Text, TilingSprite } from 'pixi.js';
 
 import { GAME_CONFIG } from '@/config/game.config';
 import { BOUNDARY_MERCHANT_DIALOG } from '@/data/dialogs';
@@ -36,14 +36,26 @@ export class BoundaryGameScene extends BaseGameScene {
   }
 
   /**
+   * 에셋 로딩 오버라이드 (바닥 타일 로딩)
+   */
+  protected async loadAssets(): Promise<void> {
+    await super.loadAssets();
+    await Assets.load('/assets/bottom.png'); // 바닥 타일
+  }
+
+  /**
    * 플레이어 생성 (월드 중앙 하단)
    * 배경도 여기서 먼저 추가 (z-index 순서 중요)
    */
   protected createPlayer(): void {
-    // 월드 배경 (맨 아래)
-    const bg = new Graphics();
-    bg.rect(0, 0, this.worldWidth, this.worldHeight);
-    bg.fill(0x1a0a2e); // 어두운 보라색
+    // 월드 배경 (타일링)
+    const texture = Assets.get('/assets/bottom.png');
+    const bg = new TilingSprite({
+      texture,
+      width: this.worldWidth,
+      height: this.worldHeight,
+    });
+    bg.tileScale.set(1, 1); // 32x32 원본 크기 사용
     this.gameLayer.addChild(bg);
 
     // 월드 경계선
