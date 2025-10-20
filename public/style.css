@@ -3,6 +3,18 @@ body {
     padding: 0;
     color: rgba(255, 255, 255, 0.87);
     background-color: #000000;
+
+    /* 텍스트/이미지 선택 방지 */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+
+    /* 롱프레스 메뉴 방지 (iOS) */
+    -webkit-touch-callout: none;
+
+    /* 드래그 방지 */
+    -webkit-user-drag: none;
 }
 
 #app {
@@ -12,4 +24,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+
+    /* 웹뷰 앱처럼 동작 */
+    touch-action: manipulation;
 }
