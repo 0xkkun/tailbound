@@ -67,6 +67,15 @@ export const GAME_CONFIG = {
     topUI: 30, // 최상위 UI (설정 버튼 등, 모든 터치 이벤트보다 위)
   },
 
+  // 엔티티 z-index 설정 (gameLayer 내부)
+  entities: {
+    background: 0, // 배경 타일
+    aoeEffect: 90, // AoE 이펙트 (목탁 소리 등)
+    enemy: 100, // 적
+    player: 100, // 플레이어
+    projectile: 100, // 투사체
+  },
+
   // 인터랙션 설정
   interaction: {
     npcProximityRadius: 100, // NPC와의 상호작용 거리

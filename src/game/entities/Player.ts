@@ -5,6 +5,7 @@
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Text, Texture } from 'pixi.js';
 
 import { PLAYER_BALANCE } from '@/config/balance.config';
+import { GAME_CONFIG } from '@/config/game.config';
 import { PLAYER_SPRITE_CONFIG } from '@/config/sprite.config';
 import { LevelSystem, type LevelUpChoice } from '@/systems/LevelSystem';
 import type { InputState } from '@/types/game.types';
@@ -58,6 +59,9 @@ export class Player extends Container {
     // PixiJS position 사용
     this.x = x;
     this.y = y;
+
+    // zIndex 설정
+    this.zIndex = GAME_CONFIG.entities.player;
 
     // 레벨 시스템 초기화
     this.levelSystem = new LevelSystem();

@@ -5,7 +5,7 @@
  * 사용: 도깨비불, 방어막 등
  */
 
-import { Assets, Container, Graphics, Sprite } from 'pixi.js';
+import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Sprite, Texture } from 'pixi.js';
 
 import type { Player } from './Player';
 
@@ -19,7 +19,7 @@ export class OrbitalEntity extends Container {
   private orbitRadius: number; // 궤도 반경
 
   // 시각화
-  private orb: Graphics | Sprite;
+  private orb: Graphics | Sprite | AnimatedSprite;
 
   constructor(angle: number, orbitRadius: number, angularSpeed: number, color: number = 0x00ffff) {
     super();
@@ -74,6 +74,50 @@ export class OrbitalEntity extends Container {
       console.log(`궤도 엔티티 텍스처 로드: ${path}`);
     } catch (error) {
       console.warn('궤도 엔티티 텍스처 로드 실패:', error);
+    }
+  }
+
+  /**
+   * 스프라이트 시트를 애니메이션으로 로드
+   */
+  public async loadSpriteSheet(
+    path: string,
+    frameWidth: number,
+    frameHeight: number,
+    totalFrames: number,
+    columns: number
+  ): Promise<void> {
+    try {
+      const baseTexture = await Assets.load(path);
+
+      // 프레임 텍스처 배열 생성
+      const frames: Texture[] = [];
+      for (let i = 0; i < totalFrames; i++) {
+        const x = (i % columns) * frameWidth;
+        const y = Math.floor(i / columns) * frameHeight;
+
+        const frame = new Texture({
+          source: baseTexture.source,
+          frame: new Rectangle(x, y, frameWidth, frameHeight),
+        });
+        frames.push(frame);
+      }
+
+      // Graphics 제거하고 AnimatedSprite로 교체
+      this.removeChild(this.orb);
+      if (this.orb instanceof Graphics) {
+        this.orb.destroy();
+      }
+
+      this.orb = new AnimatedSprite(frames);
+      this.orb.anchor.set(0.5);
+      (this.orb as AnimatedSprite).animationSpeed = 0.3; // 애니메이션 속도
+      (this.orb as AnimatedSprite).play();
+      this.addChild(this.orb);
+
+      console.log(`궤도 엔티티 스프라이트 시트 로드: ${path}`);
+    } catch (error) {
+      console.warn('궤도 엔티티 스프라이트 시트 로드 실패:', error);
     }
   }
 

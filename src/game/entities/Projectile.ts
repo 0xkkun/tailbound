@@ -2,7 +2,7 @@
  * 투사체 엔티티 (무기가 발사하는 공격체)
  */
 
-import { Container, Graphics } from 'pixi.js';
+import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
 import type { Vector2 } from '@/types/game.types';
 
@@ -24,8 +24,9 @@ export class Projectile extends Container {
   public piercing: number = 1; // 1이면 적 1마리 관통 후 소멸
   private hitCount: number = 0;
 
-  // 그래픽스
-  private graphics: Graphics;
+  // 시각 효과
+  private visual: Graphics | AnimatedSprite;
+  private useSprite: boolean = false;
 
   constructor(id: string, x: number, y: number, direction: Vector2, color: number = 0xffff00) {
     super();
@@ -35,9 +36,9 @@ export class Projectile extends Container {
     this.x = x;
     this.y = y;
 
-    // 그래픽 생성
-    this.graphics = new Graphics();
-    this.addChild(this.graphics);
+    // 그래픽 생성 (스프라이트 로드 전 폴백)
+    this.visual = new Graphics();
+    this.addChild(this.visual);
 
     this.render(color);
   }
@@ -89,27 +90,75 @@ export class Projectile extends Container {
    * 렌더링
    */
   private render(color: number): void {
-    if (this.destroyed || !this.graphics) {
+    if (this.destroyed || !(this.visual instanceof Graphics)) {
       return;
     }
 
-    this.graphics.clear();
+    this.visual.clear();
 
     // 원형 투사체 (부적 이미지 대신)
-    this.graphics.beginFill(color);
-    this.graphics.drawCircle(0, 0, this.radius);
-    this.graphics.endFill();
+    this.visual.beginFill(color);
+    this.visual.drawCircle(0, 0, this.radius);
+    this.visual.endFill();
 
     // 테두리
-    this.graphics.lineStyle(2, 0xffffff);
-    this.graphics.drawCircle(0, 0, this.radius);
+    this.visual.lineStyle(2, 0xffffff);
+    this.visual.drawCircle(0, 0, this.radius);
+  }
+
+  /**
+   * 스프라이트 시트를 애니메이션으로 로드
+   */
+  public async loadSpriteSheet(
+    path: string,
+    frameWidth: number,
+    frameHeight: number,
+    totalFrames: number,
+    columns: number
+  ): Promise<void> {
+    try {
+      const baseTexture = await Assets.load(path);
+
+      // 프레임 텍스처 배열 생성
+      const frames: Texture[] = [];
+      for (let i = 0; i < totalFrames; i++) {
+        const x = (i % columns) * frameWidth;
+        const y = Math.floor(i / columns) * frameHeight;
+
+        const frame = new Texture({
+          source: baseTexture.source,
+          frame: new Rectangle(x, y, frameWidth, frameHeight),
+        });
+        frames.push(frame);
+      }
+
+      // Graphics 제거하고 AnimatedSprite로 교체
+      this.removeChild(this.visual);
+      if (this.visual instanceof Graphics) {
+        this.visual.destroy();
+      }
+
+      this.visual = new AnimatedSprite(frames);
+      this.visual.anchor.set(0.5);
+      this.visual.animationSpeed = 0.5; // 애니메이션 속도
+      this.visual.loop = true;
+      this.visual.play();
+
+      this.addChild(this.visual);
+
+      this.useSprite = true;
+
+      console.log(`Projectile 스프라이트 시트 로드: ${path}`);
+    } catch (error) {
+      console.warn('Projectile 스프라이트 시트 로드 실패:', error);
+    }
   }
 
   /**
    * 정리
    */
   public destroy(): void {
-    this.graphics.destroy();
+    this.visual.destroy();
     super.destroy({ children: true });
   }
 }
