@@ -101,10 +101,14 @@ export class CameraSystem {
     const halfScreenWidth = this.screenWidth / 2;
     const halfScreenHeight = this.screenHeight / 2;
 
+    // 컨테이너의 스케일을 고려한 위치 계산
+    const scale = container.scale.x;
+
     // 컨테이너를 카메라 위치의 반대 방향으로 이동
     // (카메라가 오른쪽으로 이동하면 월드는 왼쪽으로 이동)
-    container.x = -this.x + halfScreenWidth;
-    container.y = -this.y + halfScreenHeight;
+    // 스케일이 적용된 경우 그만큼 곱해서 보정
+    container.x = (-this.x + halfScreenWidth) * scale;
+    container.y = (-this.y + halfScreenHeight) * scale;
   }
 
   /**
