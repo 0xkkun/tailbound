@@ -1,21 +1,24 @@
 /**
  * 작두날 무기
  *
- * 타입: 근접 (Melee)
- * 플레이어 주변을 크게 휘두르는 작두
+ * 타입: 고정형 (Attached)
+ * 플레이어 좌우에 고정되어 나타나는 작두
  */
 
+import type { Container } from 'pixi.js';
+
 import { calculateWeaponStats } from '@/game/data/weapons';
+import { AttachedEntity } from '@/game/entities/AttachedEntity';
 import type { BaseEnemy } from '@/game/entities/enemies';
-import { MeleeSwing } from '@/game/entities/MeleeSwing';
+import type { Player } from '@/game/entities/Player';
 import type { Vector2 } from '@/types/game.types';
 
 import { Weapon } from './Weapon';
 
 export class JakduBladeWeapon extends Weapon {
-  private swingRadius: number = 100;
-  private sweepAngle: number = Math.PI; // 180도
-  private currentAngle: number = 0; // 다음 휘두를 각도
+  private blades: AttachedEntity[] = [];
+  private bladeCount: number = 1; // 처음엔 왼쪽 1개
+  private offsetDistance: number = 60; // 플레이어로부터의 거리
 
   constructor() {
     const stats = calculateWeaponStats('jakdu_blade', 1);
@@ -23,35 +26,69 @@ export class JakduBladeWeapon extends Weapon {
   }
 
   /**
-   * 근접 공격 휘두르기
+   * 공격 체크 (타이밍에 맞춰 애니메이션 재생)
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public fire(playerPos: Vector2, _enemies: BaseEnemy[]): MeleeSwing[] {
+  public fire(_playerPos: Vector2, _enemies: BaseEnemy[]): never[] {
     if (!this.canFire()) {
       return [];
     }
 
-    // 휘두르기 생성
-    const swing = new MeleeSwing(
-      playerPos.x,
-      playerPos.y,
-      this.currentAngle,
-      this.swingRadius,
-      this.damage,
-      0xff0000 // 빨간색 (작두날)
-    );
-
-    // 다음 휘두르기 각도 (반대 방향으로 왔다갔다)
-    this.currentAngle += Math.PI; // 180도 회전
-    if (this.currentAngle >= Math.PI * 2) {
-      this.currentAngle -= Math.PI * 2;
+    // 모든 작두 애니메이션 재생
+    for (const blade of this.blades) {
+      blade.startAttack(1.0); // 1.0초 동안 공격 애니메이션 (느리게)
     }
 
     this.resetCooldown();
 
-    console.log(`🔪 작두날 휘두르기! (범위: ${this.swingRadius}px)`);
+    return [];
+  }
 
-    return [swing];
+  /**
+   * 작두 생성 (무기 추가 시 또는 레벨업 시 호출)
+   */
+  public async spawnBlades(_player: Player, gameLayer: Container): Promise<void> {
+    // 기존 작두 제거
+    for (const blade of this.blades) {
+      gameLayer.removeChild(blade);
+      blade.destroy();
+    }
+    this.blades = [];
+
+    // 새 작두 생성
+    const positions: Array<'left' | 'right'> = this.bladeCount >= 2 ? ['right', 'left'] : ['right'];
+
+    for (const position of positions) {
+      const blade = new AttachedEntity({
+        position,
+        offsetDistance: this.offsetDistance,
+        damage: this.damage,
+        radius: 64,
+        color: 0xff0000,
+      });
+
+      // 작두 스프라이트 로드 (3x3 = 9 프레임, 각 프레임 128x128)
+      await blade.loadSpriteSheet('/assets/jakdu.png', 128, 128, 9, 3, {
+        animationSpeed: 0.2, // 느리게 (0.5 -> 0.2)
+        loop: false, // 한 번만 재생
+        flipX: position === 'right', // 오른쪽은 좌우 반전
+        rotation: position === 'right' ? Math.PI / 2 : -Math.PI / 2, // 오른쪽 90도, 왼쪽 -90도 (180도 차이)
+      });
+
+      this.blades.push(blade);
+      gameLayer.addChild(blade);
+    }
+
+    console.log(`🔪 작두날 x${this.blades.length} 생성`);
+  }
+
+  /**
+   * 매 프레임 업데이트
+   */
+  public updateBlades(deltaTime: number, player: Player): void {
+    for (const blade of this.blades) {
+      blade.update(deltaTime, player);
+    }
   }
 
   /**
@@ -64,22 +101,34 @@ export class JakduBladeWeapon extends Weapon {
     this.damage = stats.damage;
     this.cooldown = stats.cooldown;
 
-    // 레벨업 효과
-    if (this.level % 2 === 0) {
-      this.swingRadius += 15; // 짝수 레벨마다 범위 +15
+    // 모든 작두의 데미지 업데이트
+    for (const blade of this.blades) {
+      blade.damage = this.damage;
     }
 
-    if (this.level % 3 === 0 && this.sweepAngle < Math.PI * 2) {
-      this.sweepAngle += Math.PI / 6; // 3레벨마다 각도 +30도 (최대 360도)
+    // 레벨업 효과: 레벨 2부터 오른쪽 작두 추가
+    if (this.level >= 2 && this.bladeCount < 2) {
+      this.bladeCount = 2;
     }
 
-    console.log(`🔪 작두날 레벨 ${this.level}! (범위: ${this.swingRadius}px)`);
+    console.log(`🔪 작두날 레벨 ${this.level}! (개수: ${this.bladeCount})`);
   }
 
   /**
-   * 현재 범위 반환
+   * 작두 접근자
    */
-  public getRadius(): number {
-    return this.swingRadius;
+  public getBlades(): AttachedEntity[] {
+    return this.blades;
+  }
+
+  /**
+   * 정리
+   */
+  public destroyBlades(gameLayer: Container): void {
+    for (const blade of this.blades) {
+      gameLayer.removeChild(blade);
+      blade.destroy();
+    }
+    this.blades = [];
   }
 }
