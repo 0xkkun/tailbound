@@ -26,7 +26,6 @@ export class Projectile extends Container {
 
   // 시각 효과
   private visual: Graphics | AnimatedSprite;
-  private useSprite: boolean = false;
 
   constructor(id: string, x: number, y: number, direction: Vector2, color: number = 0xffff00) {
     super();
@@ -145,8 +144,6 @@ export class Projectile extends Container {
       this.visual.play();
 
       this.addChild(this.visual);
-
-      this.useSprite = true;
 
       console.log(`Projectile 스프라이트 시트 로드: ${path}`);
     } catch (error) {
