@@ -27,6 +27,9 @@ export abstract class BaseGameScene extends Container {
   protected worldWidth: number;
   protected worldHeight: number;
 
+  // 줌 레벨
+  protected zoomLevel: number = 0.6;
+
   // 레이어
   protected gameLayer: Container;
   protected uiLayer: Container;
@@ -59,6 +62,7 @@ export abstract class BaseGameScene extends Container {
     // 레이어 초기화 (z-index 설정)
     this.gameLayer = new Container();
     this.gameLayer.zIndex = GAME_CONFIG.layers.game; // 게임 월드 (최하위)
+    this.gameLayer.sortableChildren = true; // gameLayer 내부에서도 zIndex 작동
 
     this.uiLayer = new Container();
     this.uiLayer.zIndex = GAME_CONFIG.layers.ui; // UI 레이어 (조이스틱보다 위)
@@ -69,10 +73,13 @@ export abstract class BaseGameScene extends Container {
     // sortableChildren 활성화 (z-index가 작동하도록)
     this.sortableChildren = true;
 
-    // 카메라 시스템 초기화
+    // 게임 레이어 줌 아웃 (더 넓은 시야)
+    this.gameLayer.scale.set(this.zoomLevel);
+
+    // 카메라 시스템 초기화 (줌 레벨을 고려한 화면 크기)
     this.cameraSystem = new CameraSystem({
-      screenWidth: this.screenWidth,
-      screenHeight: this.screenHeight,
+      screenWidth: this.screenWidth / this.zoomLevel,
+      screenHeight: this.screenHeight / this.zoomLevel,
       worldWidth: this.worldWidth,
       worldHeight: this.worldHeight,
     });
@@ -120,7 +127,15 @@ export abstract class BaseGameScene extends Container {
    */
   protected async loadAssets(): Promise<void> {
     // 공통 에셋 로딩
-    await Assets.load(['/assets/monk.png', '/assets/shaman.png']);
+    await Assets.load([
+      '/assets/monk.png',
+      '/assets/shaman.png',
+      '/assets/fire.png', // 부적용
+      '/assets/dokkabi.png', // 도깨비불용
+      '/assets/mocktak.png',
+      '/assets/jakdu.png',
+      '/assets/Settings.png', // 설정 버튼용
+    ]);
   }
 
   /**
@@ -229,11 +244,11 @@ export abstract class BaseGameScene extends Container {
   /**
    * 업데이트 (공통 + 씬별)
    */
-  protected update(deltaTime: number): void {
+  protected async update(deltaTime: number): Promise<void> {
     if (!this.isReady) return;
 
     // 씬별 업데이트 (플레이어 이동 제어 포함)
-    this.updateScene(deltaTime);
+    await this.updateScene(deltaTime);
 
     // 카메라는 항상 업데이트
     this.cameraSystem.followTarget(this.player.x, this.player.y);
@@ -262,7 +277,7 @@ export abstract class BaseGameScene extends Container {
   /**
    * 씬별 업데이트 (자식 클래스에서 구현)
    */
-  protected abstract updateScene(deltaTime: number): void;
+  protected abstract updateScene(deltaTime: number): void | Promise<void>;
 
   /**
    * 화면 크기 업데이트
@@ -271,7 +286,8 @@ export abstract class BaseGameScene extends Container {
     this.screenWidth = width;
     this.screenHeight = height;
 
-    this.cameraSystem.updateScreenSize(width, height);
+    // 줌 레벨을 고려한 화면 크기로 카메라 시스템 업데이트
+    this.cameraSystem.updateScreenSize(width / this.zoomLevel, height / this.zoomLevel);
     this.virtualJoystick?.updateScreenSize(width, height);
   }
 

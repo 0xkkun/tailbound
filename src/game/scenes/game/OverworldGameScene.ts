@@ -2,7 +2,7 @@
  * 게임 씬 - 메인 게임 로직
  */
 
-import { Assets, Container, Graphics, Text, TilingSprite } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Text, TilingSprite } from 'pixi.js';
 
 import { POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
@@ -266,7 +266,7 @@ export class OverworldGameScene extends BaseGameScene {
   /**
    * 씬 업데이트 (BaseGameScene abstract 메서드 구현)
    */
-  protected updateScene(deltaTime: number): void {
+  protected async updateScene(deltaTime: number): Promise<void> {
     if (this.isGameOver) {
       return;
     }
@@ -298,15 +298,27 @@ export class OverworldGameScene extends BaseGameScene {
         weapon.updateOrbitals(deltaTime, this.player);
       }
 
+      // 고정형 무기 (JakduBladeWeapon) 업데이트
+      if (weapon instanceof JakduBladeWeapon) {
+        weapon.updateBlades(deltaTime, this.player);
+      }
+
       // 발사 (투사체형, AoE형, 근접형)
       const playerPos = { x: this.player.x, y: this.player.y };
-      const fireResult = weapon.fire(playerPos, this.enemies);
+      const fireResult = await Promise.resolve(weapon.fire(playerPos, this.enemies));
 
       // 결과 타입에 따라 분기 처리
       for (const entity of fireResult) {
         if (entity instanceof AoEEffect) {
           // AoE 이펙트
           entity.damage *= this.player.damageMultiplier;
+
+          // 목탁 소리는 플레이어를 따라다니고 캐릭터 뒤에 표시
+          if (weapon instanceof MoktakSoundWeapon) {
+            entity.setFollowTarget(this.player);
+            entity.zIndex = GAME_CONFIG.entities.aoeEffect; // 캐릭터 뒤
+          }
+
           this.aoeEffects.push(entity);
           this.gameLayer.addChild(entity);
         } else if (entity instanceof MeleeSwing) {
@@ -446,7 +458,51 @@ export class OverworldGameScene extends BaseGameScene {
       }
     }
 
-    // 9. 경험치 젬 업데이트
+    // 9. 고정형 무기 충돌 (JakduBladeWeapon)
+    for (const weapon of this.weapons) {
+      if (weapon instanceof JakduBladeWeapon) {
+        const blades = weapon.getBlades();
+        for (const blade of blades) {
+          if (!blade.active) continue;
+
+          // 공격 중일 때만 충돌 처리
+          if (!blade.isAttackActive()) continue;
+
+          for (const enemy of this.enemies) {
+            if (!enemy.active || !enemy.isAlive()) continue;
+
+            // 이미 최대 타격 횟수에 도달한 적은 스킵
+            if (!blade.canHitEnemy(enemy.id)) continue;
+
+            // 작두와 적 충돌 체크 (원형 충돌)
+            if (checkCircleCollision(blade, enemy)) {
+              enemy.takeDamage(blade.damage);
+              blade.recordHit(enemy.id); // 타격 기록
+
+              if (!enemy.isAlive()) {
+                enemy.active = false;
+                this.enemiesKilled++;
+                console.log(
+                  `[Jakdu] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
+                );
+
+                // 체력 포션 드랍 확률
+                const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
+                this.combatSystem.onEnemyKilled?.({
+                  enemy,
+                  position: { x: enemy.x, y: enemy.y },
+                  xpValue: enemy.xpDrop,
+                  dropPotion,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 10. 경험치 젬 업데이트
     for (const gem of this.experienceGems) {
       gem.update(deltaTime, this.player);
     }
@@ -653,7 +709,7 @@ export class OverworldGameScene extends BaseGameScene {
   /**
    * 레벨업 선택 처리
    */
-  private handleLevelUpChoice(choiceId: string): void {
+  private async handleLevelUpChoice(choiceId: string): Promise<void> {
     console.log(`선택됨: ${choiceId}`);
 
     // Player의 선택 처리 호출 (게임 재개)
@@ -662,7 +718,7 @@ export class OverworldGameScene extends BaseGameScene {
     // 선택 적용
     if (choiceId.startsWith('weapon_')) {
       // 무기 추가
-      this.addWeapon(choiceId);
+      await this.addWeapon(choiceId);
     } else if (choiceId.startsWith('stat_')) {
       // 스탯 업그레이드
       this.player.applyStatUpgrade(choiceId);
@@ -672,7 +728,7 @@ export class OverworldGameScene extends BaseGameScene {
   /**
    * 무기 추가
    */
-  private addWeapon(weaponId: string): void {
+  private async addWeapon(weaponId: string): Promise<void> {
     console.log(`무기 추가: ${weaponId}`);
 
     switch (weaponId) {
@@ -695,13 +751,13 @@ export class OverworldGameScene extends BaseGameScene {
         if (existingDokkaebi) {
           existingDokkaebi.levelUp();
           // 레벨업 시 궤도 재생성
-          (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.player, this.gameLayer);
+          await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.player, this.gameLayer);
           console.log(`도깨비불 레벨업! Lv.${existingDokkaebi.level}`);
         } else {
           const dokkaebi = new DokkaebiFireWeapon();
           this.weapons.push(dokkaebi);
           // 최초 생성 시 궤도 생성
-          dokkaebi.spawnOrbitals(this.player, this.gameLayer);
+          await dokkaebi.spawnOrbitals(this.player, this.gameLayer);
           console.log('도깨비불 무기 추가 완료!');
         }
         break;
@@ -724,10 +780,14 @@ export class OverworldGameScene extends BaseGameScene {
         const existingJakdu = this.weapons.find((w) => w instanceof JakduBladeWeapon);
         if (existingJakdu) {
           existingJakdu.levelUp();
+          // 레벨업 시 작두 재생성
+          await (existingJakdu as JakduBladeWeapon).spawnBlades(this.player, this.gameLayer);
           console.log(`작두날 레벨업! Lv.${existingJakdu.level}`);
         } else {
           const jakdu = new JakduBladeWeapon();
           this.weapons.push(jakdu);
+          // 최초 생성 시 작두 생성
+          await jakdu.spawnBlades(this.player, this.gameLayer);
           console.log('작두날 무기 추가 완료!');
         }
         break;
@@ -908,13 +968,10 @@ export class OverworldGameScene extends BaseGameScene {
     buttonContainer.y = 30;
     buttonContainer.zIndex = 1000; // 다른 UI보다 위에
 
-    // 설정 아이콘 (톱니바퀴 이모지)
-    const icon = new Text({
-      text: '⚙️',
-      style: {
-        fontSize: 40,
-      },
-    });
+    // 설정 아이콘 (톱니바퀴 이미지)
+    const icon = Sprite.from('/assets/Settings.png');
+    icon.width = 32;
+    icon.height = 32;
     icon.anchor.set(0.5);
     buttonContainer.addChild(icon);
 

@@ -22,7 +22,7 @@ export class Talisman extends Weapon {
   /**
    * 발사
    */
-  public fire(playerPos: Vector2, enemies: BaseEnemy[]): Projectile[] {
+  public async fire(playerPos: Vector2, enemies: BaseEnemy[]): Promise<Projectile[]> {
     if (!this.canFire()) {
       return [];
     }
@@ -51,6 +51,10 @@ export class Talisman extends Weapon {
     );
 
     projectile.damage = this.damage;
+
+    // 부적 스프라이트 로드 (6x4 = 24 프레임, 각 프레임 32x32)
+    await projectile.loadSpriteSheet('/assets/fire.png', 32, 32, 24, 6);
+
     projectiles.push(projectile);
 
     // 쿨다운 리셋

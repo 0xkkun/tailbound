@@ -47,7 +47,10 @@ export abstract class Weapon {
    * 무기 발사 (추상 메서드)
    * @returns 생성된 엔티티 배열 (투사체, AoE, 근접 등)
    */
-  public abstract fire(playerPos: Vector2, enemies: BaseEnemy[]): WeaponEntity[];
+  public abstract fire(
+    playerPos: Vector2,
+    enemies: BaseEnemy[]
+  ): WeaponEntity[] | Promise<WeaponEntity[]>;
 
   /**
    * 쿨다운 리셋

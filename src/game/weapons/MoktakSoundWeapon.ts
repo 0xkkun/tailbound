@@ -24,12 +24,12 @@ export class MoktakSoundWeapon extends Weapon {
    * 광역 공격 발동
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public fire(playerPos: Vector2, _enemies: BaseEnemy[]): AoEEffect[] {
+  public async fire(playerPos: Vector2, _enemies: BaseEnemy[]): Promise<AoEEffect[]> {
     if (!this.canFire()) {
       return [];
     }
 
-    // 광역 이펙트 생성
+    // 하나의 광역 이펙트 생성
     const effect = new AoEEffect(
       playerPos.x,
       playerPos.y,
@@ -37,6 +37,9 @@ export class MoktakSoundWeapon extends Weapon {
       this.damage,
       0xffa500 // 주황색 (목탁 소리)
     );
+
+    // 목탁 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 120x120)
+    await effect.loadSpriteSheet('/assets/mocktak.png', 120, 120, 30, 6);
 
     this.resetCooldown();
 
