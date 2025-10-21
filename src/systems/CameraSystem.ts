@@ -107,8 +107,9 @@ export class CameraSystem {
     // 컨테이너를 카메라 위치의 반대 방향으로 이동
     // (카메라가 오른쪽으로 이동하면 월드는 왼쪽으로 이동)
     // 스케일이 적용된 경우 그만큼 곱해서 보정
-    container.x = (-this.x + halfScreenWidth) * scale;
-    container.y = (-this.y + halfScreenHeight) * scale;
+    // 픽셀 아트용: 정수 좌표로 반올림하여 울렁거림 방지
+    container.x = Math.round((-this.x + halfScreenWidth) * scale);
+    container.y = Math.round((-this.y + halfScreenHeight) * scale);
   }
 
   /**

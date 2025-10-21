@@ -16,7 +16,12 @@ export default function App() {
       {/* <I18nExample /> */}
       {/* We'll wrap our components with an <Application> component to provide
           the Pixi.js Application context */}
-      <Application background={'#1a1a2e'} resizeTo={window}>
+      <Application
+        background={'#1a1a2e'}
+        resizeTo={window}
+        antialias={false} // 픽셀 아트용: 안티앨리어싱 비활성화
+        roundPixels={false} // 카메라 시스템에서 직접 반올림 처리
+      >
         <GameContainer />
       </Application>
     </>
