@@ -1,8 +1,17 @@
+@font-face {
+    font-family: 'NeoDunggeunmo';
+    src: url('/font/NeoDunggeunmoPro-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 body {
     margin: 0;
     padding: 0;
     color: rgba(255, 255, 255, 0.87);
     background-color: #000000;
+    font-family: 'NeoDunggeunmo', monospace;
 
     /* 텍스트/이미지 선택 방지 */
     user-select: none;
