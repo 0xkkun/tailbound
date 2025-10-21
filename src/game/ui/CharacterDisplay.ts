@@ -40,15 +40,15 @@ export class CharacterDisplay extends Container {
   }
 
   private createNameText(name: string): void {
-    const fontSize = this.isMobile ? Math.floor(14 * this.scaleFactor) : 16;
+    const fontSize = this.isMobile ? Math.floor(16 * this.scaleFactor) : 16;
     const yPosition = this.isMobile ? 80 : 100;
 
     this.nameText = new Text(name, {
-      fontFamily: 'Nanum Gothic',
+      fontFamily: 'NeoDunggeunmo',
       fontSize: fontSize,
       fill: 0xd4af37,
-      fontWeight: 'bold',
     });
+    this.nameText.resolution = 3; // 초고해상도 렌더링 (로비 화면용)
     this.nameText.anchor.set(0.5, 0);
     this.nameText.y = yPosition;
     this.addChild(this.nameText);

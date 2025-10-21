@@ -139,12 +139,12 @@ export class LevelUpUI extends Container {
     const rarityText = new Text({
       text: (choice.rarity || 'common').toUpperCase(),
       style: {
-        fontFamily: 'Arial',
-        fontSize: 14,
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 16,
         fill: 0xffffff,
-        fontWeight: 'bold',
       },
     });
+    rarityText.resolution = 2; // 고해상도 렌더링
     rarityText.anchor.set(0.5);
     rarityText.x = 50;
     rarityText.y = 25;
@@ -154,14 +154,14 @@ export class LevelUpUI extends Container {
     const nameText = new Text({
       text: choice.name,
       style: {
-        fontFamily: 'Arial',
-        fontSize: 24,
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 32,
         fill: 0xffffff,
-        fontWeight: 'bold',
         wordWrap: true,
         wordWrapWidth: width - 40,
       },
     });
+    nameText.resolution = 2; // 고해상도 렌더링
     nameText.x = 20;
     nameText.y = 60;
     card.addChild(nameText);
@@ -170,13 +170,14 @@ export class LevelUpUI extends Container {
     const descText = new Text({
       text: choice.description,
       style: {
-        fontFamily: 'Arial',
+        fontFamily: 'NeoDunggeunmo',
         fontSize: 16,
         fill: 0xcccccc,
         wordWrap: true,
         wordWrapWidth: width - 40,
       },
     });
+    descText.resolution = 2; // 고해상도 렌더링
     descText.x = 20;
     descText.y = 100;
     card.addChild(descText);

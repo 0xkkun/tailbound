@@ -101,14 +101,14 @@ export class PixelButton extends Container {
 
   private createLabel(text: string): void {
     // 모바일에서 폰트 크기 조정
-    const fontSize = this.isMobile ? Math.floor(16 * this.scaleFactor) : 18;
+    const fontSize = this.isMobile ? Math.floor(16 * this.scaleFactor) : 16;
 
     this.labelText = new Text(text, {
-      fontFamily: 'Nanum Gothic',
+      fontFamily: 'NeoDunggeunmo',
       fontSize: fontSize,
       fill: this.isDisabled ? 0x999999 : 0xeaeaea,
-      fontWeight: 'bold',
     });
+    this.labelText.resolution = 3; // 초고해상도 렌더링 (로비 화면용)
     this.labelText.anchor.set(0.5);
     this.addChild(this.labelText);
   }

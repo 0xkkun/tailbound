@@ -33,7 +33,7 @@ export class HealthPotion extends Container {
     this.visual = new Text({
       text: '❤️',
       style: {
-        fontSize: 24,
+        fontSize: 32,
       },
     });
     this.visual.anchor.set(0.5);

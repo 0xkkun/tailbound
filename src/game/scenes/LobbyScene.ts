@@ -46,16 +46,16 @@ export class LobbyScene extends Container {
   private createTitle(screenWidth: number): void {
     // 타이틀 (추후 이미지로 교체)
     const titleSize = this.isMobile ? Math.floor(48 * this.scaleFactor) : 64;
-    const subtitleSize = this.isMobile ? Math.floor(16 * this.scaleFactor) : 20;
+    const subtitleSize = this.isMobile ? Math.floor(16 * this.scaleFactor) : 16;
     const titleY = this.isMobile ? 40 * this.scaleFactor : 80;
     const subtitleY = this.isMobile ? 40 * this.scaleFactor + titleSize + 10 : 160;
 
     this.titleText = new Text('설화(說話)', {
-      fontFamily: 'Nanum Gothic',
+      fontFamily: 'NeoDunggeunmo',
       fontSize: titleSize,
       fill: 0xeaeaea,
-      fontWeight: 'bold',
     });
+    this.titleText.resolution = 3; // 초고해상도 렌더링 (로비 화면용)
     this.titleText.anchor.set(0.5, 0);
     this.titleText.x = screenWidth / 2;
     this.titleText.y = titleY;
@@ -63,10 +63,11 @@ export class LobbyScene extends Container {
 
     // 부제
     this.subtitleText = new Text('Talebound', {
-      fontFamily: 'Nanum Gothic',
+      fontFamily: 'NeoDunggeunmo',
       fontSize: subtitleSize,
       fill: 0xb8b8b8,
     });
+    this.subtitleText.resolution = 3; // 초고해상도 렌더링 (로비 화면용)
     this.subtitleText.anchor.set(0.5, 0);
     this.subtitleText.x = screenWidth / 2;
     this.subtitleText.y = subtitleY;

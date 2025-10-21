@@ -50,6 +50,7 @@ export class BoundaryGameScene extends BaseGameScene {
   protected createPlayer(): void {
     // 월드 배경 (타일링)
     const texture = Assets.get('/assets/bottom.png');
+    texture.source.scaleMode = 'nearest'; // 픽셀 아트용: 픽셀 단위 렌더링
     const bg = new TilingSprite({
       texture,
       width: this.worldWidth,
@@ -79,10 +80,9 @@ export class BoundaryGameScene extends BaseGameScene {
   protected async initScene(): Promise<void> {
     // 타이틀
     const titleText = new Text('경계 (境界)', {
-      fontFamily: 'Nanum Gothic',
+      fontFamily: 'NeoDunggeunmo',
       fontSize: 32,
       fill: 0xffffff,
-      fontWeight: 'bold',
       dropShadow: {
         alpha: 0.8,
         angle: Math.PI / 6,
@@ -91,6 +91,7 @@ export class BoundaryGameScene extends BaseGameScene {
         distance: 3,
       },
     });
+    titleText.resolution = 2; // 고해상도 렌더링
     titleText.anchor.set(0.5, 0);
     titleText.x = this.screenWidth / 2;
     titleText.y = 40;

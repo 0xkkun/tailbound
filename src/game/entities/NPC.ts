@@ -55,10 +55,9 @@ export class NPC extends Container {
    */
   private createNameText(): Text {
     const text = new Text(this.data.name, {
-      fontFamily: 'Nanum Gothic',
-      fontSize: 12,
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: 16,
       fill: 0xd4af37,
-      fontWeight: 'bold',
       dropShadow: {
         alpha: 0.8,
         angle: Math.PI / 6,
@@ -67,6 +66,7 @@ export class NPC extends Container {
         distance: 2,
       },
     });
+    text.resolution = 2; // 고해상도 렌더링
     text.anchor.set(0.5, 0);
     text.y = 5; // 캐릭터 바로 위에 표시
     return text;

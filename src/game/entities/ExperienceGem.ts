@@ -121,12 +121,13 @@ export class ExperienceGem extends Container {
     this.text = new Text({
       text: `${this.value}`,
       style: {
-        fontFamily: 'Arial',
-        fontSize: 10,
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 16,
         fill: 0xffffff,
         stroke: { color: 0x000000, width: 2 },
       },
     });
+    this.text.resolution = 2; // 고해상도 렌더링
     this.text.anchor.set(0.5);
     this.text.y = -20;
     this.addChild(this.text);

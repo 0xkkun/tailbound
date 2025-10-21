@@ -57,10 +57,9 @@ export class PortalIndicator extends Container {
    */
   private createDistanceText(): Text {
     const text = new Text('경계로 가는 문', {
-      fontFamily: 'Nanum Gothic',
-      fontSize: 14,
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: 16,
       fill: 0xffffff,
-      fontWeight: 'bold',
       dropShadow: {
         alpha: 0.8,
         angle: Math.PI / 6,
@@ -70,6 +69,7 @@ export class PortalIndicator extends Container {
       },
     });
 
+    text.resolution = 2; // 고해상도 렌더링
     text.anchor.set(0.5, 0);
     text.y = 35;
 

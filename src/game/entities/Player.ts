@@ -46,6 +46,9 @@ export class Player extends Container {
   private currentInput: InputState = { x: 0, y: 0 };
   private lastMovingState: boolean = false;
 
+  // 마지막 이동 방향 (작두 같은 무기가 바라보는 방향으로 사용)
+  public lastDirection: { x: number; y: number } = { x: 1, y: 0 }; // 기본: 오른쪽
+
   // 무적 시간 (피격 후)
   private invincibleTime: number = 0;
   private invincibleDuration: number = PLAYER_BALANCE.invincibleDuration;
@@ -83,12 +86,13 @@ export class Player extends Container {
     this.levelText = new Text({
       text: 'Lv.1',
       style: {
-        fontFamily: 'Arial',
-        fontSize: 14,
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 16,
         fill: 0xffffff,
         stroke: { color: 0x000000, width: 2 },
       },
     });
+    this.levelText.resolution = 2; // 고해상도 렌더링
     this.levelText.anchor.set(0.5);
     this.levelText.y = -this.radius - 20;
     this.addChild(this.levelText);
@@ -358,6 +362,9 @@ export class Player extends Container {
       const effectiveSpeed = this.speed * this.speedMultiplier;
       this.x += normalizedX * effectiveSpeed * deltaTime;
       this.y += normalizedY * effectiveSpeed * deltaTime;
+
+      // 마지막 이동 방향 저장
+      this.lastDirection = { x: normalizedX, y: normalizedY };
 
       // 스프라이트 좌우 반전 (왼쪽: scale.x = -1, 오른쪽: scale.x = 1)
       if (this.sprite && normalizedX !== 0) {

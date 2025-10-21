@@ -70,10 +70,9 @@ export class Portal extends Container {
    */
   private createLabel(): Text {
     const text = new Text('경계로 가는 문', {
-      fontFamily: 'Nanum Gothic',
-      fontSize: 14,
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: 16,
       fill: 0xffffff,
-      fontWeight: 'bold',
       dropShadow: {
         alpha: 0.8,
         angle: Math.PI / 6,
@@ -82,6 +81,7 @@ export class Portal extends Container {
         distance: 2,
       },
     });
+    text.resolution = 2; // 고해상도 렌더링
     text.anchor.set(0.5, 0);
     text.y = 75;
     return text;

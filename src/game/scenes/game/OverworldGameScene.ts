@@ -115,6 +115,7 @@ export class OverworldGameScene extends BaseGameScene {
   protected createPlayer(): void {
     // 월드 배경 (타일링)
     const texture = Assets.get('/assets/bottom.png');
+    texture.source.scaleMode = 'nearest'; // 픽셀 아트용: 픽셀 단위 렌더링
     const bg = new TilingSprite({
       texture,
       width: GAME_CONFIG.world.overworld.width,
@@ -189,32 +190,35 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 체력 텍스트 (톱니바퀴 아래)
     this.healthText = new Text('HP: 100/100', {
-      fontFamily: 'Arial',
-      fontSize: 24,
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: 32,
       fill: 0xff5555,
       fontWeight: 'bold',
     });
+    this.healthText.resolution = 2; // 고해상도 렌더링
     this.healthText.x = 20;
     this.healthText.y = 50; // 톱니바퀴 아래로 이동
     this.uiLayer.addChild(this.healthText);
 
     // 점수 텍스트
     this.scoreText = new Text('처치: 0', {
-      fontFamily: 'Arial',
-      fontSize: 24,
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: 32,
       fill: 0xffffff,
     });
+    this.scoreText.resolution = 2; // 고해상도 렌더링
     this.scoreText.x = 20;
     this.scoreText.y = 85; // 아래로 이동
     this.uiLayer.addChild(this.scoreText);
 
     // 시간 텍스트
     this.timeText = new Text('0:00', {
-      fontFamily: 'Arial',
+      fontFamily: 'NeoDunggeunmo',
       fontSize: 32,
       fill: 0xffffff,
       fontWeight: 'bold',
     });
+    this.timeText.resolution = 2; // 고해상도 렌더링
     this.timeText.anchor.set(0.5, 0);
     this.timeText.x = this.screenWidth / 2;
     this.timeText.y = 20;
@@ -222,11 +226,12 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 레벨 텍스트
     this.levelText = new Text('Lv.1', {
-      fontFamily: 'Arial',
-      fontSize: 24,
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: 32,
       fill: 0xffff00,
       fontWeight: 'bold',
     });
+    this.levelText.resolution = 2; // 고해상도 렌더링
     this.levelText.x = 20;
     this.levelText.y = 110;
     this.uiLayer.addChild(this.levelText);
@@ -826,12 +831,12 @@ export class OverworldGameScene extends BaseGameScene {
     const gameOverText = new Text({
       text: i18n.t('gameOver.title'),
       style: {
-        fontFamily: 'Arial',
-        fontSize: 72,
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 64,
         fill: 0xff0000,
-        fontWeight: 'bold',
       },
     });
+    gameOverText.resolution = 2; // 고해상도 렌더링
     gameOverText.anchor.set(0.5);
     gameOverText.x = centerX;
     gameOverText.y = centerY - 150;
@@ -841,11 +846,12 @@ export class OverworldGameScene extends BaseGameScene {
     const timeText = new Text({
       text: i18n.t('gameOver.survivalTime', { time: Math.floor(this.gameTime) }),
       style: {
-        fontFamily: 'Arial',
-        fontSize: 24,
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 32,
         fill: 0xffffff,
       },
     });
+    timeText.resolution = 2; // 고해상도 렌더링
     timeText.anchor.set(0.5);
     timeText.x = centerX;
     timeText.y = centerY - 80;
@@ -855,11 +861,12 @@ export class OverworldGameScene extends BaseGameScene {
     const killsText = new Text({
       text: i18n.t('gameOver.enemiesKilled', { count: this.enemiesKilled }),
       style: {
-        fontFamily: 'Arial',
-        fontSize: 24,
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 32,
         fill: 0xffffff,
       },
     });
+    killsText.resolution = 2; // 고해상도 렌더링
     killsText.anchor.set(0.5);
     killsText.x = centerX;
     killsText.y = centerY - 40;
@@ -931,12 +938,12 @@ export class OverworldGameScene extends BaseGameScene {
     const buttonText = new Text({
       text,
       style: {
-        fontFamily: 'Arial',
-        fontSize: 24,
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 32,
         fill: 0xffffff,
-        fontWeight: 'bold',
       },
     });
+    buttonText.resolution = 2; // 고해상도 렌더링
     buttonText.anchor.set(0.5);
     buttonContainer.addChild(buttonText);
 
@@ -1041,12 +1048,12 @@ export class OverworldGameScene extends BaseGameScene {
     const titleText = new Text({
       text: '설정',
       style: {
-        fontFamily: 'Arial',
+        fontFamily: 'NeoDunggeunmo',
         fontSize: 32,
         fill: 0xffffff,
-        fontWeight: 'bold',
       },
     });
+    titleText.resolution = 2; // 고해상도 렌더링
     titleText.anchor.set(0.5);
     titleText.x = centerX;
     titleText.y = centerY - 130;

@@ -135,10 +135,9 @@ export class DialogUI extends Container {
    */
   private createSpeakerName(): Text {
     const text = new Text('', {
-      fontFamily: 'Nanum Gothic',
-      fontSize: 20,
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: 16,
       fill: 0xd4af37,
-      fontWeight: 'bold',
       dropShadow: {
         alpha: 0.8,
         angle: Math.PI / 6,
@@ -148,6 +147,7 @@ export class DialogUI extends Container {
       },
     });
 
+    text.resolution = 2; // 고해상도 렌더링
     text.x = 40;
     text.y = this.screenHeight - 210;
 
@@ -180,7 +180,7 @@ export class DialogUI extends Container {
     const maxWidth = this.screenWidth - padding * 2 - 40;
 
     const text = new Text('', {
-      fontFamily: 'Nanum Gothic',
+      fontFamily: 'NeoDunggeunmo',
       fontSize: 16,
       fill: 0xffffff,
       lineHeight: 24,
@@ -188,6 +188,7 @@ export class DialogUI extends Container {
       wordWrapWidth: maxWidth,
     });
 
+    text.resolution = 2; // 고해상도 렌더링
     text.x = 40;
     text.y = this.screenHeight - 160;
 
@@ -202,12 +203,13 @@ export class DialogUI extends Container {
     const hintText = platform.isMobile() ? '▼ 터치하여 계속 ▼' : '▼ 클릭하여 계속 ▼';
 
     const text = new Text(hintText, {
-      fontFamily: 'Nanum Gothic',
-      fontSize: 12,
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: 16,
       fill: 0xaaaaaa,
       fontStyle: 'italic',
     });
 
+    text.resolution = 2; // 고해상도 렌더링
     text.anchor.set(1, 1);
     text.x = this.screenWidth - 40;
     text.y = this.screenHeight - 30;
