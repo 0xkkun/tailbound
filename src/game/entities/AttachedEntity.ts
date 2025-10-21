@@ -9,7 +9,7 @@ import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 
 
 import type { Player } from './Player';
 
-export type AttachmentPosition = 'left' | 'right' | 'top' | 'bottom';
+export type AttachmentPosition = 'left' | 'right' | 'top' | 'bottom' | 'forward';
 
 export interface AttachedEntityConfig {
   position: AttachmentPosition;
@@ -57,9 +57,16 @@ export class AttachedEntity extends Container {
    * 플레이어 기준 상대 위치 업데이트
    */
   public update(deltaTime: number, player: Player): void {
-    const offset = this.calculateOffset();
+    const offset = this.calculateOffset(player);
     this.x = player.x + offset.x;
     this.y = player.y + offset.y;
+
+    // forward 위치일 때 플레이어 좌우 방향에 따라 회전
+    if (this.attachmentPosition === 'forward' && this.visual instanceof AnimatedSprite) {
+      // 좌우만 판단 (위아래 무시)
+      const isRight = player.lastDirection.x >= 0;
+      this.visual.rotation = isRight ? Math.PI / 2 : -Math.PI / 2; // 오른쪽: 90도, 왼쪽: -90도
+    }
 
     // 공격 애니메이션 처리
     if (this.isAttacking) {
@@ -122,7 +129,7 @@ export class AttachedEntity extends Container {
   /**
    * 위치에 따른 오프셋 계산
    */
-  protected calculateOffset(): { x: number; y: number } {
+  protected calculateOffset(player: Player): { x: number; y: number } {
     switch (this.attachmentPosition) {
       case 'left':
         return { x: -this.offsetDistance, y: 0 };
@@ -132,6 +139,13 @@ export class AttachedEntity extends Container {
         return { x: 0, y: -this.offsetDistance };
       case 'bottom':
         return { x: 0, y: this.offsetDistance };
+      case 'forward':
+        // 플레이어가 바라보는 좌우 방향으로만 오프셋 (위아래 무시)
+        const horizontalDirection = player.lastDirection.x >= 0 ? 1 : -1;
+        return {
+          x: horizontalDirection * this.offsetDistance,
+          y: 0,
+        };
     }
   }
 

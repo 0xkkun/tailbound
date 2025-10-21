@@ -47,7 +47,7 @@ export class JakduBladeWeapon extends Weapon {
   /**
    * 작두 생성 (무기 추가 시 또는 레벨업 시 호출)
    */
-  public async spawnBlades(_player: Player, gameLayer: Container): Promise<void> {
+  public async spawnBlades(player: Player, gameLayer: Container): Promise<void> {
     // 기존 작두 제거
     for (const blade of this.blades) {
       gameLayer.removeChild(blade);
@@ -56,7 +56,8 @@ export class JakduBladeWeapon extends Weapon {
     this.blades = [];
 
     // 새 작두 생성
-    const positions: Array<'left' | 'right'> = this.bladeCount >= 2 ? ['right', 'left'] : ['right'];
+    const positions: Array<'left' | 'right' | 'forward'> =
+      this.bladeCount >= 2 ? ['right', 'left'] : ['forward'];
 
     for (const position of positions) {
       const blade = new AttachedEntity({
@@ -72,7 +73,12 @@ export class JakduBladeWeapon extends Weapon {
         animationSpeed: 0.2, // 느리게 (0.5 -> 0.2)
         loop: false, // 한 번만 재생
         flipX: position === 'right', // 오른쪽은 좌우 반전
-        rotation: position === 'right' ? Math.PI / 2 : -Math.PI / 2, // 오른쪽 90도, 왼쪽 -90도 (180도 차이)
+        rotation:
+          position === 'right'
+            ? Math.PI / 2 // 오른쪽 90도
+            : position === 'left'
+              ? -Math.PI / 2 // 왼쪽 -90도
+              : 0, // forward는 방향에 따라 동적으로 회전 (나중에 업데이트에서 처리)
       });
 
       this.blades.push(blade);
