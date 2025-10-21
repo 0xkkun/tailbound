@@ -39,6 +39,10 @@
     "jakdu": {
       "name": "작두날",
       "description": "강력한 회전 베기로 주변 적을 처치합니다."
+    },
+    "fanWind": {
+      "name": "부채바람",
+      "description": "부채 모양으로 바람을 날려 사거리 내 모든 적을 관통합니다."
     }
   },
   "stats": {

@@ -37,3 +37,12 @@ body {
     /* 웹뷰 앱처럼 동작 */
     touch-action: manipulation;
 }
+
+/* 캔버스 터치 동작 최적화 */
+canvas {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}

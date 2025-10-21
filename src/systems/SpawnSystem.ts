@@ -5,7 +5,7 @@
 import { SPAWN_BALANCE } from '@/config/balance.config';
 import { selectEnemyTier } from '@/game/data/enemies';
 import type { BaseEnemy } from '@/game/entities/enemies';
-import { SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
+import { MaidenGhostEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
 import type { Vector2 } from '@/types/game.types';
 
 export class SpawnSystem {
@@ -88,12 +88,16 @@ export class SpawnSystem {
         // 게임 시간에 따라 적 티어 선택
         const tier = selectEnemyTier(this.gameTime);
 
-        // 랜덤하게 적 타입 선택 (50% 스켈레톤, 50% 호랑이)
-        const enemyType = Math.random() < 0.5 ? 'skeleton' : 'tiger';
-        const enemy =
-          enemyType === 'skeleton'
-            ? new SkeletonEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier)
-            : new TigerEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        // 랜덤하게 적 타입 선택 (35% 스켈레톤, 35% 호랑이, 30% 처녀귀신)
+        const rand = Math.random();
+        let enemy: BaseEnemy;
+        if (rand < 0.35) {
+          enemy = new SkeletonEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        } else if (rand < 0.7) {
+          enemy = new TigerEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        } else {
+          enemy = new MaidenGhostEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        }
 
         enemies.push(enemy);
         totalSpawned++;

@@ -206,6 +206,13 @@ export class LevelSystem {
         description: i18n.t('weapons.jakdu.description'),
         rarity: 'rare' as const,
       },
+      {
+        id: 'weapon_fan_wind',
+        type: 'weapon' as const,
+        name: i18n.t('weapons.fanWind.name'),
+        description: i18n.t('weapons.fanWind.description'),
+        rarity: 'common' as const,
+      },
     ];
 
     // TODO: 더 많은 스탯 업그레이드 추가 필요 (현재 15개 -> 목표 30개+)

@@ -10,7 +10,7 @@ import type { EnemySpriteConfig } from './EnemySprite';
 export class SkeletonEnemy extends BaseEnemy {
   // 스켈레톤 스프라이트 설정
   private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/skeleton-walk.png',
+    assetPath: '/assets/skeleton_walk.png',
     totalWidth: 286,
     height: 33,
     frameCount: 13,

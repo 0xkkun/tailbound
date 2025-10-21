@@ -45,6 +45,7 @@ export class VirtualJoystick {
   private setupEvents(): void {
     // 터치 시작
     this.touchArea.on('pointerdown', (event) => {
+      event.preventDefault?.();
       this.isActive = true;
 
       // 터치 시작 위치 저장
@@ -59,6 +60,8 @@ export class VirtualJoystick {
     // 터치 이동
     this.touchArea.on('pointermove', (event) => {
       if (!this.isActive) return;
+
+      event.preventDefault?.();
 
       const pos = event.global;
       const dx = pos.x - this.touchStartX;
@@ -76,7 +79,10 @@ export class VirtualJoystick {
     });
 
     // 터치 종료
-    const endTouch = () => {
+    const endTouch = (event?: unknown) => {
+      if (event && typeof event === 'object' && 'preventDefault' in event) {
+        (event.preventDefault as (() => void) | undefined)?.();
+      }
       this.isActive = false;
       this.joystickX = 0;
       this.joystickY = 0;

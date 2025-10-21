@@ -7,7 +7,7 @@ import { WEAPON_BALANCE } from '@/config/balance.config';
 /**
  * 무기 타입
  */
-export type WeaponType = 'talisman' | 'dokkaebi_fire' | 'moktak_sound' | 'jakdu_blade';
+export type WeaponType = 'talisman' | 'dokkaebi_fire' | 'moktak_sound' | 'jakdu_blade' | 'fan_wind';
 
 /**
  * 무기 데이터 인터페이스
@@ -87,6 +87,20 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
     projectileCount: WEAPON_BALANCE.jakdu_blade.projectileCount,
     piercing: WEAPON_BALANCE.jakdu_blade.piercing,
     levelScaling: WEAPON_BALANCE.jakdu_blade.levelScaling,
+  },
+
+  fan_wind: {
+    id: 'fan_wind',
+    name: '부채바람',
+    description: '부채 모양으로 바람을 날려 사거리 내 모든 적을 관통한다',
+    baseDamage: WEAPON_BALANCE.fan_wind.baseDamage,
+    baseCooldown: WEAPON_BALANCE.fan_wind.baseCooldown,
+    projectileSpeed: WEAPON_BALANCE.fan_wind.projectileSpeed,
+    projectileRadius: WEAPON_BALANCE.fan_wind.projectileRadius,
+    projectileLifetime: WEAPON_BALANCE.fan_wind.projectileLifetime,
+    projectileCount: WEAPON_BALANCE.fan_wind.projectileCount,
+    piercing: WEAPON_BALANCE.fan_wind.piercing,
+    levelScaling: WEAPON_BALANCE.fan_wind.levelScaling,
   },
 };
 

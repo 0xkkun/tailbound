@@ -11,6 +11,7 @@ export class LobbyScene extends Container {
   private startButton!: PixelButton;
   private characterSelectButton!: PixelButton;
   private optionsButton!: PixelButton;
+  private copyrightText!: Text;
   private isMobile: boolean;
   private scaleFactor: number;
 
@@ -32,6 +33,7 @@ export class LobbyScene extends Container {
     this.createTitle(screenWidth);
     this.createCharacterDisplay(screenWidth, screenHeight);
     this.createButtons(screenWidth, screenHeight);
+    this.createCopyright(screenWidth, screenHeight);
   }
 
   private createBackground(width: number, height: number): void {
@@ -148,6 +150,40 @@ export class LobbyScene extends Container {
     this.optionsButton.x = buttonX;
     this.optionsButton.y = baseY + gap * 2;
     this.addChild(this.optionsButton);
+  }
+
+  private createCopyright(screenWidth: number, screenHeight: number): void {
+    const fontSize = this.isMobile ? 12 : 16;
+    const padding = this.isMobile ? 10 : 20;
+    const lineHeight = this.isMobile ? 32 : 40;
+
+    // 프로젝트 저작권 (위)
+    this.copyrightText = new Text('Tailbound © 2025', {
+      fontFamily: 'NeoDunggeunmo',
+      fontSize: fontSize,
+      fill: 0x666666,
+    });
+    this.copyrightText.resolution = 2;
+    this.copyrightText.anchor.set(0.5, 1);
+    this.copyrightText.x = screenWidth / 2;
+    this.copyrightText.y = screenHeight - padding - lineHeight;
+    this.addChild(this.copyrightText);
+
+    // 폰트 저작권 (아래, 줄바꿈)
+    const fontCopyright = new Text(
+      'Neo둥근모 Pro © 2017-2024, Eunbin Jeong (Dalgona.)\n<project-neodgm@dalgona.dev>',
+      {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: fontSize,
+        fill: 0x666666,
+        align: 'center',
+      }
+    );
+    fontCopyright.resolution = 2;
+    fontCopyright.anchor.set(0.5, 1);
+    fontCopyright.x = screenWidth / 2;
+    fontCopyright.y = screenHeight - padding;
+    this.addChild(fontCopyright);
   }
 
   public destroy(): void {

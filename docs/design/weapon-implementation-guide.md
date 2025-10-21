@@ -217,12 +217,15 @@ export class NewWeapon extends Weapon {
 
 ### 타입 1: 투사체형 (Projectile)
 
-**예시**: 부적 (Talisman)
+**예시**: 부적 (Talisman), 부채바람 (FanWind)
 
 **특징**:
 - 직선/곡선으로 날아가는 투사체
 - `Projectile` 엔티티 사용
 - 타겟 추적 또는 방향 설정
+- 관통(piercing) 지원 가능
+
+#### 1-1. 기본 투사체 (타겟 추적)
 
 **구현 방법**:
 
@@ -270,6 +273,298 @@ private findClosestEnemy(playerPos: Vector2, enemies: Enemy[]): Enemy | null {
   }
 
   return closest;
+}
+```
+
+#### 1-2. 관통형 투사체 (부채바람)
+
+**예시**: 부채바람 - 뱀파이어 서바이벌의 도끼처럼 일정 거리까지 몬스터를 무제한 관통하며 날아감
+
+**특징**:
+- **무제한 관통** (사거리 내 모든 적 피해)
+- 일정 거리 제한 (최대 사거리)
+- 레벨업 시 투사체 수량 증가
+- 레벨업 시 데미지 증가
+- 부채꼴 패턴으로 발사
+
+**밸런스 철학**:
+- 도깨비불/목탁소리처럼 범위형 무기는 범위 내 모든 적을 타격
+- 부채바람도 사거리 내에서는 무제한 관통으로 일관성 유지
+- 대신 사거리 제한과 방향성으로 밸런스 조절
+
+**데이터 정의** (`game/data/weapons.ts`):
+
+```typescript
+fanwind: {
+  id: 'weapon_fanwind',
+  name: '부채바람',
+  description: '부채 모양으로 바람을 날려 사거리 내 모든 적을 관통한다',
+  type: 'projectile',
+
+  baseDamage: 25,
+  baseCooldown: 2.0,
+  projectileSpeed: 350,
+  piercing: Infinity, // 무제한 관통
+  maxRange: 400, // 최대 사거리 400픽셀
+
+  levelScaling: {
+    damage: 8,           // 레벨당 데미지 +8
+    cooldownReduction: 0.15, // 레벨당 쿨타임 -0.15초
+  },
+
+  maxLevel: 5,
+  evolution: {
+    name: '회오리바람',
+    description: '더 강력한 바람이 적을 휩쓴다',
+    bonusEffect: '투사체 수량 2배, 사거리 +200',
+  },
+},
+```
+
+**무기 클래스 구현**:
+
+```typescript
+// src/game/weapons/FanWindWeapon.ts
+import { calculateWeaponStats } from '@/game/data/weapons';
+import type { Enemy } from '@/game/entities/Enemy';
+import { Projectile } from '@/game/entities/Projectile';
+import type { Vector2 } from '@/types/game.types';
+
+import { Weapon } from './Weapon';
+
+export class FanWindWeapon extends Weapon {
+  private projectileCount: number = 1; // 투사체 개수
+  private spreadAngle: number = Math.PI / 6; // 30도 부채꼴
+  private maxRange: number = 400; // 최대 사거리
+
+  constructor() {
+    const stats = calculateWeaponStats('fanwind', 1);
+    super('부채바람', stats.damage, stats.cooldown);
+  }
+
+  /**
+   * 부채꼴 패턴으로 투사체 발사
+   */
+  public fire(playerPos: Vector2, enemies: Enemy[]): Projectile[] {
+    if (!this.canFire()) return [];
+
+    const projectiles: Projectile[] = [];
+
+    // 가장 가까운 적 방향으로 발사 (없으면 마지막 이동 방향)
+    const target = this.findClosestEnemy(playerPos, enemies);
+    const baseDirection = target
+      ? this.getDirection(playerPos, { x: target.x, y: target.y })
+      : { x: 1, y: 0 }; // 기본값: 오른쪽
+
+    // 중앙 각도 계산
+    const baseAngle = Math.atan2(baseDirection.y, baseDirection.x);
+
+    // 투사체 개수에 따라 부채꼴로 발사
+    for (let i = 0; i < this.projectileCount; i++) {
+      let angle: number;
+
+      if (this.projectileCount === 1) {
+        // 1개일 때: 중앙으로
+        angle = baseAngle;
+      } else {
+        // 여러 개일 때: 부채꼴로 분산
+        const step = this.spreadAngle / (this.projectileCount - 1);
+        angle = baseAngle - this.spreadAngle / 2 + step * i;
+      }
+
+      // 방향 벡터 계산
+      const direction = {
+        x: Math.cos(angle),
+        y: Math.sin(angle),
+      };
+
+      // 투사체 생성
+      const projectile = new Projectile(
+        `fanwind_${Date.now()}_${i}`,
+        playerPos.x,
+        playerPos.y,
+        direction,
+        0x87ceeb // 하늘색 (부채바람 색상)
+      );
+
+      projectile.damage = this.damage;
+      projectile.piercing = Infinity; // 무제한 관통
+      projectile.maxDistance = this.maxRange; // 최대 사거리 설정
+
+      projectiles.push(projectile);
+    }
+
+    this.resetCooldown();
+    return projectiles;
+  }
+
+  /**
+   * 레벨업: 투사체 수량 증가, 데미지 증가
+   */
+  public levelUp(): void {
+    super.levelUp();
+
+    // 데이터에서 새 스탯 계산
+    const stats = calculateWeaponStats('fanwind', this.level);
+    this.damage = stats.damage;
+    this.cooldown = stats.cooldown;
+
+    // 레벨업 시 투사체 수량 증가
+    if (this.level === 2) {
+      this.projectileCount = 2; // 레벨 2: 2개
+    } else if (this.level === 3) {
+      this.projectileCount = 3; // 레벨 3: 3개
+    } else if (this.level === 4) {
+      this.projectileCount = 4; // 레벨 4: 4개
+    } else if (this.level === 5) {
+      this.projectileCount = 5; // 레벨 5: 5개
+    }
+
+    console.log(
+      `🌪️ 부채바람 레벨 ${this.level}! (투사체: ${this.projectileCount}개, 데미지: ${this.damage})`
+    );
+  }
+
+  private findClosestEnemy(playerPos: Vector2, enemies: Enemy[]): Enemy | null {
+    let closest: Enemy | null = null;
+    let minDistance = Infinity;
+
+    for (const enemy of enemies) {
+      if (!enemy.active || !enemy.isAlive()) continue;
+
+      const dx = enemy.x - playerPos.x;
+      const dy = enemy.y - playerPos.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closest = enemy;
+      }
+    }
+
+    return closest;
+  }
+
+  private getDirection(from: Vector2, to: Vector2): Vector2 {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length === 0) return { x: 1, y: 0 };
+
+    return {
+      x: dx / length,
+      y: dy / length,
+    };
+  }
+}
+```
+
+**Projectile 클래스 수정 필요사항**:
+
+```typescript
+// src/game/entities/Projectile.ts
+export class Projectile extends Container {
+  // 기존 속성들...
+  public piercing: number = 0; // 관통 가능 횟수 (0 = 관통 없음, Infinity = 무제한)
+  public maxDistance: number = Infinity; // 최대 사거리
+
+  private hitEnemies: Set<string> = new Set(); // 이미 맞힌 적 ID
+  private traveledDistance: number = 0; // 이동 거리
+
+  public update(deltaTime: number): void {
+    const moveDistance = this.speed * deltaTime;
+
+    this.x += this.direction.x * moveDistance;
+    this.y += this.direction.y * moveDistance;
+
+    // 이동 거리 추적
+    this.traveledDistance += moveDistance;
+
+    // 최대 사거리 도달 시 비활성화
+    if (this.traveledDistance >= this.maxDistance) {
+      this.active = false;
+    }
+  }
+
+  /**
+   * 적 히트 처리 (관통 고려)
+   */
+  public hitEnemy(enemyId: string): void {
+    this.hitEnemies.add(enemyId);
+
+    // Infinity 관통이면 계속 날아감
+    if (this.piercing === Infinity) {
+      return;
+    }
+
+    // 관통 횟수 초과 시 비활성화
+    if (this.hitEnemies.size > this.piercing) {
+      this.active = false;
+    }
+  }
+
+  /**
+   * 이미 맞힌 적인지 확인
+   */
+  public hasHitEnemy(enemyId: string): boolean {
+    return this.hitEnemies.has(enemyId);
+  }
+}
+```
+
+**GameScene 충돌 처리**:
+
+```typescript
+// GameScene.ts의 충돌 감지
+private checkProjectileCollisions(): void {
+  for (const projectile of this.projectiles) {
+    for (const enemy of this.enemies) {
+      // 죽은 적이거나 이미 맞힌 적은 스킵
+      if (!enemy.isAlive() || projectile.hasHitEnemy(enemy.id)) {
+        continue;
+      }
+
+      const distance = getDistance(
+        { x: projectile.x, y: projectile.y },
+        { x: enemy.x, y: enemy.y }
+      );
+
+      if (distance < projectile.radius + enemy.radius) {
+        // 데미지 적용
+        enemy.takeDamage(projectile.damage);
+
+        // 히트 기록 (중복 피해 방지)
+        projectile.hitEnemy(enemy.id);
+
+        // 관통 없으면 투사체 즉시 제거
+        if (projectile.piercing === 0) {
+          projectile.active = false;
+          break; // 더 이상 충돌 체크 불필요
+        }
+        // piercing > 0 또는 Infinity면 계속 날아감
+      }
+    }
+  }
+}
+```
+
+**주요 로직**:
+1. 투사체가 적과 충돌하면 `hitEnemy()`로 기록
+2. `hasHitEnemy()`로 같은 적을 중복으로 맞히지 않도록 방지
+3. `piercing === 0`: 관통 없음 → 첫 충돌 후 즉시 제거
+4. `piercing > 0`: 제한된 관통 → N명 맞히면 제거 (Projectile 내부에서 처리)
+5. `piercing === Infinity`: 무제한 관통 → 사거리까지 계속 날아감
+
+**레벨 시스템 통합**:
+
+```typescript
+// LevelSystem.ts
+case 'weapon_fanwind': {
+  const weapon = new FanWindWeapon();
+  this.weapons.push(weapon);
+  console.log('부채바람 무기 추가 완료!');
+  break;
 }
 ```
 

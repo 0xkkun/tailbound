@@ -7,7 +7,8 @@ import { Assets, Container, Graphics, Sprite, Text, TilingSprite } from 'pixi.js
 import { POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
 import { AoEEffect } from '@/game/entities/AoEEffect';
-import { BaseEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
+import { BaseEnemy, MaidenGhostEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
+import { EnemyProjectile } from '@/game/entities/EnemyProjectile';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { HealthPotion } from '@/game/entities/HealthPotion';
 import { MeleeSwing } from '@/game/entities/MeleeSwing';
@@ -18,6 +19,7 @@ import { LevelUpUI } from '@/game/ui/LevelUpUI';
 import { PortalIndicator } from '@/game/ui/PortalIndicator';
 import { checkCircleCollision } from '@/game/utils/collision';
 import { DokkaebiFireWeapon } from '@/game/weapons/DokkaebiFireWeapon';
+import { FanWindWeapon } from '@/game/weapons/FanWindWeapon';
 import { JakduBladeWeapon } from '@/game/weapons/JakduBladeWeapon';
 import { MoktakSoundWeapon } from '@/game/weapons/MoktakSoundWeapon';
 import { Talisman } from '@/game/weapons/Talisman';
@@ -35,6 +37,7 @@ export class OverworldGameScene extends BaseGameScene {
   // 엔티티
   private enemies: BaseEnemy[] = [];
   private projectiles: Projectile[] = [];
+  private enemyProjectiles: EnemyProjectile[] = [];
   private experienceGems: ExperienceGem[] = [];
   private healthPotions: HealthPotion[] = [];
   private aoeEffects: AoEEffect[] = [];
@@ -105,6 +108,7 @@ export class OverworldGameScene extends BaseGameScene {
     await Promise.all([
       SkeletonEnemy.preloadSprites(),
       TigerEnemy.preloadSprites(),
+      MaidenGhostEnemy.preloadSprites(),
       Assets.load('/assets/bottom.png'), // 바닥 타일
     ]);
   }
@@ -345,14 +349,32 @@ export class OverworldGameScene extends BaseGameScene {
       projectile.update(deltaTime);
     }
 
+    // 5-1. 적 투사체 업데이트 및 플레이어 충돌
+    for (const enemyProj of this.enemyProjectiles) {
+      enemyProj.update(deltaTime);
+
+      // 플레이어와 충돌 체크
+      if (enemyProj.active && enemyProj.checkPlayerCollision(this.player)) {
+        this.player.takeDamage(enemyProj.damage);
+        enemyProj.active = false;
+
+        if (!this.player.isAlive()) {
+          console.log('플레이어 사망! (적 투사체)');
+        }
+      }
+    }
+
     // 6. AoE 이펙트 업데이트 및 충돌
     for (const aoe of this.aoeEffects) {
       aoe.update(deltaTime);
 
-      // AoE 범위 내 적에게 데미지 (한 번만)
-      if (!aoe.hasHitEnemy()) {
+      // AoE 이펙트가 시작된 동안 범위 내 적에게 데미지
+      if (aoe.isEffectStarted()) {
         for (const enemy of this.enemies) {
-          if (!enemy.active || !enemy.isAlive()) continue;
+          // 죽은 적이거나 이미 이 AoE에 맞은 적은 스킵
+          if (!enemy.active || !enemy.isAlive() || aoe.hasHitEnemy(enemy.id)) {
+            continue;
+          }
 
           const dx = enemy.x - aoe.x;
           const dy = enemy.y - aoe.y;
@@ -360,6 +382,7 @@ export class OverworldGameScene extends BaseGameScene {
 
           if (distance <= aoe.radius) {
             enemy.takeDamage(aoe.damage);
+            aoe.markEnemyHit(enemy.id); // 이 적을 맞힌 것으로 기록
 
             if (!enemy.isAlive()) {
               enemy.active = false;
@@ -380,7 +403,6 @@ export class OverworldGameScene extends BaseGameScene {
             }
           }
         }
-        aoe.markEnemyHit();
       }
     }
 
@@ -532,6 +554,28 @@ export class OverworldGameScene extends BaseGameScene {
     for (const enemy of this.enemies) {
       if (!enemy.parent) {
         this.gameLayer.addChild(enemy);
+
+        // 처녀귀신이면 투사체 발사 콜백 설정
+        if (enemy instanceof MaidenGhostEnemy) {
+          enemy.onFireProjectile = (projInfo) => {
+            const projectile = new EnemyProjectile(
+              `enemy_proj_${Date.now()}`,
+              projInfo.startX,
+              projInfo.startY,
+              projInfo.direction,
+              0xff00ff // 마젠타색
+            );
+            projectile.damage = 8; // 처녀귀신 투사체 데미지
+            projectile.speed = 300;
+            projectile.radius = 10;
+
+            // woman-attack.png 스프라이트 로드 (16x16, 30프레임, 2배 크기)
+            projectile.loadSpriteSheet('/assets/woman-attack.png', 16, 16, 30, 6, 2);
+
+            this.enemyProjectiles.push(projectile);
+            this.gameLayer.addChild(projectile);
+          };
+        }
       }
     }
 
@@ -590,6 +634,21 @@ export class OverworldGameScene extends BaseGameScene {
       }
     }
     this.projectiles = activeProjectiles;
+
+    // 비활성 적 투사체 제거
+    const activeEnemyProjectiles: EnemyProjectile[] = [];
+    for (const proj of this.enemyProjectiles) {
+      if (
+        !proj.active ||
+        proj.isOutOfBounds(GAME_CONFIG.world.overworld.width, GAME_CONFIG.world.overworld.height)
+      ) {
+        this.gameLayer.removeChild(proj);
+        proj.destroy();
+      } else {
+        activeEnemyProjectiles.push(proj);
+      }
+    }
+    this.enemyProjectiles = activeEnemyProjectiles;
 
     // 비활성 AoE 이펙트 제거
     const activeAoE: AoEEffect[] = [];
@@ -794,6 +853,19 @@ export class OverworldGameScene extends BaseGameScene {
           // 최초 생성 시 작두 생성
           await jakdu.spawnBlades(this.player, this.gameLayer);
           console.log('작두날 무기 추가 완료!');
+        }
+        break;
+      }
+      case 'weapon_fan_wind': {
+        // 이미 부채바람이 있으면 업그레이드, 없으면 추가
+        const existingFanWind = this.weapons.find((w) => w instanceof FanWindWeapon);
+        if (existingFanWind) {
+          existingFanWind.levelUp();
+          console.log(`부채바람 레벨업! Lv.${existingFanWind.level}`);
+        } else {
+          const fanWind = new FanWindWeapon();
+          this.weapons.push(fanWind);
+          console.log('부채바람 무기 추가 완료!');
         }
         break;
       }
@@ -1157,6 +1229,9 @@ export class OverworldGameScene extends BaseGameScene {
       }
       for (const proj of this.projectiles) {
         proj.destroy();
+      }
+      for (const enemyProj of this.enemyProjectiles) {
+        enemyProj.destroy();
       }
       for (const aoe of this.aoeEffects) {
         aoe.destroy();

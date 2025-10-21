@@ -139,13 +139,16 @@ export class AttachedEntity extends Container {
         return { x: 0, y: -this.offsetDistance };
       case 'bottom':
         return { x: 0, y: this.offsetDistance };
-      case 'forward':
+      case 'forward': {
         // 플레이어가 바라보는 좌우 방향으로만 오프셋 (위아래 무시)
         const horizontalDirection = player.lastDirection.x >= 0 ? 1 : -1;
         return {
           x: horizontalDirection * this.offsetDistance,
           y: 0,
         };
+      }
+      default:
+        return { x: 0, y: 0 };
     }
   }
 

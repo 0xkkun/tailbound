@@ -47,7 +47,7 @@ export class JakduBladeWeapon extends Weapon {
   /**
    * 작두 생성 (무기 추가 시 또는 레벨업 시 호출)
    */
-  public async spawnBlades(player: Player, gameLayer: Container): Promise<void> {
+  public async spawnBlades(_player: Player, gameLayer: Container): Promise<void> {
     // 기존 작두 제거
     for (const blade of this.blades) {
       gameLayer.removeChild(blade);

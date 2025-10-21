@@ -33,7 +33,8 @@ export class CombatSystem {
       }
 
       for (const enemy of enemies) {
-        if (!enemy.active || !enemy.isAlive()) {
+        // 죽은 적이거나 이미 맞힌 적은 스킵
+        if (!enemy.active || !enemy.isAlive() || projectile.hasHitEnemy(enemy.id)) {
           continue;
         }
 
@@ -62,8 +63,15 @@ export class CombatSystem {
             });
           }
 
-          // 투사체 히트 처리
-          projectile.onHit();
+          // 투사체 히트 처리 (중복 피해 방지)
+          projectile.hitEnemy(enemy.id);
+
+          // 관통 없으면 투사체 즉시 제거
+          if (projectile.piercing === 0) {
+            projectile.active = false;
+            break; // 더 이상 충돌 체크 불필요
+          }
+          // piercing > 0 또는 Infinity면 계속 날아감
         }
       }
     }

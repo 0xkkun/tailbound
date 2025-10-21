@@ -87,16 +87,16 @@ export const WEAPON_BALANCE = {
       piercingPerLevel: 0,
     },
   },
-  // 목탁 소리 (추후 구현)
+  // 목탁 소리
   moktak_sound: {
     name: '목탁 소리',
-    baseDamage: 20,
+    baseDamage: 12, // 지속 데미지로 변경되어 감소
     baseCooldown: 2.0,
     aoeRadius: 150, // 범위 공격
     piercing: 999, // 모든 적 관통
     projectileCount: 1,
     levelScaling: {
-      damage: 8,
+      damage: 5, // 레벨당 +5로 감소
       cooldownReduction: 0.1,
       piercingPerLevel: 0,
     },
@@ -115,6 +115,22 @@ export const WEAPON_BALANCE = {
       damage: 10,
       cooldownReduction: 0.1,
       piercingPerLevel: 1,
+    },
+  },
+  // 부채바람
+  fan_wind: {
+    name: '부채바람',
+    baseDamage: 25,
+    baseCooldown: 2.0,
+    projectileSpeed: 350,
+    projectileRadius: 15,
+    projectileLifetime: 1.2, // 최대 사거리 420픽셀 (350 * 1.2)
+    piercing: Infinity, // 무제한 관통
+    projectileCount: 1,
+    levelScaling: {
+      damage: 8, // 레벨당 데미지 +8
+      cooldownReduction: 0.15, // 레벨당 쿨타임 -0.15초
+      piercingPerLevel: 0, // 무제한 관통이므로 0
     },
   },
 } as const;

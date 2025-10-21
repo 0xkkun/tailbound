@@ -14,7 +14,7 @@ export class AoEEffect extends Container {
 
   private lifetime: number = 0;
   private maxLifetime: number = 0.5; // 0.5초 동안 표시
-  private hasDealtDamage: boolean = false; // 피해를 한 번만 주기 위해
+  private hitEnemies: Set<string> = new Set(); // 이미 맞힌 적 ID 추적
 
   // 시작 지연
   private startDelay: number = 0;
@@ -130,24 +130,24 @@ export class AoEEffect extends Container {
   }
 
   /**
-   * 이미 피해를 줬는지 확인 (중복 피해 방지)
+   * 특정 적이 이미 이 AoE에 맞았는지 확인
    */
-  public hasHitEnemy(): boolean {
-    return this.hasDealtDamage;
+  public hasHitEnemy(enemyId: string): boolean {
+    return this.hitEnemies.has(enemyId);
   }
 
   /**
-   * 피해를 줬다고 표시
+   * 적을 맞힌 것으로 기록
    */
-  public markAsHit(): void {
-    this.hasDealtDamage = true;
+  public markEnemyHit(enemyId: string): void {
+    this.hitEnemies.add(enemyId);
   }
 
   /**
-   * 피해를 줬다고 표시 (별칭)
+   * 이펙트가 시작되었는지 확인 (지연 후)
    */
-  public markEnemyHit(): void {
-    this.markAsHit();
+  public isEffectStarted(): boolean {
+    return this.isStarted;
   }
 
   /**
