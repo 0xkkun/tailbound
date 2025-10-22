@@ -5,7 +5,13 @@
 import { SPAWN_BALANCE } from '@/config/balance.config';
 import { selectEnemyTier } from '@/game/data/enemies';
 import type { BaseEnemy } from '@/game/entities/enemies';
-import { DokkaebiEnemy, MaidenGhostEnemy, MaskEnemy, SkeletonEnemy } from '@/game/entities/enemies';
+import {
+  DokkaebiEnemy,
+  EvilSpiritEnemy,
+  MaidenGhostEnemy,
+  MaskEnemy,
+  SkeletonEnemy,
+} from '@/game/entities/enemies';
 import type { Vector2 } from '@/types/game.types';
 
 export class SpawnSystem {
@@ -99,8 +105,10 @@ export class SpawnSystem {
           enemy = new DokkaebiEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
         } else if (rand < rates.skeleton + rates.dokkaebi + rates.mask) {
           enemy = new MaskEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else {
+        } else if (rand < rates.skeleton + rates.dokkaebi + rates.mask + rates.maidenGhost) {
           enemy = new MaidenGhostEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        } else {
+          enemy = new EvilSpiritEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
         }
 
         enemies.push(enemy);
