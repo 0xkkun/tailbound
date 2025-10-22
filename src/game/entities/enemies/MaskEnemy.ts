@@ -14,7 +14,7 @@ export class MaskEnemy extends BaseEnemy {
     totalWidth: 384, // 32 * 12 frames
     height: 32,
     frameCount: 12,
-    scale: 1.5, // 약간 크게 표시
+    scale: 2.5,
   };
 
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {

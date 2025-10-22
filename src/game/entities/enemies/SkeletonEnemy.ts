@@ -14,7 +14,7 @@ export class SkeletonEnemy extends BaseEnemy {
     totalWidth: 286,
     height: 33,
     frameCount: 13,
-    scale: 2,
+    scale: 3,
   };
 
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {

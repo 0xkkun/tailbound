@@ -18,7 +18,7 @@ export class MaidenGhostEnemy extends BaseEnemy {
     totalWidth: 224,
     height: 32,
     frameCount: 7,
-    scale: 1.5,
+    scale: 2.5,
   };
 
   // 공격 애니메이션 스프라이트
@@ -83,7 +83,7 @@ export class MaidenGhostEnemy extends BaseEnemy {
     // AnimatedSprite 생성
     this.attackSprite = new AnimatedSprite(frames);
     this.attackSprite.anchor.set(0.5);
-    this.attackSprite.scale.set(1.5); // 처녀귀신 기본 스케일과 동일
+    this.attackSprite.scale.set(2.5); // 처녀귀신 기본 스케일과 동일
     this.attackSprite.animationSpeed = 0.4; // 애니메이션 속도
     this.attackSprite.loop = false; // 한 번만 재생
     this.attackSprite.visible = false;
