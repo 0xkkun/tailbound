@@ -1,19 +1,19 @@
-import { Container, Graphics, Text } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
-import { DEFAULT_CHARACTER } from '../../data/characters';
-import { CharacterDisplay } from '../ui/CharacterDisplay';
 import { PixelButton } from '../ui/PixelButton';
 
 export class LobbyScene extends Container {
   private titleText!: Text;
   private subtitleText!: Text;
-  private characterDisplay!: CharacterDisplay;
+  private titleImage!: Sprite;
   private startButton!: PixelButton;
   private characterSelectButton!: PixelButton;
   private optionsButton!: PixelButton;
   private copyrightText!: Text;
   private isMobile: boolean;
   private scaleFactor: number;
+  private screenWidth: number;
+  private screenHeight: number;
 
   public onStartGame?: () => void;
 
@@ -23,6 +23,8 @@ export class LobbyScene extends Container {
     // 모바일 감지 및 스케일 팩터 계산
     this.isMobile = screenWidth < 768;
     this.scaleFactor = Math.min(screenWidth / 375, 1.5); // 375px 기준, 최대 1.5배
+    this.screenWidth = screenWidth;
+    this.screenHeight = screenHeight;
 
     // 극소형 화면 대응 (330px)
     if (screenWidth <= 330) {
@@ -31,7 +33,7 @@ export class LobbyScene extends Container {
 
     this.createBackground(screenWidth, screenHeight);
     this.createTitle(screenWidth);
-    this.createCharacterDisplay(screenWidth, screenHeight);
+    this.loadAndCreateTitleImage();
     this.createButtons(screenWidth, screenHeight);
     this.createCopyright(screenWidth, screenHeight);
   }
@@ -76,21 +78,45 @@ export class LobbyScene extends Container {
     this.addChild(this.subtitleText);
   }
 
-  private createCharacterDisplay(screenWidth: number, screenHeight: number): void {
-    this.characterDisplay = new CharacterDisplay(
-      DEFAULT_CHARACTER,
-      this.isMobile,
-      this.scaleFactor
-    );
-    this.characterDisplay.x = screenWidth / 2;
-    this.characterDisplay.y = screenHeight / 2 - (this.isMobile ? 60 * this.scaleFactor : 80);
+  private async loadAndCreateTitleImage(): Promise<void> {
+    try {
+      // 이미지 로드
+      const texture = await Assets.load('/assets/loby-title.png');
 
-    // 모바일에서 캐릭터 크기 조정
-    if (this.isMobile) {
-      this.characterDisplay.scale.set(this.scaleFactor);
+      // 픽셀 아트 렌더링 설정
+      if (texture.baseTexture) {
+        texture.baseTexture.scaleMode = 'nearest';
+      }
+
+      // 타이틀 하단 위치 계산
+      const subtitleSize = this.isMobile ? Math.floor(16 * this.scaleFactor) : 16;
+      const subtitleY = this.isMobile
+        ? 40 * this.scaleFactor + Math.floor(48 * this.scaleFactor) + 10
+        : 160;
+
+      // 게임 시작 버튼 상단 위치 계산
+      const buttonY = this.isMobile
+        ? this.screenHeight / 2 + 80 * this.scaleFactor
+        : this.screenHeight / 2 + 100;
+
+      // 부채 이미지를 타이틀과 버튼 사이에 배치 (약간 위로)
+      const imageY = (subtitleY + subtitleSize + buttonY) / 2 - (this.isMobile ? 20 : 30);
+
+      // 부채 타이틀 이미지
+      this.titleImage = new Sprite(texture);
+      this.titleImage.anchor.set(0.5);
+      this.titleImage.x = this.screenWidth / 2;
+      this.titleImage.y = imageY;
+
+      // 이미지 크기 조정 (크기 줄임)
+      const baseScale = this.isMobile ? 2.0 * this.scaleFactor : 2.5;
+      this.titleImage.scale.set(baseScale);
+
+      this.addChild(this.titleImage);
+      console.log('부채 타이틀 이미지 로드 완료');
+    } catch (error) {
+      console.error('부채 타이틀 이미지 로드 실패:', error);
     }
-
-    this.addChild(this.characterDisplay);
   }
 
   private createButtons(screenWidth: number, screenHeight: number): void {
