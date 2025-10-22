@@ -4,7 +4,7 @@
 
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
-import { ENEMY_BALANCE } from '@/config/balance.config';
+import { ENEMY_BALANCE, KNOCKBACK_BALANCE } from '@/config/balance.config';
 import type { EnemyTier } from '@/game/data/enemies';
 import { getDirection } from '@/game/utils/collision';
 import type { Vector2 } from '@/types/game.types';
@@ -30,10 +30,15 @@ export abstract class BaseEnemy extends Container {
   // 그래픽스
   protected graphics: Graphics;
   protected sprite?: AnimatedSprite;
+  protected shadow: Graphics; // 그림자
   protected color: number;
 
   // AI
   protected targetPosition: Vector2 | null = null;
+
+  // 넉백 시스템
+  protected knockbackVelocity: Vector2 = { x: 0, y: 0 };
+  protected knockbackResistance: number = 1.0; // 넉백 저항 (1.0 = 정상, 0.5 = 절반만 밀림)
 
   // 타임아웃 관리 (메모리 누수 방지)
   private flashTimeoutId?: ReturnType<typeof setTimeout>;
@@ -67,6 +72,11 @@ export abstract class BaseEnemy extends Container {
         this.color = 0x55ff55;
     }
 
+    // 그림자 생성 (가장 아래 레이어)
+    this.shadow = new Graphics();
+    this.createShadow();
+    this.addChild(this.shadow);
+
     // 그래픽 생성
     this.graphics = new Graphics();
     this.addChild(this.graphics);
@@ -75,6 +85,15 @@ export abstract class BaseEnemy extends Container {
     this.loadSprite();
 
     this.render();
+  }
+
+  /**
+   * 그림자 생성 (서브클래스에서 오버라이드 가능)
+   */
+  protected createShadow(): void {
+    this.shadow.clear();
+    this.shadow.ellipse(0, this.radius * 0.85, this.radius * 0.7, this.radius * 0.25);
+    this.shadow.fill({ color: 0x000000, alpha: 0.3 });
   }
 
   /**
@@ -238,6 +257,56 @@ export abstract class BaseEnemy extends Container {
   }
 
   /**
+   * 넉백 적용 (방향 벡터와 힘)
+   */
+  public applyKnockback(direction: Vector2, force: number): void {
+    // 넉백 저항 적용
+    const actualForce = force * this.knockbackResistance;
+
+    // 방향 정규화
+    const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+    if (length === 0) return;
+
+    const normalizedX = direction.x / length;
+    const normalizedY = direction.y / length;
+
+    // 넉백 속도 설정
+    this.knockbackVelocity.x = normalizedX * actualForce;
+    this.knockbackVelocity.y = normalizedY * actualForce;
+  }
+
+  /**
+   * 넉백 처리 (자식 클래스에서 update() 오버라이드 시 사용)
+   * @returns 넉백 중이면 true (AI 동작을 스킵해야 함)
+   */
+  protected updateKnockback(deltaTime: number): boolean {
+    if (this.knockbackVelocity.x === 0 && this.knockbackVelocity.y === 0) {
+      return false; // 넉백 중이 아님
+    }
+
+    // 넉백 이동
+    this.x += this.knockbackVelocity.x * deltaTime;
+    this.y += this.knockbackVelocity.y * deltaTime;
+
+    // 넉백 감속 (마찰력)
+    const friction = KNOCKBACK_BALANCE.friction;
+    this.knockbackVelocity.x *= Math.max(0, 1 - friction * deltaTime);
+    this.knockbackVelocity.y *= Math.max(0, 1 - friction * deltaTime);
+
+    // 거의 멈춤 상태면 완전히 정지
+    const minVelocity = KNOCKBACK_BALANCE.minVelocity;
+    if (
+      Math.abs(this.knockbackVelocity.x) < minVelocity &&
+      Math.abs(this.knockbackVelocity.y) < minVelocity
+    ) {
+      this.knockbackVelocity.x = 0;
+      this.knockbackVelocity.y = 0;
+    }
+
+    return true; // 넉백 중
+  }
+
+  /**
    * 생존 여부
    */
   public isAlive(): boolean {
@@ -250,6 +319,12 @@ export abstract class BaseEnemy extends Container {
   public update(deltaTime: number): void {
     if (!this.active || !this.targetPosition) {
       return;
+    }
+
+    // 넉백 처리
+    if (this.updateKnockback(deltaTime)) {
+      this.render();
+      return; // 넉백 중에는 AI 동작 스킵
     }
 
     // 플레이어를 향해 이동
@@ -361,6 +436,7 @@ export abstract class BaseEnemy extends Container {
     // 프레임은 static 캐시이므로 destroy하지 않음
     // sprite 인스턴스만 destroy
     this.sprite?.destroy({ texture: false });
+    this.shadow.destroy();
     this.graphics.destroy();
     super.destroy({ children: true });
   }

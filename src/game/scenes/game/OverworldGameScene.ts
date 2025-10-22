@@ -4,12 +4,13 @@
 
 import { Assets, Container, Graphics, Sprite, Text, TilingSprite } from 'pixi.js';
 
-import { POTION_BALANCE } from '@/config/balance.config';
+import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
 import { AoEEffect } from '@/game/entities/AoEEffect';
 import {
   BaseEnemy,
   DokkaebiEnemy,
+  EvilSpiritEnemy,
   MaidenGhostEnemy,
   MaskEnemy,
   SkeletonEnemy,
@@ -116,7 +117,9 @@ export class OverworldGameScene extends BaseGameScene {
       DokkaebiEnemy.preloadSprites(),
       MaskEnemy.preloadSprites(),
       MaidenGhostEnemy.preloadSprites(),
-      Assets.load('/assets/bottom.png'), // 바닥 타일
+      EvilSpiritEnemy.preloadSprites(),
+      Assets.load('/assets/tile_green1.png'), // 바닥 타일
+      Assets.load('/assets/tile_deco.png'), // 풀 장식
     ]);
   }
 
@@ -125,15 +128,18 @@ export class OverworldGameScene extends BaseGameScene {
    */
   protected createPlayer(): void {
     // 월드 배경 (타일링)
-    const texture = Assets.get('/assets/bottom.png');
+    const texture = Assets.get('/assets/tile_green1.png');
     texture.source.scaleMode = 'nearest'; // 픽셀 아트용: 픽셀 단위 렌더링
     const bg = new TilingSprite({
       texture,
       width: GAME_CONFIG.world.overworld.width,
       height: GAME_CONFIG.world.overworld.height,
     });
-    bg.tileScale.set(1, 1); // 32x32 원본 크기 사용
+    bg.tileScale.set(2, 2); // 16x16을 2배로 확대
     this.gameLayer.addChild(bg);
+
+    // 풀 장식 무작위 배치
+    this.createGrassDecorations();
 
     // 월드 경계선 (시각화용)
     const border = new Graphics();
@@ -150,12 +156,46 @@ export class OverworldGameScene extends BaseGameScene {
   }
 
   /**
+   * 풀 장식 무작위 배치
+   */
+  private createGrassDecorations(): void {
+    const grassTexture = Assets.get('/assets/tile_deco.png');
+    grassTexture.source.scaleMode = 'nearest';
+
+    const worldWidth = GAME_CONFIG.world.overworld.width;
+    const worldHeight = GAME_CONFIG.world.overworld.height;
+    const tileSize = 32; // 타일 크기 (16x16을 2배 확대한 크기)
+    const grassScale = 2; // 풀 장식 크기 (16x16을 2배 확대)
+
+    // 그리드 기반으로 일정 간격마다 랜덤 배치 (듬성듬성)
+    for (let x = 0; x < worldWidth; x += tileSize) {
+      for (let y = 0; y < worldHeight; y += tileSize) {
+        // 5% 확률로 풀 장식 배치
+        if (Math.random() < 0.05) {
+          const grass = new Sprite(grassTexture);
+          grass.anchor.set(0, 1); // 하단 중앙 기준
+          grass.scale.set(grassScale);
+          grass.x = x + Math.random() * tileSize; // 타일 내 랜덤 위치
+          grass.y = y + tileSize; // 타일 하단
+          this.gameLayer.addChild(grass);
+        }
+      }
+    }
+
+    console.log('풀 장식 배치 완료');
+  }
+
+  /**
    * 씬 초기화 (BaseGameScene abstract 메서드 구현)
    */
   protected async initScene(): Promise<void> {
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
       console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
+      // 조이스틱 상태 리셋 (레벨업 UI 표시 전)
+      if (this.virtualJoystick) {
+        this.virtualJoystick.reset();
+      }
       this.levelUpUI.show(choices);
     };
 
@@ -391,6 +431,9 @@ export class OverworldGameScene extends BaseGameScene {
             enemy.takeDamage(aoe.damage);
             aoe.markEnemyHit(enemy.id); // 이 적을 맞힌 것으로 기록
 
+            // 넉백 적용 (AoE 중심에서 바깥쪽으로)
+            enemy.applyKnockback({ x: dx, y: dy }, KNOCKBACK_BALANCE.aoe);
+
             if (!enemy.isAlive()) {
               enemy.active = false;
               this.enemiesKilled++;
@@ -434,6 +477,9 @@ export class OverworldGameScene extends BaseGameScene {
           enemy.takeDamage(swing.damage);
           swing.markEnemyHit(enemyId);
 
+          // 넉백 적용 (휘두르기 중심에서 바깥쪽으로)
+          enemy.applyKnockback({ x: dx, y: dy }, KNOCKBACK_BALANCE.melee);
+
           if (!enemy.isAlive()) {
             enemy.active = false;
             this.enemiesKilled++;
@@ -467,24 +513,32 @@ export class OverworldGameScene extends BaseGameScene {
 
             // 궤도와 적 충돌 체크 (원형 충돌)
             if (checkCircleCollision(orbital, enemy)) {
-              enemy.takeDamage(orbital.damage);
+              // 틱 데미지: 일정 시간마다만 데미지 적용
+              if (orbital.canHitEnemy(enemy.id)) {
+                enemy.takeDamage(orbital.damage);
+                orbital.recordEnemyHit(enemy.id);
 
-              if (!enemy.isAlive()) {
-                enemy.active = false;
-                this.enemiesKilled++;
-                console.log(
-                  `[Orbital] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
-                );
+                // 넉백 적용 (궤도 위치에서 바깥쪽으로)
+                const knockbackDir = { x: enemy.x - orbital.x, y: enemy.y - orbital.y };
+                enemy.applyKnockback(knockbackDir, KNOCKBACK_BALANCE.orbital);
 
-                // 체력 포션 드랍 확률
-                const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+                if (!enemy.isAlive()) {
+                  enemy.active = false;
+                  this.enemiesKilled++;
+                  console.log(
+                    `[Orbital] 적 처치! (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
+                  );
 
-                this.combatSystem.onEnemyKilled?.({
-                  enemy,
-                  position: { x: enemy.x, y: enemy.y },
-                  xpValue: enemy.xpDrop,
-                  dropPotion,
-                });
+                  // 체력 포션 드랍 확률
+                  const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
+                  this.combatSystem.onEnemyKilled?.({
+                    enemy,
+                    position: { x: enemy.x, y: enemy.y },
+                    xpValue: enemy.xpDrop,
+                    dropPotion,
+                  });
+                }
               }
             }
           }
@@ -512,6 +566,10 @@ export class OverworldGameScene extends BaseGameScene {
             if (checkCircleCollision(blade, enemy)) {
               enemy.takeDamage(blade.damage);
               blade.recordHit(enemy.id); // 타격 기록
+
+              // 넉백 적용 (작두 위치에서 바깥쪽으로)
+              const knockbackDir = { x: enemy.x - blade.x, y: enemy.y - blade.y };
+              enemy.applyKnockback(knockbackDir, KNOCKBACK_BALANCE.jakduBlade);
 
               if (!enemy.isAlive()) {
                 enemy.active = false;
@@ -578,6 +636,28 @@ export class OverworldGameScene extends BaseGameScene {
 
             // woman-attack.png 스프라이트 로드 (16x16, 30프레임, 2배 크기)
             projectile.loadSpriteSheet('/assets/woman-attack.png', 16, 16, 30, 6, 2);
+
+            this.enemyProjectiles.push(projectile);
+            this.gameLayer.addChild(projectile);
+          };
+        }
+
+        // 악령이면 투사체 발사 콜백 설정
+        if (enemy instanceof EvilSpiritEnemy) {
+          enemy.onFireProjectile = (projInfo) => {
+            const projectile = new EnemyProjectile(
+              `enemy_proj_${Date.now()}`,
+              projInfo.startX,
+              projInfo.startY,
+              projInfo.direction,
+              0x9933ff // 보라색
+            );
+            projectile.damage = 6; // 악령 투사체 데미지
+            projectile.speed = 350;
+            projectile.radius = 8;
+
+            // 나중에 스프라이트 추가 예정
+            // projectile.loadSpriteSheet('/assets/evil-spirit-attack.png', ...);
 
             this.enemyProjectiles.push(projectile);
             this.gameLayer.addChild(projectile);
@@ -1093,6 +1173,10 @@ export class OverworldGameScene extends BaseGameScene {
       this.settingsMenu.destroy();
       this.settingsMenu = null;
     } else {
+      // 조이스틱 상태 리셋 (설정 메뉴 열기 전)
+      if (this.virtualJoystick) {
+        this.virtualJoystick.reset();
+      }
       // 메뉴 열기
       this.settingsMenu = this.createSettingsMenu();
       this.uiLayer.addChild(this.settingsMenu);

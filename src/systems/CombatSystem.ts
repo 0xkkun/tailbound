@@ -2,7 +2,7 @@
  * 전투 시스템 (충돌 감지 및 데미지 처리)
  */
 
-import { POTION_BALANCE } from '@/config/balance.config';
+import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@/config/balance.config';
 import type { BaseEnemy } from '@/game/entities/enemies';
 import type { Player } from '@/game/entities/Player';
 import type { Projectile } from '@/game/entities/Projectile';
@@ -41,6 +41,13 @@ export class CombatSystem {
         if (checkCircleCollision(projectile, enemy)) {
           // 데미지 적용
           enemy.takeDamage(projectile.damage);
+
+          // 넉백 적용 (투사체 방향으로 밀어냄)
+          const knockbackDir = {
+            x: enemy.x - projectile.x,
+            y: enemy.y - projectile.y,
+          };
+          enemy.applyKnockback(knockbackDir, KNOCKBACK_BALANCE.projectile);
 
           // 적 사망 체크
           if (!enemy.isAlive()) {

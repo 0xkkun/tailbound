@@ -154,10 +154,11 @@ export const SPAWN_BALANCE = {
 
   // 적 스폰 확률 (합계 1.0)
   enemySpawnRates: {
-    skeleton: 0.25, // 해골 25%
-    dokkaebi: 0.25, // 도깨비 25%
-    mask: 0.25, // 탈령 25%
-    maidenGhost: 0.25, // 처녀귀신 25%
+    skeleton: 0.22, // 해골 22%
+    dokkaebi: 0.22, // 도깨비 22%
+    mask: 0.22, // 탈령 22%
+    maidenGhost: 0.22, // 처녀귀신 22%
+    evilSpirit: 0.12, // 악령 12%
   },
 } as const;
 
@@ -195,9 +196,33 @@ export const XP_BALANCE = {
  * 체력 포션 드랍 밸런스
  */
 export const POTION_BALANCE = {
-  dropRate: 0.1, // 10% 확률로 드랍
+  dropRate: 0.05, // 5% 확률로 드랍
   healAmount: 0.5, // 최대 체력의 50% 회복
   attractRadius: 80, // 플레이어 근처에서 자동으로 끌려옴
   attractSpeed: 300, // 끌려오는 속도
   radius: 12, // 포션 크기
+} as const;
+
+/**
+ * 넉백 밸런스
+ */
+export const KNOCKBACK_BALANCE = {
+  // 무기별 넉백 힘 (픽셀/초)
+  projectile: 150, // 투사체 (부적, 부채바람 등)
+  aoe: 100, // 범위 공격 (목탁 소리)
+  melee: 120, // 근접 공격 (추후 구현)
+  orbital: 80, // 궤도 공격 (도깨비불)
+  jakduBlade: 200, // 작두날 (강력한 넉백)
+
+  // 넉백 물리
+  friction: 8.0, // 감속 속도
+  minVelocity: 1.0, // 이 값 이하면 완전히 정지
+} as const;
+
+/**
+ * 틱 데미지 밸런스 (지속 데미지용)
+ */
+export const TICK_DAMAGE_BALANCE = {
+  orbital: 0.25, // 궤도 무기 (0.25초 = 초당 4회)
+  aoe: 0.0, // AoE는 일회성 (틱 없음)
 } as const;

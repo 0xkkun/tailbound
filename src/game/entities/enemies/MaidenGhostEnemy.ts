@@ -42,12 +42,12 @@ export class MaidenGhostEnemy extends BaseEnemy {
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
     super(id, x, y, tier);
 
-    // 처녀귀신 고유 스탯: 중간 체력, 느림, 원거리 공격
+    // 처녀귀신 고유 스탯: 높은 체력, 느림, 원거리 공격
     const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
-    this.health = 25 * tierMultiplier; // 기본보다 17% 낮음
+    this.health = 55 * tierMultiplier; // 원거리 유틸형으로 체력 높음
     this.maxHealth = this.health;
     this.speed = 85; // 기본보다 15% 느림 (거리 유지가 목적)
-    this.damage = 10 * tierMultiplier; // 기본 동일 (투사체 데미지는 별도)
+    this.damage = 15 * tierMultiplier; // 투사체 데미지
     this.radius = 30; // 기본 히트박스
 
     this.loadAttackAnimation();
@@ -59,6 +59,15 @@ export class MaidenGhostEnemy extends BaseEnemy {
 
   protected getEnemyType(): string {
     return 'maiden_ghost';
+  }
+
+  /**
+   * 그림자 커스터마이즈 - 유령이므로 그림자를 흐릿하게
+   */
+  protected createShadow(): void {
+    this.shadow.clear();
+    this.shadow.ellipse(0, this.radius * 0.85, this.radius * 0.65, this.radius * 0.22);
+    this.shadow.fill({ color: 0x000000, alpha: 0.2 });
   }
 
   /**
@@ -124,6 +133,12 @@ export class MaidenGhostEnemy extends BaseEnemy {
   public update(deltaTime: number): void {
     if (!this.active || !this.targetPosition) {
       return;
+    }
+
+    // 넉백 처리
+    if (this.updateKnockback(deltaTime)) {
+      this.render();
+      return; // 넉백 중에는 AI 동작 안 함
     }
 
     const currentPos = { x: this.x, y: this.y };
