@@ -7,6 +7,8 @@
 
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Sprite, Texture } from 'pixi.js';
 
+import { TICK_DAMAGE_BALANCE } from '@/config/balance.config';
+
 import type { Player } from './Player';
 
 export class OrbitalEntity extends Container {
@@ -17,6 +19,11 @@ export class OrbitalEntity extends Container {
   private orbitAngle: number; // 현재 각도 (라디안)
   private angularSpeed: number; // 회전 속도 (rad/s)
   private orbitRadius: number; // 궤도 반경
+
+  // 틱 데미지 시스템
+  private tickInterval: number = TICK_DAMAGE_BALANCE.orbital; // 틱 간격
+  private enemyLastHitTime: Map<string, number> = new Map(); // 각 적의 마지막 피해 시간
+  private lifetime: number = 0; // 누적 시간
 
   // 시각화
   private orb: Graphics | Sprite | AnimatedSprite;
@@ -40,6 +47,9 @@ export class OrbitalEntity extends Container {
    * 플레이어 주변을 회전
    */
   public update(deltaTime: number, player: Player): void {
+    // 누적 시간 증가
+    this.lifetime += deltaTime;
+
     // 각도 증가 (반시계 방향)
     this.orbitAngle += this.angularSpeed * deltaTime;
 
@@ -54,6 +64,21 @@ export class OrbitalEntity extends Container {
 
     // 회전 애니메이션 (선택)
     this.rotation += deltaTime * 2;
+  }
+
+  /**
+   * 적이 이번 틱에 데미지를 받을 수 있는지 확인
+   */
+  public canHitEnemy(enemyId: string): boolean {
+    const lastHitTime = this.enemyLastHitTime.get(enemyId) || 0;
+    return this.lifetime - lastHitTime >= this.tickInterval;
+  }
+
+  /**
+   * 적에게 피해를 준 시간 기록
+   */
+  public recordEnemyHit(enemyId: string): void {
+    this.enemyLastHitTime.set(enemyId, this.lifetime);
   }
 
   /**

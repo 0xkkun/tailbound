@@ -14,7 +14,11 @@ export class AoEEffect extends Container {
 
   private lifetime: number = 0;
   private maxLifetime: number = 0.5; // 0.5초 동안 표시
-  private hitEnemies: Set<string> = new Set(); // 이미 맞힌 적 ID 추적
+  private hitEnemies: Set<string> = new Set(); // 이미 맞힌 적 ID 추적 (한 번만 맞히는 AoE용)
+
+  // 틱 데미지 시스템 (지속 데미지용)
+  private tickInterval: number = 0; // 0이면 틱 데미지 사용 안 함
+  private enemyLastHitTime: Map<string, number> = new Map(); // 각 적의 마지막 피해 시간
 
   // 시작 지연
   private startDelay: number = 0;
@@ -53,6 +57,13 @@ export class AoEEffect extends Container {
    */
   public setStartDelay(delay: number): void {
     this.startDelay = delay;
+  }
+
+  /**
+   * 틱 데미지 간격 설정 (0보다 크면 틱 데미지 활성화)
+   */
+  public setTickInterval(interval: number): void {
+    this.tickInterval = interval;
   }
 
   /**
@@ -130,17 +141,42 @@ export class AoEEffect extends Container {
   }
 
   /**
-   * 특정 적이 이미 이 AoE에 맞았는지 확인
+   * 특정 적이 이미 이 AoE에 맞았는지 확인 (한 번만 맞히는 AoE용)
    */
   public hasHitEnemy(enemyId: string): boolean {
     return this.hitEnemies.has(enemyId);
   }
 
   /**
-   * 적을 맞힌 것으로 기록
+   * 적을 맞힌 것으로 기록 (한 번만 맞히는 AoE용)
    */
   public markEnemyHit(enemyId: string): void {
     this.hitEnemies.add(enemyId);
+  }
+
+  /**
+   * 틱 데미지: 적이 이번 틱에 데미지를 받을 수 있는지 확인
+   */
+  public canHitEnemyThisTick(enemyId: string): boolean {
+    if (this.tickInterval <= 0) {
+      // 틱 데미지 사용 안 함 - 한 번만 맞히는 로직 사용
+      return !this.hasHitEnemy(enemyId);
+    }
+
+    const lastHitTime = this.enemyLastHitTime.get(enemyId) || 0;
+    return this.lifetime - lastHitTime >= this.tickInterval;
+  }
+
+  /**
+   * 틱 데미지: 적에게 피해를 준 시간 기록
+   */
+  public recordEnemyHit(enemyId: string): void {
+    if (this.tickInterval > 0) {
+      this.enemyLastHitTime.set(enemyId, this.lifetime);
+    } else {
+      // 틱 데미지 사용 안 함 - 한 번만 맞히는 로직 사용
+      this.markEnemyHit(enemyId);
+    }
   }
 
   /**
