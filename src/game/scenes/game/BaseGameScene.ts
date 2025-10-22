@@ -259,6 +259,11 @@ export abstract class BaseGameScene extends Container {
    * 플레이어 업데이트 (자식 클래스에서 호출)
    */
   protected updatePlayer(deltaTime: number): void {
+    // 조이스틱 스무딩 업데이트
+    if (this.virtualJoystick) {
+      this.virtualJoystick.update();
+    }
+
     const input = this.getInputState();
     this.player.setInput(input);
     this.player.update(deltaTime);

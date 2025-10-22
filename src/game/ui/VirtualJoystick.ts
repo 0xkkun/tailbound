@@ -18,7 +18,13 @@ export class VirtualJoystick {
 
   private joystickX: number = 0;
   private joystickY: number = 0;
-  private maxDistance: number = 80; // 스틱이 움직일 수 있는 최대 거리 (증가)
+  private maxDistance: number = 120; // 스틱이 움직일 수 있는 최대 거리 (80 -> 120으로 증가)
+  private deadzone: number = 0.15; // 데드존: 15% 이하의 입력은 무시
+
+  // 입력 스무딩을 위한 변수
+  private targetX: number = 0;
+  private targetY: number = 0;
+  private smoothFactor: number = 0.3; // 스무딩 강도 (0~1, 낮을수록 부드러움)
 
   private touchStartX: number = 0;
   private touchStartY: number = 0;
@@ -74,8 +80,24 @@ export class VirtualJoystick {
       const clampedDistance = Math.min(distance, this.maxDistance);
 
       // 정규화된 값 (-1 ~ 1)
-      this.joystickX = (Math.cos(angle) * clampedDistance) / this.maxDistance;
-      this.joystickY = (Math.sin(angle) * clampedDistance) / this.maxDistance;
+      let normalizedX = (Math.cos(angle) * clampedDistance) / this.maxDistance;
+      let normalizedY = (Math.sin(angle) * clampedDistance) / this.maxDistance;
+
+      // 데드존 적용
+      const magnitude = Math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
+      if (magnitude < this.deadzone) {
+        normalizedX = 0;
+        normalizedY = 0;
+      } else {
+        // 데드존을 넘은 경우 값 재조정 (0 ~ 1 범위로)
+        const scale = (magnitude - this.deadzone) / (1 - this.deadzone);
+        normalizedX = (normalizedX / magnitude) * scale;
+        normalizedY = (normalizedY / magnitude) * scale;
+      }
+
+      // 타겟 값 설정 (스무딩에 사용)
+      this.targetX = normalizedX;
+      this.targetY = normalizedY;
     });
 
     // 터치 종료
@@ -91,6 +113,23 @@ export class VirtualJoystick {
     this.touchArea.on('pointerup', endTouch);
     this.touchArea.on('pointerupoutside', endTouch);
     this.touchArea.on('pointercancel', endTouch);
+  }
+
+  /**
+   * 조이스틱 업데이트 (스무딩 적용)
+   */
+  public update(): void {
+    if (!this.isActive) {
+      // 비활성 상태일 때는 빠르게 0으로 복귀
+      this.joystickX *= 0.5;
+      this.joystickY *= 0.5;
+      if (Math.abs(this.joystickX) < 0.01) this.joystickX = 0;
+      if (Math.abs(this.joystickY) < 0.01) this.joystickY = 0;
+    } else {
+      // 활성 상태일 때는 타겟 값으로 부드럽게 이동 (lerp)
+      this.joystickX += (this.targetX - this.joystickX) * this.smoothFactor;
+      this.joystickY += (this.targetY - this.joystickY) * this.smoothFactor;
+    }
   }
 
   /**
