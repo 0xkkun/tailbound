@@ -38,6 +38,15 @@ export class DokkaebiEnemy extends BaseEnemy {
   }
 
   /**
+   * 그림자 커스터마이즈 - 큰 탱커형이므로 그림자도 크게
+   */
+  protected createShadow(): void {
+    this.shadow.clear();
+    this.shadow.ellipse(0, this.radius * 0.85, this.radius * 0.85, this.radius * 0.3);
+    this.shadow.fill({ color: 0x000000, alpha: 0.35 });
+  }
+
+  /**
    * 도깨비 스프라이트 preload
    */
   public static async preloadSprites(): Promise<void> {

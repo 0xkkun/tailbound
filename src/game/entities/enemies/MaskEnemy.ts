@@ -38,6 +38,15 @@ export class MaskEnemy extends BaseEnemy {
   }
 
   /**
+   * 그림자 커스터마이즈 - 빠른 암살자형이므로 그림자를 작고 날렵하게
+   */
+  protected createShadow(): void {
+    this.shadow.clear();
+    this.shadow.ellipse(0, this.radius * 1.1, this.radius * 0.7, this.radius * 0.25);
+    this.shadow.fill({ color: 0x000000, alpha: 0.38 });
+  }
+
+  /**
    * 탈령 스프라이트 preload
    */
   public static async preloadSprites(): Promise<void> {

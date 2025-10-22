@@ -41,6 +41,7 @@ export class Player extends Container {
   private graphics?: Graphics;
   private sprite?: AnimatedSprite;
   private frames: Texture[] = [];
+  private shadow: Graphics; // 그림자
 
   // 입력 상태
   private currentInput: InputState = { x: 0, y: 0 };
@@ -65,6 +66,17 @@ export class Player extends Container {
 
     // zIndex 설정
     this.zIndex = GAME_CONFIG.entities.player;
+
+    // 그림자 생성 (가장 아래 레이어, 발밑에 배치)
+    this.shadow = new Graphics();
+    this.shadow.ellipse(
+      this.radius * 0.02,
+      this.radius * 0.8,
+      this.radius * 0.6,
+      this.radius * 0.18
+    );
+    this.shadow.fill({ color: 0x000000, alpha: 0.3 });
+    this.addChild(this.shadow);
 
     // 레벨 시스템 초기화
     this.levelSystem = new LevelSystem();
@@ -465,6 +477,7 @@ export class Player extends Container {
 
     // 그래픽 요소 정리
     this.graphics?.destroy();
+    this.shadow.destroy();
     this.levelText.destroy();
     this.sprite?.destroy({ texture: false });
 

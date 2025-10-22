@@ -38,6 +38,15 @@ export class SkeletonEnemy extends BaseEnemy {
   }
 
   /**
+   * 그림자 커스터마이즈 - 작고 빠른 몬스터이므로 그림자도 작게
+   */
+  protected createShadow(): void {
+    this.shadow.clear();
+    this.shadow.ellipse(0, this.radius * 1.4, this.radius * 0.65, this.radius * 0.23);
+    this.shadow.fill({ color: 0x000000, alpha: 0.35 });
+  }
+
+  /**
    * 스켈레톤 스프라이트 preload
    */
   public static async preloadSprites(): Promise<void> {
