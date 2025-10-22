@@ -1,5 +1,5 @@
 /**
- * 처녀귀신 적 (원거리 공격)
+ * 처녀귀신 적 (원거리 공격) - 중간 체력, 원거리 유틸형
  *
  * 플레이어와 일정 거리를 유지하며 투사체를 발사
  */
@@ -41,6 +41,15 @@ export class MaidenGhostEnemy extends BaseEnemy {
 
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
     super(id, x, y, tier);
+
+    // 처녀귀신 고유 스탯: 중간 체력, 느림, 원거리 공격
+    const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
+    this.health = 25 * tierMultiplier; // 기본보다 17% 낮음
+    this.maxHealth = this.health;
+    this.speed = 85; // 기본보다 15% 느림 (거리 유지가 목적)
+    this.damage = 10 * tierMultiplier; // 기본 동일 (투사체 데미지는 별도)
+    this.radius = 30; // 기본 히트박스
+
     this.loadAttackAnimation();
   }
 
