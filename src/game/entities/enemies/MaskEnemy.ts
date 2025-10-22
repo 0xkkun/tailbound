@@ -11,9 +11,9 @@ export class MaskEnemy extends BaseEnemy {
   // 탈령 스프라이트 설정
   private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
     assetPath: '/assets/mask-walk.png',
-    totalWidth: 384, // 32 * 12 frames
+    totalWidth: 352, // 32 * 11 frames
     height: 32,
-    frameCount: 12,
+    frameCount: 11,
     scale: 2.5,
   };
 
