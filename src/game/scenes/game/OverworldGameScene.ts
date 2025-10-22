@@ -7,7 +7,13 @@ import { Assets, Container, Graphics, Sprite, Text, TilingSprite } from 'pixi.js
 import { POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
 import { AoEEffect } from '@/game/entities/AoEEffect';
-import { BaseEnemy, MaidenGhostEnemy, SkeletonEnemy, TigerEnemy } from '@/game/entities/enemies';
+import {
+  BaseEnemy,
+  DokkaebiEnemy,
+  MaidenGhostEnemy,
+  MaskEnemy,
+  SkeletonEnemy,
+} from '@/game/entities/enemies';
 import { EnemyProjectile } from '@/game/entities/EnemyProjectile';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { HealthPotion } from '@/game/entities/HealthPotion';
@@ -107,7 +113,8 @@ export class OverworldGameScene extends BaseGameScene {
     // 모든 적 타입 스프라이트 미리 로드
     await Promise.all([
       SkeletonEnemy.preloadSprites(),
-      TigerEnemy.preloadSprites(),
+      DokkaebiEnemy.preloadSprites(),
+      MaskEnemy.preloadSprites(),
       MaidenGhostEnemy.preloadSprites(),
       Assets.load('/assets/bottom.png'), // 바닥 타일
     ]);

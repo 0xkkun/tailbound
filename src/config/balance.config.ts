@@ -151,6 +151,14 @@ export const SPAWN_BALANCE = {
   maxGroups: 2, // 최대 그룹 수
   clusterRadius: 200, // 그룹 내 적들의 퍼짐 정도
   groupIncreaseInterval: 60, // 초 단위, 그룹 수 증가 주기
+
+  // 적 스폰 확률 (합계 1.0)
+  enemySpawnRates: {
+    skeleton: 0.25, // 해골 25%
+    dokkaebi: 0.25, // 도깨비 25%
+    mask: 0.25, // 탈령 25%
+    maidenGhost: 0.25, // 처녀귀신 25%
+  },
 } as const;
 
 /**
