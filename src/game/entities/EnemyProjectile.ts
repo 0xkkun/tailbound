@@ -37,6 +37,9 @@ export class EnemyProjectile extends Container {
     this.x = x;
     this.y = y;
 
+    // 투사체 회전 - 날아가는 방향을 향하도록
+    this.rotation = Math.atan2(direction.y, direction.x);
+
     // 그래픽 생성 (스프라이트 로드 전 폴백)
     this.visual = new Graphics();
     this.addChild(this.visual);
