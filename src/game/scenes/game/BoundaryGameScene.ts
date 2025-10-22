@@ -3,7 +3,7 @@
  * BaseGameScene을 확장하여 NPC와 DialogSystem만 추가
  */
 
-import { Assets, Graphics, Text, TilingSprite } from 'pixi.js';
+import { Assets, Graphics, Sprite, Text, TilingSprite } from 'pixi.js';
 
 import { GAME_CONFIG } from '@/config/game.config';
 import { BOUNDARY_MERCHANT_DIALOG } from '@/data/dialogs';
@@ -40,7 +40,8 @@ export class BoundaryGameScene extends BaseGameScene {
    */
   protected async loadAssets(): Promise<void> {
     await super.loadAssets();
-    await Assets.load('/assets/bottom.png'); // 바닥 타일
+    await Assets.load('/assets/tile_green1.png'); // 바닥 타일
+    await Assets.load('/assets/tile_deco.png'); // 풀 장식
   }
 
   /**
@@ -49,15 +50,18 @@ export class BoundaryGameScene extends BaseGameScene {
    */
   protected createPlayer(): void {
     // 월드 배경 (타일링)
-    const texture = Assets.get('/assets/bottom.png');
+    const texture = Assets.get('/assets/tile_green1.png');
     texture.source.scaleMode = 'nearest'; // 픽셀 아트용: 픽셀 단위 렌더링
     const bg = new TilingSprite({
       texture,
       width: this.worldWidth,
       height: this.worldHeight,
     });
-    bg.tileScale.set(1, 1); // 32x32 원본 크기 사용
+    bg.tileScale.set(2, 2); // 16x16을 2배로 확대
     this.gameLayer.addChild(bg);
+
+    // 풀 장식 무작위 배치
+    this.createGrassDecorations();
 
     // 월드 경계선
     const border = new Graphics();
@@ -72,6 +76,34 @@ export class BoundaryGameScene extends BaseGameScene {
       `[BoundaryGameScene] 플레이어 생성됨: (${this.player.x}, ${this.player.y})`,
       this.player
     );
+  }
+
+  /**
+   * 풀 장식 무작위 배치
+   */
+  private createGrassDecorations(): void {
+    const grassTexture = Assets.get('/assets/tile_deco.png');
+    grassTexture.source.scaleMode = 'nearest';
+
+    const tileSize = 32; // 타일 크기 (16x16을 2배 확대한 크기)
+    const grassScale = 2; // 풀 장식 크기 (16x16을 2배 확대)
+
+    // 그리드 기반으로 일정 간격마다 랜덤 배치 (듬성듬성)
+    for (let x = 0; x < this.worldWidth; x += tileSize) {
+      for (let y = 0; y < this.worldHeight; y += tileSize) {
+        // 5% 확률로 풀 장식 배치
+        if (Math.random() < 0.05) {
+          const grass = new Sprite(grassTexture);
+          grass.anchor.set(0, 1); // 하단 기준
+          grass.scale.set(grassScale);
+          grass.x = x + Math.random() * tileSize; // 타일 내 랜덤 위치
+          grass.y = y + tileSize; // 타일 하단
+          this.gameLayer.addChild(grass);
+        }
+      }
+    }
+
+    console.log('풀 장식 배치 완료 (Boundary)');
   }
 
   /**
