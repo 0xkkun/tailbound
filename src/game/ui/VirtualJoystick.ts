@@ -168,6 +168,17 @@ export class VirtualJoystick {
   }
 
   /**
+   * 조이스틱 상태 리셋
+   */
+  public reset(): void {
+    this.isActive = false;
+    this.joystickX = 0;
+    this.joystickY = 0;
+    this.targetX = 0;
+    this.targetY = 0;
+  }
+
+  /**
    * 정리
    */
   public destroy(): void {
