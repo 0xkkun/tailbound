@@ -951,6 +951,9 @@ export class OverworldGameScene extends BaseGameScene {
   private handleGameOver(): void {
     this.isGameOver = true;
 
+    // 플레이어 체력바 숨기기
+    this.player.hideHealthBar();
+
     console.log('=== 게임 오버 ===');
     console.log(`생존 시간: ${Math.floor(this.gameTime)}초`);
     console.log(`처치한 적: ${this.enemiesKilled}마리`);

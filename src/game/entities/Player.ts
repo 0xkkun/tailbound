@@ -491,6 +491,14 @@ export class Player extends Container {
   }
 
   /**
+   * 체력바 숨기기 (게임오버 시)
+   */
+  public hideHealthBar(): void {
+    this.healthBarBg.visible = false;
+    this.healthBarFill.visible = false;
+  }
+
+  /**
    * 렌더링 (개발 모드 디버그용)
    */
   private renderDebug(): void {
