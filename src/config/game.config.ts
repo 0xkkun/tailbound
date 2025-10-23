@@ -55,8 +55,8 @@ export const GAME_CONFIG = {
 
   // UI 설정
   ui: {
-    healthBarHeight: 4,
-    healthBarOffset: -40,
+    healthBarHeight: 6,
+    healthBarOffset: 10,
   },
 
   // 레이어 z-index 설정

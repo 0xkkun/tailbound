@@ -42,6 +42,8 @@ export class Player extends Container {
   private sprite?: AnimatedSprite;
   private frames: Texture[] = [];
   private shadow: Graphics; // 그림자
+  private healthBarBg: Graphics; // 체력바 배경
+  private healthBarFill: Graphics; // 체력바 채움
 
   // 입력 상태
   private currentInput: InputState = { x: 0, y: 0 };
@@ -77,6 +79,25 @@ export class Player extends Container {
     );
     this.shadow.fill({ color: 0x000000, alpha: 0.3 });
     this.addChild(this.shadow);
+
+    // 체력바 생성 (캐릭터 위, 몹과 동일한 스타일)
+    const healthBarWidth = this.radius * 2;
+    const healthBarHeight = GAME_CONFIG.ui.healthBarHeight; // 몹과 동일한 두께
+    const healthBarY = -this.radius - GAME_CONFIG.ui.healthBarOffset; // 캐릭터 위
+
+    // 체력바 배경 (빨간색)
+    this.healthBarBg = new Graphics();
+    this.healthBarBg.rect(-healthBarWidth / 2, healthBarY, healthBarWidth, healthBarHeight);
+    this.healthBarBg.fill({ color: 0xff0000 });
+    this.healthBarBg.visible = false; // 초기에는 숨김 (풀피)
+    this.addChild(this.healthBarBg);
+
+    // 체력바 채움 (녹색)
+    this.healthBarFill = new Graphics();
+    this.healthBarFill.rect(-healthBarWidth / 2, healthBarY, healthBarWidth, healthBarHeight);
+    this.healthBarFill.fill({ color: 0x00ff00 });
+    this.healthBarFill.visible = false; // 초기에는 숨김 (풀피)
+    this.addChild(this.healthBarFill);
 
     // 레벨 시스템 초기화
     this.levelSystem = new LevelSystem();
@@ -141,7 +162,8 @@ export class Player extends Container {
 
       // AnimatedSprite 생성
       this.sprite = new AnimatedSprite(this.frames);
-      this.sprite.anchor.set(0.5); // 중심점을 중앙으로
+      // 이미지가 왼쪽으로 치우쳐 있어서 앵커를 조정 (0.5에서 0.4로)
+      this.sprite.anchor.set(0.4, 0.5); // x축 앵커를 왼쪽으로 이동
       this.sprite.animationSpeed = PLAYER_SPRITE_CONFIG.walk.animationSpeed;
       this.sprite.loop = true;
       this.sprite.visible = true;
@@ -400,6 +422,9 @@ export class Player extends Container {
     if (wasInvincible !== isInvincible || isInvincible) {
       this.updateInvincibilityVisuals();
     }
+
+    // 체력바 업데이트
+    this.updateHealthBar();
   }
 
   /**
@@ -431,6 +456,38 @@ export class Player extends Container {
     } else {
       this.sprite.alpha = 1.0; // 정상
     }
+  }
+
+  /**
+   * 체력바 업데이트
+   */
+  private updateHealthBar(): void {
+    const healthRatio = this.health / this.maxHealth;
+
+    // 풀피면 체력바 숨김
+    if (healthRatio >= 1.0) {
+      this.healthBarBg.visible = false;
+      this.healthBarFill.visible = false;
+      return;
+    }
+
+    // 체력이 감소하면 체력바 표시
+    this.healthBarBg.visible = true;
+    this.healthBarFill.visible = true;
+
+    // 체력바 크기 업데이트 (몹과 동일한 스타일)
+    const healthBarWidth = this.radius * 2;
+    const healthBarHeight = GAME_CONFIG.ui.healthBarHeight;
+    const healthBarY = -this.radius - GAME_CONFIG.ui.healthBarOffset;
+
+    this.healthBarFill.clear();
+    this.healthBarFill.rect(
+      -healthBarWidth / 2,
+      healthBarY,
+      healthBarWidth * healthRatio,
+      healthBarHeight
+    );
+    this.healthBarFill.fill({ color: 0x00ff00 });
   }
 
   /**
@@ -480,6 +537,8 @@ export class Player extends Container {
     // 그래픽 요소 정리
     this.graphics?.destroy();
     this.shadow.destroy();
+    this.healthBarBg.destroy();
+    this.healthBarFill.destroy();
     this.levelText.destroy();
     this.sprite?.destroy({ texture: false });
 

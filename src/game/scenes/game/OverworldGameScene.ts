@@ -69,7 +69,6 @@ export class OverworldGameScene extends BaseGameScene {
   private bossDefeated: boolean = false; // 보스 처치 여부
 
   // UI 요소
-  private healthText!: Text;
   private scoreText!: Text;
   private timeText!: Text;
   private levelText!: Text;
@@ -239,18 +238,6 @@ export class OverworldGameScene extends BaseGameScene {
     // zIndex 정렬 활성화
     this.uiLayer.sortableChildren = true;
 
-    // 체력 텍스트 (톱니바퀴 아래)
-    this.healthText = new Text('HP: 100/100', {
-      fontFamily: 'NeoDunggeunmo',
-      fontSize: 32,
-      fill: 0xff5555,
-      fontWeight: 'bold',
-    });
-    this.healthText.resolution = 2; // 고해상도 렌더링
-    this.healthText.x = 20;
-    this.healthText.y = 50; // 톱니바퀴 아래로 이동
-    this.uiLayer.addChild(this.healthText);
-
     // 점수 텍스트
     this.scoreText = new Text('처치: 0', {
       fontFamily: 'NeoDunggeunmo',
@@ -259,7 +246,7 @@ export class OverworldGameScene extends BaseGameScene {
     });
     this.scoreText.resolution = 2; // 고해상도 렌더링
     this.scoreText.x = 20;
-    this.scoreText.y = 85; // 아래로 이동
+    this.scoreText.y = 50; // 위로 이동 (85 -> 50)
     this.uiLayer.addChild(this.scoreText);
 
     // 시간 텍스트
@@ -284,7 +271,7 @@ export class OverworldGameScene extends BaseGameScene {
     });
     this.levelText.resolution = 2; // 고해상도 렌더링
     this.levelText.x = 20;
-    this.levelText.y = 110;
+    this.levelText.y = 75; // 위로 이동 (110 -> 75)
     this.uiLayer.addChild(this.levelText);
 
     // 경험치 바 배경
@@ -292,13 +279,13 @@ export class OverworldGameScene extends BaseGameScene {
     this.xpBarBg.rect(0, 0, 300, 15);
     this.xpBarBg.fill(0x333333);
     this.xpBarBg.x = 20;
-    this.xpBarBg.y = 145;
+    this.xpBarBg.y = 110; // 위로 이동 (145 -> 110)
     this.uiLayer.addChild(this.xpBarBg);
 
     // 경험치 바 채우기
     this.xpBarFill = new Graphics();
     this.xpBarFill.x = 20;
-    this.xpBarFill.y = 145;
+    this.xpBarFill.y = 110; // 위로 이동 (145 -> 110)
     this.uiLayer.addChild(this.xpBarFill);
 
     // 레벨업 UI
@@ -790,9 +777,6 @@ export class OverworldGameScene extends BaseGameScene {
    * UI 업데이트
    */
   private updateUI(): void {
-    // 체력
-    this.healthText.text = `HP: ${Math.floor(this.player.health)}/${this.player.maxHealth}`;
-
     // 점수
     this.scoreText.text = `처치: ${this.enemiesKilled}`;
 
