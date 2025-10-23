@@ -363,24 +363,26 @@ export class Player extends Container {
 
     // 이동 처리
     if (isMoving) {
-      // 대각선 이동 시 속도 정규화
-      const length = Math.sqrt(
+      // 입력값의 방향만 추출 (크기는 무시하고 항상 일정한 속도로 이동)
+      const inputLength = Math.sqrt(
         this.currentInput.x * this.currentInput.x + this.currentInput.y * this.currentInput.y
       );
-      const normalizedX = length > 0 ? this.currentInput.x / length : 0;
-      const normalizedY = length > 0 ? this.currentInput.y / length : 0;
 
-      // 스피드 배율 적용
+      // 방향 정규화 (항상 길이 1로 만들어 속도를 일정하게 유지)
+      const directionX = inputLength > 0 ? this.currentInput.x / inputLength : 0;
+      const directionY = inputLength > 0 ? this.currentInput.y / inputLength : 0;
+
+      // 스피드 배율 적용 (방향만 사용하므로 항상 동일한 속도)
       const effectiveSpeed = this.speed * this.speedMultiplier;
-      this.x += normalizedX * effectiveSpeed * deltaTime;
-      this.y += normalizedY * effectiveSpeed * deltaTime;
+      this.x += directionX * effectiveSpeed * deltaTime;
+      this.y += directionY * effectiveSpeed * deltaTime;
 
       // 마지막 이동 방향 저장
-      this.lastDirection = { x: normalizedX, y: normalizedY };
+      this.lastDirection = { x: directionX, y: directionY };
 
       // 스프라이트 좌우 반전 (왼쪽: scale.x = -1, 오른쪽: scale.x = 1)
-      if (this.sprite && normalizedX !== 0) {
-        this.sprite.scale.x = normalizedX < 0 ? -1 : 1;
+      if (this.sprite && directionX !== 0) {
+        this.sprite.scale.x = directionX < 0 ? -1 : 1;
       }
     }
 
