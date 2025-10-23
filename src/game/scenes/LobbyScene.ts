@@ -3,9 +3,9 @@ import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 import { PixelButton } from '../ui/PixelButton';
 
 export class LobbyScene extends Container {
-  private titleText!: Text;
-  private subtitleText!: Text;
   private titleImage!: Sprite;
+  private subtitleText!: Text;
+  private fanImage!: Sprite;
   private startButton!: PixelButton;
   private characterSelectButton!: PixelButton;
   private optionsButton!: PixelButton;
@@ -32,38 +32,54 @@ export class LobbyScene extends Container {
     }
 
     this.createBackground(screenWidth, screenHeight);
-    this.createTitle(screenWidth);
     this.loadAndCreateTitleImage();
+    this.createSubtitle(screenWidth);
+    this.loadAndCreateFanImage();
     this.createButtons(screenWidth, screenHeight);
     this.createCopyright(screenWidth, screenHeight);
   }
 
   private createBackground(width: number, height: number): void {
-    // 단색 배경 (추후 그라데이션/이미지로 교체)
+    // 버튼과 어울리는 따뜻한 갈색 톤의 단색 배경
     const bg = new Graphics();
-    bg.beginFill(0x1a1a2e);
-    bg.drawRect(0, 0, width, height);
-    bg.endFill();
+    bg.rect(0, 0, width, height);
+    bg.fill(0x4a3226);
     this.addChild(bg);
   }
 
-  private createTitle(screenWidth: number): void {
-    // 타이틀 (추후 이미지로 교체)
+  private async loadAndCreateTitleImage(): Promise<void> {
+    try {
+      // 타이틀 이미지 로드
+      const texture = await Assets.load('/assets/gui/title.png');
+
+      // 픽셀 아트 렌더링 설정
+      if (texture.baseTexture) {
+        texture.baseTexture.scaleMode = 'nearest';
+      }
+
+      const titleY = this.isMobile ? 40 * this.scaleFactor : 80;
+
+      // 타이틀 이미지
+      this.titleImage = new Sprite(texture);
+      this.titleImage.anchor.set(0.5, 0);
+      this.titleImage.x = this.screenWidth / 2;
+      this.titleImage.y = titleY;
+
+      // 이미지 크기 조정
+      const baseScale = this.isMobile ? 2.0 * this.scaleFactor : 3.0;
+      this.titleImage.scale.set(baseScale);
+
+      this.addChild(this.titleImage);
+      console.log('타이틀 이미지 로드 완료');
+    } catch (error) {
+      console.error('타이틀 이미지 로드 실패:', error);
+    }
+  }
+
+  private createSubtitle(screenWidth: number): void {
     const titleSize = this.isMobile ? Math.floor(48 * this.scaleFactor) : 64;
     const subtitleSize = this.isMobile ? Math.floor(16 * this.scaleFactor) : 16;
-    const titleY = this.isMobile ? 40 * this.scaleFactor : 80;
     const subtitleY = this.isMobile ? 40 * this.scaleFactor + titleSize + 10 : 160;
-
-    this.titleText = new Text('설화(說話)', {
-      fontFamily: 'NeoDunggeunmo',
-      fontSize: titleSize,
-      fill: 0xeaeaea,
-    });
-    this.titleText.resolution = 3; // 초고해상도 렌더링 (로비 화면용)
-    this.titleText.anchor.set(0.5, 0);
-    this.titleText.x = screenWidth / 2;
-    this.titleText.y = titleY;
-    this.addChild(this.titleText);
 
     // 부제
     this.subtitleText = new Text('Talebound', {
@@ -78,10 +94,10 @@ export class LobbyScene extends Container {
     this.addChild(this.subtitleText);
   }
 
-  private async loadAndCreateTitleImage(): Promise<void> {
+  private async loadAndCreateFanImage(): Promise<void> {
     try {
       // 이미지 로드
-      const texture = await Assets.load('/assets/gui/lobby-title.png');
+      const texture = await Assets.load('/assets/gui/title-fan.png');
 
       // 픽셀 아트 렌더링 설정
       if (texture.baseTexture) {
@@ -99,20 +115,20 @@ export class LobbyScene extends Container {
         ? this.screenHeight / 2 + 80 * this.scaleFactor
         : this.screenHeight / 2 + 100;
 
-      // 부채 이미지를 타이틀과 버튼 사이에 배치 (약간 위로)
-      const imageY = (subtitleY + subtitleSize + buttonY) / 2 - (this.isMobile ? 20 : 30);
+      // 부채 이미지를 타이틀과 버튼 사이에 배치 (버튼 위로 12px 간격)
+      const imageY = (subtitleY + subtitleSize + buttonY) / 2 - (this.isMobile ? 26 : 36);
 
       // 부채 타이틀 이미지
-      this.titleImage = new Sprite(texture);
-      this.titleImage.anchor.set(0.5);
-      this.titleImage.x = this.screenWidth / 2;
-      this.titleImage.y = imageY;
+      this.fanImage = new Sprite(texture);
+      this.fanImage.anchor.set(0.5);
+      this.fanImage.x = this.screenWidth / 2;
+      this.fanImage.y = imageY;
 
       // 이미지 크기 조정 (크기 줄임)
-      const baseScale = this.isMobile ? 2.0 * this.scaleFactor : 2.5;
-      this.titleImage.scale.set(baseScale);
+      const baseScale = this.isMobile ? 1.5 * this.scaleFactor : 2.5;
+      this.fanImage.scale.set(baseScale);
 
-      this.addChild(this.titleImage);
+      this.addChild(this.fanImage);
       console.log('부채 타이틀 이미지 로드 완료');
     } catch (error) {
       console.error('부채 타이틀 이미지 로드 실패:', error);
@@ -121,60 +137,52 @@ export class LobbyScene extends Container {
 
   private createButtons(screenWidth: number, screenHeight: number): void {
     const buttonX = screenWidth / 2;
-
-    // 모바일에서 버튼 위치와 크기 조정
     const baseY = this.isMobile ? screenHeight / 2 + 80 * this.scaleFactor : screenHeight / 2 + 100;
-    const gap = this.isMobile ? 55 * this.scaleFactor : 75;
 
-    // 버튼 크기 계산 - 화면 너비의 80% 사용 (최대 300px, 최소 260px)
-    const buttonWidth = Math.min(Math.max(screenWidth * 0.8, 260), 300);
-    const startButtonHeight = this.isMobile ? 60 * this.scaleFactor : 70;
-    const subButtonHeight = this.isMobile ? 50 * this.scaleFactor : 60;
+    // 버튼 높이 + 버튼 사이 간격(12px)
+    const buttonHeight = this.isMobile ? 60 * this.scaleFactor : 70;
+    const gap = buttonHeight + 6;
 
-    // 게임 시작 버튼 (활성화, 금색 강조)
-    this.startButton = new PixelButton(
+    // 게임 시작 버튼 (활성화)
+    this.startButton = PixelButton.createResponsive(
       '게임 시작',
-      buttonWidth,
-      startButtonHeight,
-      0xd4af37, // 금색
-      false, // 활성화
+      screenWidth,
+      buttonX,
+      baseY,
+      () => {
+        console.log('게임 시작!');
+        this.onStartGame?.();
+      },
+      false,
       this.isMobile,
       this.scaleFactor
     );
-    this.startButton.x = buttonX;
-    this.startButton.y = baseY;
-    this.startButton.onClick = () => {
-      console.log('게임 시작!');
-      this.onStartGame?.();
-    };
     this.addChild(this.startButton);
 
     // 캐릭터 선택 버튼 (비활성화)
-    this.characterSelectButton = new PixelButton(
+    this.characterSelectButton = PixelButton.createResponsive(
       '캐릭터 선택',
-      buttonWidth,
-      subButtonHeight,
-      0xffffff,
-      true, // 비활성화
+      screenWidth,
+      buttonX,
+      baseY + gap,
+      undefined,
+      true,
       this.isMobile,
       this.scaleFactor
     );
-    this.characterSelectButton.x = buttonX;
-    this.characterSelectButton.y = baseY + gap;
     this.addChild(this.characterSelectButton);
 
     // 옵션 버튼 (비활성화)
-    this.optionsButton = new PixelButton(
+    this.optionsButton = PixelButton.createResponsive(
       '옵션',
-      buttonWidth,
-      subButtonHeight,
-      0xffffff,
-      true, // 비활성화
+      screenWidth,
+      buttonX,
+      baseY + gap * 2,
+      undefined,
+      true,
       this.isMobile,
       this.scaleFactor
     );
-    this.optionsButton.x = buttonX;
-    this.optionsButton.y = baseY + gap * 2;
     this.addChild(this.optionsButton);
   }
 
@@ -184,10 +192,10 @@ export class LobbyScene extends Container {
     const lineHeight = this.isMobile ? 32 : 40;
 
     // 프로젝트 저작권 (위)
-    this.copyrightText = new Text('Tailbound © 2025', {
+    this.copyrightText = new Text('0xkkun © 2025', {
       fontFamily: 'NeoDunggeunmo',
       fontSize: fontSize,
-      fill: 0x666666,
+      fill: 0x888888,
     });
     this.copyrightText.resolution = 2;
     this.copyrightText.anchor.set(0.5, 1);
@@ -201,7 +209,7 @@ export class LobbyScene extends Container {
       {
         fontFamily: 'NeoDunggeunmo',
         fontSize: fontSize,
-        fill: 0x666666,
+        fill: 0x888888,
         align: 'center',
       }
     );

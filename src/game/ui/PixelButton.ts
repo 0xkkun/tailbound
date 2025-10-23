@@ -1,14 +1,14 @@
-import { Container, Graphics, Text } from 'pixi.js';
+import { Assets, Container, Graphics, NineSliceSprite, Text, Texture } from 'pixi.js';
 
 export class PixelButton extends Container {
-  private background!: Graphics;
+  private background!: NineSliceSprite | Graphics;
   private labelText!: Text;
   private buttonWidth: number;
   private buttonHeight: number;
   private color: number;
   private isDisabled: boolean;
-  private isMobile: boolean;
-  private scaleFactor: number;
+  private static buttonTexture: Texture | null = null;
+  private static textureLoading: Promise<Texture> | null = null;
 
   public onClick?: () => void;
 
@@ -17,9 +17,7 @@ export class PixelButton extends Container {
     width: number = 300,
     height: number = 60,
     color: number = 0xffffff,
-    disabled: boolean = false,
-    isMobile: boolean = false,
-    scaleFactor: number = 1
+    disabled: boolean = false
   ) {
     super();
 
@@ -27,10 +25,12 @@ export class PixelButton extends Container {
     this.buttonHeight = height;
     this.color = disabled ? 0x666666 : color;
     this.isDisabled = disabled;
-    this.isMobile = isMobile;
-    this.scaleFactor = scaleFactor;
 
-    this.createBackground();
+    this.initButton(text, disabled);
+  }
+
+  private async initButton(text: string, disabled: boolean): Promise<void> {
+    await this.createBackground();
     this.createLabel(text);
 
     if (!disabled) {
@@ -41,75 +41,101 @@ export class PixelButton extends Container {
     }
   }
 
-  private createBackground(): void {
-    this.background = new Graphics();
-    this.drawButton(false);
-    this.addChild(this.background);
+  private async createBackground(): Promise<void> {
+    try {
+      // 텍스처 로딩 (싱글톤 패턴으로 한 번만 로드)
+      if (!PixelButton.buttonTexture && !PixelButton.textureLoading) {
+        PixelButton.textureLoading = Assets.load('/assets/gui/bg-button.png').then(
+          (texture: Texture) => {
+            // 픽셀 아트 렌더링 설정
+            if (texture.baseTexture) {
+              texture.baseTexture.scaleMode = 'nearest';
+            }
+            PixelButton.buttonTexture = texture;
+            return texture;
+          }
+        );
+      }
+
+      // 텍스처 대기
+      if (PixelButton.textureLoading) {
+        await PixelButton.textureLoading;
+      }
+
+      if (PixelButton.buttonTexture) {
+        // NineSliceSprite로 버튼 배경 생성 (모서리는 유지하고 중앙 부분만 늘림)
+        this.background = new NineSliceSprite({
+          texture: PixelButton.buttonTexture,
+          leftWidth: 20,
+          topHeight: 20,
+          rightWidth: 20,
+          bottomHeight: 20,
+        });
+
+        this.background.width = this.buttonWidth;
+        this.background.height = this.buttonHeight;
+        this.background.anchor.set(0.5);
+
+        // 비활성화 상태일 경우 회색조로
+        if (this.isDisabled) {
+          this.background.tint = 0x888888;
+        }
+
+        this.addChild(this.background);
+      }
+    } catch (error) {
+      console.error('버튼 이미지 로드 실패, 기본 그래픽으로 폴백:', error);
+      this.createFallbackBackground();
+    }
   }
 
-  private drawButton(hover: boolean): void {
-    this.background.clear();
+  private createFallbackBackground(): void {
+    // 이미지 로드 실패 시 기존 그래픽 방식 사용
+    const graphics = new Graphics();
+    const alpha = 0.2;
+    const borderAlpha = 0.6;
 
-    const alpha = hover ? 0.4 : 0.2;
-    const borderAlpha = hover ? 1 : 0.6;
-
-    // 픽셀 스타일 사각형 버튼
-    this.background.lineStyle(3, this.color, borderAlpha);
-    this.background.beginFill(0x000000, alpha);
-    this.background.drawRect(
+    graphics.lineStyle(3, this.color, borderAlpha);
+    graphics.beginFill(0x000000, alpha);
+    graphics.drawRect(
       -this.buttonWidth / 2,
       -this.buttonHeight / 2,
       this.buttonWidth,
       this.buttonHeight
     );
-    this.background.endFill();
+    graphics.endFill();
 
-    // 코너 강조 (hover 시)
-    if (hover && !this.isDisabled) {
-      const cornerSize = 8;
-      this.background.beginFill(this.color, 0.8);
+    this.background = graphics;
+    this.addChild(this.background);
+  }
 
-      // 4개 코너
-      this.background.drawRect(
-        -this.buttonWidth / 2,
-        -this.buttonHeight / 2,
-        cornerSize,
-        cornerSize
-      );
-      this.background.drawRect(
-        this.buttonWidth / 2 - cornerSize,
-        -this.buttonHeight / 2,
-        cornerSize,
-        cornerSize
-      );
-      this.background.drawRect(
-        -this.buttonWidth / 2,
-        this.buttonHeight / 2 - cornerSize,
-        cornerSize,
-        cornerSize
-      );
-      this.background.drawRect(
-        this.buttonWidth / 2 - cornerSize,
-        this.buttonHeight / 2 - cornerSize,
-        cornerSize,
-        cornerSize
-      );
-
-      this.background.endFill();
+  private updateButtonAppearance(hover: boolean): void {
+    if (this.background instanceof NineSliceSprite) {
+      // 이미지 기반 버튼의 hover 효과
+      if (hover && !this.isDisabled) {
+        this.background.alpha = 1;
+      } else if (!this.isDisabled) {
+        this.background.alpha = 0.9;
+      }
     }
   }
 
   private createLabel(text: string): void {
-    // 모바일에서 폰트 크기 조정
-    const fontSize = this.isMobile ? Math.floor(16 * this.scaleFactor) : 16;
+    // 폰트 크기 고정 16
+    const fontSize = 16;
 
     this.labelText = new Text(text, {
       fontFamily: 'NeoDunggeunmo',
       fontSize: fontSize,
-      fill: this.isDisabled ? 0x999999 : 0xeaeaea,
+      fill: this.isDisabled ? 0x888888 : 0x773f16,
     });
     this.labelText.resolution = 3; // 초고해상도 렌더링 (로비 화면용)
+
+    // 0.5 단위 금지 - 정수 위치로 조정
     this.labelText.anchor.set(0.5);
+    this.labelText.x = Math.round(this.labelText.x);
+    this.labelText.y = Math.round(this.labelText.y);
+
     this.addChild(this.labelText);
   }
 
@@ -118,12 +144,12 @@ export class PixelButton extends Container {
     this.cursor = 'pointer';
 
     this.on('pointerover', () => {
-      this.drawButton(true);
+      this.updateButtonAppearance(true);
       this.scale.set(1.05);
     });
 
     this.on('pointerout', () => {
-      this.drawButton(false);
+      this.updateButtonAppearance(false);
       this.scale.set(1);
     });
 
@@ -140,5 +166,63 @@ export class PixelButton extends Container {
   public destroy(): void {
     this.removeAllListeners();
     super.destroy({ children: true });
+  }
+
+  /**
+   * 표준 크기의 버튼을 생성하는 정적 팩토리 메서드
+   * @param text 버튼 텍스트
+   * @param x X 좌표
+   * @param y Y 좌표
+   * @param onClick 클릭 핸들러
+   * @param disabled 비활성화 여부 (기본값: false)
+   * @param width 버튼 너비 (기본값: 300)
+   * @param height 버튼 높이 (기본값: 70)
+   * @returns 생성된 PixelButton 인스턴스
+   */
+  public static create(
+    text: string,
+    x: number,
+    y: number,
+    onClick?: () => void,
+    disabled: boolean = false,
+    width: number = 300,
+    height: number = 70
+  ): PixelButton {
+    const button = new PixelButton(text, width, height, 0xffffff, disabled);
+    button.x = x;
+    button.y = y;
+    if (onClick) {
+      button.onClick = onClick;
+    }
+    return button;
+  }
+
+  /**
+   * 반응형 크기의 버튼을 생성하는 정적 팩토리 메서드
+   * @param text 버튼 텍스트
+   * @param screenWidth 화면 너비
+   * @param x X 좌표
+   * @param y Y 좌표
+   * @param onClick 클릭 핸들러
+   * @param disabled 비활성화 여부 (기본값: false)
+   * @param isMobile 모바일 여부
+   * @param scaleFactor 스케일 팩터
+   * @returns 생성된 PixelButton 인스턴스
+   */
+  public static createResponsive(
+    text: string,
+    screenWidth: number,
+    x: number,
+    y: number,
+    onClick?: () => void,
+    disabled: boolean = false,
+    isMobile: boolean = false,
+    scaleFactor: number = 1
+  ): PixelButton {
+    // 버튼 크기 계산 - 화면 너비의 80% 사용 (최대 300px, 최소 260px)
+    const buttonWidth = Math.min(Math.max(screenWidth * 0.8, 260), 300);
+    const buttonHeight = isMobile ? 60 * scaleFactor : 70;
+
+    return PixelButton.create(text, x, y, onClick, disabled, buttonWidth, buttonHeight);
   }
 }

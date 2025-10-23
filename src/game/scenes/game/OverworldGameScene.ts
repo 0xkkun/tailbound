@@ -23,6 +23,7 @@ import { Player } from '@/game/entities/Player';
 import { Portal } from '@/game/entities/Portal';
 import { Projectile } from '@/game/entities/Projectile';
 import { LevelUpUI } from '@/game/ui/LevelUpUI';
+import { PixelButton } from '@/game/ui/PixelButton';
 import { PortalIndicator } from '@/game/ui/PortalIndicator';
 import { checkCircleCollision } from '@/game/utils/collision';
 import { DokkaebiFireWeapon } from '@/game/weapons/DokkaebiFireWeapon';
@@ -70,6 +71,7 @@ export class OverworldGameScene extends BaseGameScene {
 
   // UI 요소
   private scoreText!: Text;
+  private killIcon!: Sprite;
   private timeText!: Text;
   private levelText!: Text;
   private xpBarBg!: Graphics;
@@ -238,16 +240,8 @@ export class OverworldGameScene extends BaseGameScene {
     // zIndex 정렬 활성화
     this.uiLayer.sortableChildren = true;
 
-    // 점수 텍스트
-    this.scoreText = new Text('처치: 0', {
-      fontFamily: 'NeoDunggeunmo',
-      fontSize: 32,
-      fill: 0xffffff,
-    });
-    this.scoreText.resolution = 2; // 고해상도 렌더링
-    this.scoreText.x = 20;
-    this.scoreText.y = 50; // 위로 이동 (85 -> 50)
-    this.uiLayer.addChild(this.scoreText);
+    // 처치 아이콘 및 텍스트
+    this.loadAndCreateKillUI();
 
     // 시간 텍스트
     this.timeText = new Text('0:00', {
@@ -271,7 +265,7 @@ export class OverworldGameScene extends BaseGameScene {
     });
     this.levelText.resolution = 2; // 고해상도 렌더링
     this.levelText.x = 20;
-    this.levelText.y = 75; // 위로 이동 (110 -> 75)
+    this.levelText.y = 88; // 위로 이동 (110 -> 75)
     this.uiLayer.addChild(this.levelText);
 
     // 경험치 바 배경
@@ -279,13 +273,13 @@ export class OverworldGameScene extends BaseGameScene {
     this.xpBarBg.rect(0, 0, 300, 15);
     this.xpBarBg.fill(0x333333);
     this.xpBarBg.x = 20;
-    this.xpBarBg.y = 110; // 위로 이동 (145 -> 110)
+    this.xpBarBg.y = 120; // 위로 이동 (145 -> 110)
     this.uiLayer.addChild(this.xpBarBg);
 
     // 경험치 바 채우기
     this.xpBarFill = new Graphics();
     this.xpBarFill.x = 20;
-    this.xpBarFill.y = 110; // 위로 이동 (145 -> 110)
+    this.xpBarFill.y = 120; // 위로 이동 (145 -> 110)
     this.uiLayer.addChild(this.xpBarFill);
 
     // 레벨업 UI
@@ -304,6 +298,53 @@ export class OverworldGameScene extends BaseGameScene {
     // 설정 버튼 (우측 상단)
     this.settingsButton = this.createSettingsButton();
     this.uiLayer.addChild(this.settingsButton);
+  }
+
+  /**
+   * 처치 아이콘 및 텍스트 로드 및 생성
+   */
+  private async loadAndCreateKillUI(): Promise<void> {
+    try {
+      // 해골 아이콘 로드
+      const texture = await Assets.load('/assets/power-up/kill.png');
+
+      // 픽셀 아트 렌더링 설정
+      if (texture.baseTexture) {
+        texture.baseTexture.scaleMode = 'nearest';
+      }
+
+      // 해골 아이콘 생성
+      this.killIcon = new Sprite(texture);
+      this.killIcon.anchor.set(0, 0.5);
+      this.killIcon.scale.set(0.5); // 크기 조정
+      this.killIcon.x = 10;
+      this.killIcon.y = 60 + 12; // 텍스트 중앙에 맞춤
+      this.uiLayer.addChild(this.killIcon);
+
+      // 점수 텍스트 (아이콘 오른쪽에 배치)
+      this.scoreText = new Text('0', {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 32,
+        fill: 0xffffff,
+      });
+      this.scoreText.resolution = 2; // 고해상도 렌더링
+      this.scoreText.x = 4 + this.killIcon.width + 10; // 아이콘 너비 + 간격
+      this.scoreText.y = 60;
+      this.uiLayer.addChild(this.scoreText);
+    } catch (error) {
+      console.error('해골 아이콘 로드 실패:', error);
+
+      // 폴백: 텍스트만 표시
+      this.scoreText = new Text('처치: 0', {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 32,
+        fill: 0xffffff,
+      });
+      this.scoreText.resolution = 2;
+      this.scoreText.x = 20;
+      this.scoreText.y = 50;
+      this.uiLayer.addChild(this.scoreText);
+    }
   }
 
   /**
@@ -784,8 +825,8 @@ export class OverworldGameScene extends BaseGameScene {
    * UI 업데이트
    */
   private updateUI(): void {
-    // 점수
-    this.scoreText.text = `처치: ${this.enemiesKilled}`;
+    // 점수 (아이콘이 있으므로 숫자만 표시)
+    this.scoreText.text = `${this.enemiesKilled}`;
 
     // 시간
     const minutes = Math.floor(this.gameTime / 60);
@@ -995,9 +1036,13 @@ export class OverworldGameScene extends BaseGameScene {
     gameOverText.y = centerY - 150;
     gameOverContainer.addChild(gameOverText);
 
-    // 생존 시간 표시
+    // 생존 시간 표시 (분:초 형식)
+    const minutes = Math.floor(this.gameTime / 60);
+    const seconds = Math.floor(this.gameTime % 60);
+    const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
     const timeText = new Text({
-      text: i18n.t('gameOver.survivalTime', { time: Math.floor(this.gameTime) }),
+      text: i18n.t('gameOver.survivalTime', { time: formattedTime }),
       style: {
         fontFamily: 'NeoDunggeunmo',
         fontSize: 32,
@@ -1025,35 +1070,40 @@ export class OverworldGameScene extends BaseGameScene {
     killsText.y = centerY - 40;
     gameOverContainer.addChild(killsText);
 
-    // 로비로 돌아가기 버튼
-    const lobbyButton = this.createButton(
+    // 버튼 크기 및 간격 (설정 메뉴와 동일: 184x56)
+    const buttonWidth = 184;
+    const buttonHeight = 56;
+    const buttonGap = buttonHeight + 12;
+
+    // 로비로 돌아가기 버튼 (아이콘과 함께)
+    this.createMenuButtonWithIcon(
+      gameOverContainer,
       i18n.t('gameOver.returnToLobby'),
+      '/assets/gui/back.png',
       centerX,
       centerY + 40,
-      300,
-      60,
-      0x4169e1
+      buttonWidth,
+      buttonHeight,
+      () => {
+        console.log('로비로 돌아가기 버튼 클릭!');
+        this.onReturnToLobby?.();
+      }
     );
-    lobbyButton.on('pointerdown', () => {
-      console.log('로비로 돌아가기 버튼 클릭!');
-      this.onReturnToLobby?.();
-    });
-    gameOverContainer.addChild(lobbyButton);
 
-    // 게임 다시하기 버튼
-    const restartButton = this.createButton(
+    // 게임 다시하기 버튼 (아이콘과 함께)
+    this.createMenuButtonWithIcon(
+      gameOverContainer,
       i18n.t('gameOver.restart'),
+      '/assets/gui/restart.png',
       centerX,
-      centerY + 120,
-      300,
-      60,
-      0x228b22
+      centerY + 40 + buttonGap,
+      buttonWidth,
+      buttonHeight,
+      () => {
+        console.log('게임 다시하기 버튼 클릭!');
+        this.onRestartGame?.();
+      }
     );
-    restartButton.on('pointerdown', () => {
-      console.log('게임 다시하기 버튼 클릭!');
-      this.onRestartGame?.();
-    });
-    gameOverContainer.addChild(restartButton);
 
     // 게임 오버 결과 콜백
     if (this.onGameOver) {
@@ -1069,56 +1119,6 @@ export class OverworldGameScene extends BaseGameScene {
   /**
    * 버튼 생성 헬퍼 함수
    */
-  private createButton(
-    text: string,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    color: number
-  ): Container {
-    const buttonContainer = new Container();
-    buttonContainer.x = x;
-    buttonContainer.y = y;
-
-    // 버튼 배경
-    const bg = new Graphics();
-    bg.rect(-width / 2, -height / 2, width, height);
-    bg.fill(color);
-    buttonContainer.addChild(bg);
-
-    // 버튼 텍스트
-    const buttonText = new Text({
-      text,
-      style: {
-        fontFamily: 'NeoDunggeunmo',
-        fontSize: 32,
-        fill: 0xffffff,
-      },
-    });
-    buttonText.resolution = 2; // 고해상도 렌더링
-    buttonText.anchor.set(0.5);
-    buttonContainer.addChild(buttonText);
-
-    // 인터랙션 활성화
-    buttonContainer.eventMode = 'static';
-    buttonContainer.cursor = 'pointer';
-
-    // 호버 효과
-    buttonContainer.on('pointerover', () => {
-      bg.clear();
-      bg.rect(-width / 2, -height / 2, width, height);
-      bg.fill(color);
-      bg.alpha = 0.8;
-    });
-
-    buttonContainer.on('pointerout', () => {
-      bg.alpha = 1.0;
-    });
-
-    return buttonContainer;
-  }
-
   /**
    * 설정 버튼 생성 (좌측 상단)
    */
@@ -1130,8 +1130,8 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 설정 아이콘 (톱니바퀴 이미지)
     const icon = Sprite.from('/assets/gui/settings.png');
-    icon.width = 32;
-    icon.height = 32;
+    icon.width = 40;
+    icon.height = 40;
     icon.anchor.set(0.5);
     buttonContainer.addChild(icon);
 
@@ -1194,83 +1194,77 @@ export class OverworldGameScene extends BaseGameScene {
     overlay.eventMode = 'static'; // 클릭 차단
     menuContainer.addChild(overlay);
 
-    // 메뉴 배경
-    const menuBg = new Graphics();
-    menuBg.rect(centerX - 200, centerY - 180, 400, 380);
-    menuBg.fill(0x2a2a2a);
-    menuBg.stroke({ width: 3, color: 0x555555 });
-    menuContainer.addChild(menuBg);
+    // 버튼 크기 및 간격 (디자인 스펙: 184x56, 간격 72px)
+    const buttonGap = 72;
+    const buttonWidth = 184;
+    const buttonHeight = 56;
 
-    // 메뉴 제목
-    const titleText = new Text({
-      text: '설정',
-      style: {
-        fontFamily: 'NeoDunggeunmo',
-        fontSize: 32,
-        fill: 0xffffff,
-      },
-    });
-    titleText.resolution = 2; // 고해상도 렌더링
-    titleText.anchor.set(0.5);
-    titleText.x = centerX;
-    titleText.y = centerY - 130;
-    menuContainer.addChild(titleText);
-
-    // 게임으로 돌아가기 버튼
-    const resumeButton = this.createButton(
-      '게임으로 돌아가기',
+    // 계속하기 버튼 (아이콘과 함께)
+    this.createMenuButtonWithIcon(
+      menuContainer,
+      '계속하기',
+      '/assets/gui/resume.png',
       centerX,
-      centerY - 60,
-      300,
-      60,
-      0x888888
+      centerY - 80,
+      buttonWidth,
+      buttonHeight,
+      () => {
+        console.log('설정 메뉴: 게임으로 돌아가기');
+        this.toggleSettingsMenu(); // 메뉴 닫기 (게임 재개)
+      }
     );
-    resumeButton.on('pointerdown', (event) => {
-      console.log('설정 메뉴: 게임으로 돌아가기');
-      event.stopPropagation(); // 이벤트 전파 중단
-      this.toggleSettingsMenu(); // 메뉴 닫기 (게임 재개)
-    });
-    menuContainer.addChild(resumeButton);
 
-    // 게임 다시하기 버튼
-    const restartButton = this.createButton(
-      '게임 다시하기',
+    // 다시하기 버튼
+    this.createMenuButtonWithIcon(
+      menuContainer,
+      '다시하기',
+      '/assets/gui/restart.png',
       centerX,
-      centerY + 20,
-      300,
-      60,
-      0x228b22
+      centerY - 80 + buttonGap,
+      buttonWidth,
+      buttonHeight,
+      () => {
+        console.log('설정 메뉴: 게임 다시하기');
+        this.toggleSettingsMenu(); // 메뉴 닫기
+        setTimeout(() => {
+          this.onRestartGame?.();
+        }, 100);
+      }
     );
-    restartButton.on('pointerdown', (event) => {
-      console.log('설정 메뉴: 게임 다시하기');
-      event.stopPropagation(); // 이벤트 전파 중단
-      this.toggleSettingsMenu(); // 메뉴 닫기
-      // 약간의 지연 후 실행 (이벤트 전파 방지)
-      setTimeout(() => {
-        this.onRestartGame?.();
-      }, 100);
-    });
-    menuContainer.addChild(restartButton);
 
-    // 로비로 돌아가기 버튼
-    const lobbyButton = this.createButton(
-      '로비로 돌아가기',
+    // TODO: 소리 끄기 구현
+    // 소리끄기 버튼
+    // this.createMenuButtonWithIcon(
+    //   menuContainer,
+    //   '소리끄기',
+    //   '/assets/gui/sound.png',
+    //   centerX,
+    //   centerY - 80 + buttonGap * 2,
+    //   buttonWidth,
+    //   buttonHeight,
+    //   () => {
+    //     console.log('설정 메뉴: 소리끄기 (미구현)');
+    //     // TODO: 사운드 토글 기능 구현
+    //   }
+    // );
+
+    // 로비로 가기 버튼
+    this.createMenuButtonWithIcon(
+      menuContainer,
+      '로비로 가기',
+      '/assets/gui/back.png',
       centerX,
-      centerY + 100,
-      300,
-      60,
-      0x4169e1
+      centerY - 80 + buttonGap * 2,
+      buttonWidth,
+      buttonHeight,
+      () => {
+        console.log('설정 메뉴: 로비로 돌아가기');
+        this.toggleSettingsMenu(); // 메뉴 닫기
+        setTimeout(() => {
+          this.onReturnToLobby?.();
+        }, 100);
+      }
     );
-    lobbyButton.on('pointerdown', (event) => {
-      console.log('설정 메뉴: 로비로 돌아가기');
-      event.stopPropagation(); // 이벤트 전파 중단
-      this.toggleSettingsMenu(); // 메뉴 닫기
-      // 약간의 지연 후 실행 (이벤트 전파 방지)
-      setTimeout(() => {
-        this.onReturnToLobby?.();
-      }, 100);
-    });
-    menuContainer.addChild(lobbyButton);
 
     // 오버레이 클릭 시 메뉴 닫기
     overlay.on('pointerdown', () => {
@@ -1278,6 +1272,84 @@ export class OverworldGameScene extends BaseGameScene {
     });
 
     return menuContainer;
+  }
+
+  /**
+   * 아이콘이 있는 메뉴 버튼 생성
+   */
+  private async createMenuButtonWithIcon(
+    container: Container,
+    text: string,
+    iconPath: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    onClick: () => void
+  ): Promise<void> {
+    // 버튼 생성 (텍스트 없이)
+    const button = PixelButton.create('', x, y, onClick, false, width, height);
+    container.addChild(button);
+
+    // 아이콘 로드 및 버튼 내부에 [아이콘+텍스트] 배치
+    try {
+      const texture = await Assets.load(iconPath);
+      if (texture.baseTexture) {
+        texture.baseTexture.scaleMode = 'nearest';
+      }
+
+      const icon = new Sprite(texture);
+      icon.anchor.set(0.5);
+
+      // 아이콘 크기를 32px로 조정
+      const targetSize = 32;
+      const scale = targetSize / texture.width;
+      icon.scale.set(scale);
+
+      // 텍스트 생성
+      const labelText = new Text({
+        text,
+        style: {
+          fontFamily: 'NeoDunggeunmo',
+          fontSize: 16,
+          fill: 0x773f16,
+        },
+      });
+      labelText.resolution = 3;
+      labelText.anchor.set(0.5);
+
+      // 아이콘과 텍스트 사이 간격 (4px)
+      const gap = 4;
+
+      // [아이콘 + 텍스트] 전체 너비 계산
+      const totalContentWidth = targetSize + gap + labelText.width;
+
+      // 버튼 중앙에 맞춰 아이콘과 텍스트 배치
+      icon.x = -totalContentWidth / 2 + targetSize / 2;
+      icon.y = 0;
+      button.addChild(icon);
+
+      labelText.x = -totalContentWidth / 2 + targetSize + gap + labelText.width / 2;
+      labelText.y = 0;
+      button.addChild(labelText);
+    } catch (error) {
+      console.error(`아이콘 로드 실패: ${iconPath}`, error);
+
+      // 폴백: 텍스트만 표시
+      const labelText = new Text({
+        text,
+        style: {
+          fontFamily: 'NeoDunggeunmo',
+          fontSize: 16,
+          fill: 0x773f16,
+        },
+      });
+      labelText.resolution = 3;
+      labelText.anchor.set(0.5);
+      labelText.x = 0;
+      labelText.y = 0;
+      button.addChild(labelText);
+    }
   }
 
   /**
