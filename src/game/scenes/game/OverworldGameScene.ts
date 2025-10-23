@@ -746,14 +746,23 @@ export class OverworldGameScene extends BaseGameScene {
               projInfo.startX,
               projInfo.startY,
               projInfo.direction,
-              0x9933ff // 보라색
+              0x6600cc // 어두운 보라색 (폴백용)
             );
             projectile.damage = 6; // 악령 투사체 데미지
             projectile.speed = 350;
             projectile.radius = 8;
 
-            // 나중에 스프라이트 추가 예정
-            // projectile.loadSpriteSheet('/assets/evil-spirit-attack.png', ...);
+            // TODO: evil-spirit-projectile.png 스프라이트 사용, 어두운 보라색 틴트
+            // 현재는 woman-ghost-projectile.png 사용
+            projectile.loadSpriteSheet(
+              '/assets/enemy/woman-ghost-projectile.png',
+              16,
+              16,
+              30,
+              6,
+              2,
+              0x7700dd // 채도 높은 어두운 보라색 틴트
+            );
 
             this.enemyProjectiles.push(projectile);
             this.gameLayer.addChild(projectile);
@@ -997,7 +1006,7 @@ export class OverworldGameScene extends BaseGameScene {
         }
         break;
       }
-      case 'weapon_dokkaebi': {
+      case 'weapon_dokkaebi_fire': {
         // 이미 도깨비불이 있으면 업그레이드, 없으면 추가
         const existingDokkaebi = this.weapons.find((w) => w instanceof DokkaebiFireWeapon);
         if (existingDokkaebi) {

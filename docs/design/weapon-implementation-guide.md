@@ -5,6 +5,7 @@
 ---
 
 ## 목차
+
 1. [개요](#개요)
 2. [무기 추가 체크리스트](#무기-추가-체크리스트)
 3. [단계별 구현 가이드](#단계별-구현-가이드)
@@ -53,12 +54,14 @@
 새 무기를 추가할 때 다음 단계를 따르세요:
 
 ### ✅ 1단계: 데이터 정의
+
 - [ ] `src/game/data/weapons.ts`에 무기 데이터 추가
 - [ ] `WeaponType`에 타입 추가
 - [ ] `WEAPON_DATA` 객체에 스펙 정의
 - [ ] 레벨 스케일링 공식 확인
 
 ### ✅ 2단계: 무기 클래스 구현
+
 - [ ] `src/game/weapons/[WeaponName].ts` 파일 생성
 - [ ] `Weapon` 베이스 클래스 상속
 - [ ] `fire()` 메서드 구현 (발사 로직)
@@ -66,23 +69,27 @@
 - [ ] `levelUp()` 메서드 구현
 
 ### ✅ 3단계: 엔티티 구현 (필요 시)
+
 - [ ] Projectile 사용 OR 커스텀 엔티티 생성
 - [ ] 궤도형/AoE는 커스텀 엔티티 필요
 - [ ] 충돌 감지 로직
 - [ ] 렌더링 (Graphics 플레이스홀더)
 
 ### ✅ 4단계: 통합
+
 - [ ] `LevelSystem.ts`의 선택지에 추가
 - [ ] `GameScene.ts`의 `addWeapon()` switch문에 추가
 - [ ] i18n 번역 추가 (`ko.json`)
 
 ### ✅ 5단계: 테스트
+
 - [ ] 빌드 확인 (`pnpm run build`)
 - [ ] 발사/공격 확인
 - [ ] 레벨업 시 스탯 증가 확인
 - [ ] 성능 테스트 (다수 발사체)
 
 ### ✅ 6단계: 이미지 교체 (선택)
+
 - [ ] 이미지 파일 준비
 - [ ] `public/assets/weapons/` 폴더에 배치
 - [ ] 무기 클래스에서 이미지 로드
@@ -118,9 +125,9 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
 
     // 레벨 스케일링
     levelScaling: {
-      damage: 5,              // 레벨당 데미지 +5
+      damage: 5, // 레벨당 데미지 +5
       cooldownReduction: 0.1, // 레벨당 쿨타임 -0.1초
-      piercingPerLevel: 1,    // 5레벨마다 관통 +1
+      piercingPerLevel: 1, // 5레벨마다 관통 +1
     },
 
     // 최대 레벨 및 진화
@@ -135,7 +142,8 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
 ```
 
 **주의사항**:
-- `id`는 'weapon_' 접두사 사용 (LevelSystem에서 파싱)
+
+- `id`는 'weapon\_' 접두사 사용 (LevelSystem에서 파싱)
 - `type`은 무기 타입 결정 (projectile/orbital/aoe/melee)
 - `levelScaling`은 `calculateWeaponStats()` 함수에서 자동 계산
 
@@ -220,6 +228,7 @@ export class NewWeapon extends Weapon {
 **예시**: 부적 (Talisman), 부채바람 (FanWind)
 
 **특징**:
+
 - 직선/곡선으로 날아가는 투사체
 - `Projectile` 엔티티 사용
 - 타겟 추적 또는 방향 설정
@@ -281,6 +290,7 @@ private findClosestEnemy(playerPos: Vector2, enemies: Enemy[]): Enemy | null {
 **예시**: 부채바람 - 뱀파이어 서바이벌의 도끼처럼 일정 거리까지 몬스터를 무제한 관통하며 날아감
 
 **특징**:
+
 - **무제한 관통** (사거리 내 모든 적 피해)
 - 일정 거리 제한 (최대 사거리)
 - 레벨업 시 투사체 수량 증가
@@ -288,6 +298,7 @@ private findClosestEnemy(playerPos: Vector2, enemies: Enemy[]): Enemy | null {
 - 부채꼴 패턴으로 발사
 
 **밸런스 철학**:
+
 - 도깨비불/목탁소리처럼 범위형 무기는 범위 내 모든 적을 타격
 - 부채바람도 사거리 내에서는 무제한 관통으로 일관성 유지
 - 대신 사거리 제한과 방향성으로 밸런스 조절
@@ -550,6 +561,7 @@ private checkProjectileCollisions(): void {
 ```
 
 **주요 로직**:
+
 1. 투사체가 적과 충돌하면 `hitEnemy()`로 기록
 2. `hasHitEnemy()`로 같은 적을 중복으로 맞히지 않도록 방지
 3. `piercing === 0`: 관통 없음 → 첫 충돌 후 즉시 제거
@@ -575,6 +587,7 @@ case 'weapon_fanwind': {
 **예시**: 도깨비불 (DokkaebiFireWeapon)
 
 **특징**:
+
 - 플레이어 주변을 회전
 - 커스텀 엔티티 필요 (`OrbitalEntity`)
 - 접촉 시 피해
@@ -589,17 +602,12 @@ export class OrbitalEntity extends Container {
   public active: boolean = true;
   public damage: number = 10;
 
-  private angle: number;         // 현재 각도
-  private angularSpeed: number;  // 회전 속도 (rad/s)
-  private radius: number;        // 궤도 반경
+  private angle: number; // 현재 각도
+  private angularSpeed: number; // 회전 속도 (rad/s)
+  private radius: number; // 궤도 반경
   private orb: Graphics;
 
-  constructor(
-    angle: number,
-    radius: number,
-    angularSpeed: number,
-    color: number = 0x00ffff
-  ) {
+  constructor(angle: number, radius: number, angularSpeed: number, color: number = 0x00ffff) {
     super();
 
     this.angle = angle;
@@ -699,7 +707,7 @@ private dokkaebiWeapon?: DokkaebiFireWeapon;
 
 private addWeapon(weaponId: string): void {
   switch (weaponId) {
-    case 'weapon_dokkaebi': {
+    case 'weapon_dokkaebi_fire': {
       const weapon = new DokkaebiFireWeapon();
       weapon.spawnOrbitals(this.player, this.gameLayer); // 궤도 생성
       this.dokkaebiWeapon = weapon;
@@ -722,6 +730,7 @@ if (this.dokkaebiWeapon) {
 **예시**: 목탁 소리 (MoktakSoundWeapon)
 
 **특징**:
+
 - 주기적으로 광역 공격 발동
 - 범위 내 모든 적 피해
 - 시각 이펙트 (파동)
@@ -865,6 +874,7 @@ this.aoeEffects = this.aoeEffects.filter(aoe => {
 **예시**: 작두날 (JakduBladeWeapon)
 
 **특징**:
+
 - 플레이어 주변 일정 각도 휘두르기
 - 애니메이션 (회전)
 - 범위 내 적 즉시 피해
@@ -886,13 +896,7 @@ export class MeleeSwing extends Container {
   private blade: Graphics;
   private hasDealtDamage: Set<string> = new Set();
 
-  constructor(
-    x: number,
-    y: number,
-    startAngle: number,
-    radius: number,
-    damage: number
-  ) {
+  constructor(x: number, y: number, startAngle: number, radius: number, damage: number) {
     super();
 
     this.x = x;
@@ -1188,7 +1192,7 @@ private dokkaebiWeapon?: DokkaebiFireWeapon;
 // 2. addWeapon() switch문에 추가
 private addWeapon(weaponId: string): void {
   switch (weaponId) {
-    case 'weapon_dokkaebi': {
+    case 'weapon_dokkaebi_fire': {
       const weapon = new DokkaebiFireWeapon();
       weapon.spawnOrbitals(this.player, this.gameLayer);
       this.dokkaebiWeapon = weapon;

@@ -26,13 +26,13 @@
 
 ### 무기 분류
 
-| 분류 | 특징 | 예시 |
-|------|------|------|
-| **원거리 투사체형** | 적을 향해 날아가는 발사체 | 부적, 부채바람 |
-| **궤도형** | 플레이어 주변을 맴돌며 지속 피해 | 도깨비불 |
-| **광역형** | 주기적으로 넓은 범위 공격 | 목탁소리 |
-| **근접형** | 플레이어 근처를 휘두르는 근접 공격 | 작두 |
-| **설치형** | 바닥에 남아 지속 피해 영역 생성 | 정화수 |
+| 분류                | 특징                               | 예시           |
+| ------------------- | ---------------------------------- | -------------- |
+| **원거리 투사체형** | 적을 향해 날아가는 발사체          | 부적, 부채바람 |
+| **궤도형**          | 플레이어 주변을 맴돌며 지속 피해   | 도깨비불       |
+| **광역형**          | 주기적으로 넓은 범위 공격          | 목탁소리       |
+| **근접형**          | 플레이어 근처를 휘두르는 근접 공격 | 작두           |
+| **설치형**          | 바닥에 남아 지속 피해 영역 생성    | 정화수         |
 
 ---
 
@@ -40,14 +40,14 @@
 
 ### 무기 목록 및 원작 대응
 
-| 무기 이름 | 영문 | 원작 참조 | 타입 | 핵심 업그레이드 |
-|-----------|------|-----------|------|-----------------|
-| 부적 (符籍) | Talisman | Magic Wand | 원거리 투사체 | 🔹투사체 수량 🔹속도 🔹관통 |
-| 도깨비불 (도깨비火) | Dokkaebi Fire | King Bible | 궤도형 | 🔹개수 🔹회전 속도 🔹피해 |
-| 목탁소리 (木鐸聲) | Moktak Sound | Garlic | 광역 음파 | 🔹범위 🔹피해 🔹쿨타임 |
-| 작두 (작두) | Jakdu Blade | Whip | 근접 휘두르기 | 🔹범위 🔹공속 🔹다단 공격 |
-| 부채바람 (扇風) | Fan Wind | Axe | 관통형 투사체 | 🔹투사체 수 🔹관통 🔹속도 |
-| 정화수 (淨化水) | Purifying Water | Santa Water | 바닥 DOT형 | 🔹개수 🔹범위 🔹지속시간 |
+| 무기 이름           | 영문            | 원작 참조   | 타입          | 핵심 업그레이드             |
+| ------------------- | --------------- | ----------- | ------------- | --------------------------- |
+| 부적 (符籍)         | Talisman        | Magic Wand  | 원거리 투사체 | 🔹투사체 수량 🔹속도 🔹관통 |
+| 도깨비불 (도깨비火) | Dokkaebi Fire   | King Bible  | 궤도형        | 🔹개수 🔹회전 속도 🔹피해   |
+| 목탁소리 (木鐸聲)   | Moktak Sound    | Garlic      | 광역 음파     | 🔹범위 🔹피해 🔹쿨타임      |
+| 작두 (작두)         | Jakdu Blade     | Whip        | 근접 휘두르기 | 🔹범위 🔹공속 🔹다단 공격   |
+| 부채바람 (扇風)     | Fan Wind        | Axe         | 관통형 투사체 | 🔹투사체 수 🔹관통 🔹속도   |
+| 정화수 (淨化水)     | Purifying Water | Santa Water | 바닥 DOT형    | 🔹개수 🔹범위 🔹지속시간    |
 
 ---
 
@@ -60,26 +60,26 @@
 
 #### 기본 스펙
 
-| 속성 | 초기값 | 최대값 | 설명 |
-|------|--------|--------|------|
-| 기본 피해 | 15 | 50 | 부적 1개당 피해량 |
-| 발사 간격 | 1.2초 | 0.4초 | 쿨타임 |
-| 투사체 수량 | 1 | 8 | 동시 발사 개수 |
-| 투사체 속도 | 400 | 700 | px/s |
-| 관통력 | 0 | 3 | 적 관통 횟수 |
-| 탐지 범위 | 무한 | 무한 | 가장 가까운 적 자동 추적 |
+| 속성        | 초기값 | 최대값 | 설명                     |
+| ----------- | ------ | ------ | ------------------------ |
+| 기본 피해   | 15     | 50     | 부적 1개당 피해량        |
+| 발사 간격   | 1.2초  | 0.4초  | 쿨타임                   |
+| 투사체 수량 | 1      | 8      | 동시 발사 개수           |
+| 투사체 속도 | 400    | 700    | px/s                     |
+| 관통력      | 0      | 3      | 적 관통 횟수             |
+| 탐지 범위   | 무한   | 무한   | 가장 가까운 적 자동 추적 |
 
 #### 레벨별 업그레이드
 
-| 레벨 | 효과 |
-|------|------|
-| Lv.1 | 기본 부적 (1개 발사) |
-| Lv.2 | 투사체 +1 (총 2개) |
-| Lv.3 | 피해 +10, 속도 +50 |
-| Lv.4 | 투사체 +1 (총 3개) |
-| Lv.5 | 관통 +1, 쿨타임 -0.2초 |
-| Lv.6 | 투사체 +2 (총 5개) |
-| Lv.7 | 피해 +15, 관통 +1 |
+| 레벨 | 효과                                                      |
+| ---- | --------------------------------------------------------- |
+| Lv.1 | 기본 부적 (1개 발사)                                      |
+| Lv.2 | 투사체 +1 (총 2개)                                        |
+| Lv.3 | 피해 +10, 속도 +50                                        |
+| Lv.4 | 투사체 +1 (총 3개)                                        |
+| Lv.5 | 관통 +1, 쿨타임 -0.2초                                    |
+| Lv.6 | 투사체 +2 (총 5개)                                        |
+| Lv.7 | 피해 +15, 관통 +1                                         |
 | Lv.8 | **진화**: 천부경 (天符經) - 부적이 적을 추적하며 피해 2배 |
 
 #### 구현 특징
@@ -97,26 +97,26 @@
 
 #### 기본 스펙
 
-| 속성 | 초기값 | 최대값 | 설명 |
-|------|--------|--------|------|
-| 기본 피해 | 10 | 40 | 초당 피해 (틱당 아님) |
-| 궤도 개수 | 1 | 8 | 불꽃 개수 |
-| 회전 반경 | 80px | 150px | 플레이어 중심으로부터 거리 |
-| 회전 속도 | 2 rad/s | 4 rad/s | 각속도 |
-| 크기 | 15px | 30px | 불꽃 반지름 |
-| 피해 간격 | 0.5초 | 0.3초 | 동일 적 재공격 쿨타임 |
+| 속성      | 초기값  | 최대값  | 설명                       |
+| --------- | ------- | ------- | -------------------------- |
+| 기본 피해 | 10      | 40      | 초당 피해 (틱당 아님)      |
+| 궤도 개수 | 1       | 8       | 불꽃 개수                  |
+| 회전 반경 | 80px    | 150px   | 플레이어 중심으로부터 거리 |
+| 회전 속도 | 2 rad/s | 4 rad/s | 각속도                     |
+| 크기      | 15px    | 30px    | 불꽃 반지름                |
+| 피해 간격 | 0.5초   | 0.3초   | 동일 적 재공격 쿨타임      |
 
 #### 레벨별 업그레이드
 
-| 레벨 | 효과 |
-|------|------|
-| Lv.1 | 도깨비불 1개 |
-| Lv.2 | 개수 +1 (총 2개) |
-| Lv.3 | 피해 +8, 크기 +3px |
-| Lv.4 | 개수 +1 (총 3개) |
-| Lv.5 | 회전 속도 +0.5, 반경 +15px |
-| Lv.6 | 개수 +2 (총 5개) |
-| Lv.7 | 피해 +12, 피해 간격 -0.1초 |
+| 레벨 | 효과                                                                |
+| ---- | ------------------------------------------------------------------- |
+| Lv.1 | 도깨비불 1개                                                        |
+| Lv.2 | 개수 +1 (총 2개)                                                    |
+| Lv.3 | 피해 +8, 크기 +3px                                                  |
+| Lv.4 | 개수 +1 (총 3개)                                                    |
+| Lv.5 | 회전 속도 +0.5, 반경 +15px                                          |
+| Lv.6 | 개수 +2 (총 5개)                                                    |
+| Lv.7 | 피해 +12, 피해 간격 -0.1초                                          |
 | Lv.8 | **진화**: 야차화염 (夜叉火焰) - 궤도가 2겹으로 증가, 반경 차이 회전 |
 
 #### 구현 특징
@@ -134,25 +134,25 @@
 
 #### 기본 스펙
 
-| 속성 | 초기값 | 최대값 | 설명 |
-|------|--------|--------|------|
-| 기본 피해 | 25 | 80 | 광역 피해 |
-| 범위 반경 | 120px | 300px | 원형 범위 |
-| 쿨타임 | 3.0초 | 1.0초 | 발동 간격 |
-| 넉백 거리 | 50px | 150px | 적 밀어내기 |
-| 지속 시간 | 0.5초 | 0.8초 | 시각 이펙트 지속 |
+| 속성      | 초기값 | 최대값 | 설명             |
+| --------- | ------ | ------ | ---------------- |
+| 기본 피해 | 25     | 80     | 광역 피해        |
+| 범위 반경 | 120px  | 300px  | 원형 범위        |
+| 쿨타임    | 3.0초  | 1.0초  | 발동 간격        |
+| 넉백 거리 | 50px   | 150px  | 적 밀어내기      |
+| 지속 시간 | 0.5초  | 0.8초  | 시각 이펙트 지속 |
 
 #### 레벨별 업그레이드
 
-| 레벨 | 효과 |
-|------|------|
-| Lv.1 | 목탁소리 기본 (120px 범위) |
-| Lv.2 | 범위 +30px |
-| Lv.3 | 피해 +15, 넉백 +20px |
-| Lv.4 | 쿨타임 -0.5초 |
-| Lv.5 | 범위 +40px, 피해 +20 |
-| Lv.6 | 넉백 +30px, 쿨타임 -0.5초 |
-| Lv.7 | 피해 +20, 범위 +50px |
+| 레벨 | 효과                                            |
+| ---- | ----------------------------------------------- |
+| Lv.1 | 목탁소리 기본 (120px 범위)                      |
+| Lv.2 | 범위 +30px                                      |
+| Lv.3 | 피해 +15, 넉백 +20px                            |
+| Lv.4 | 쿨타임 -0.5초                                   |
+| Lv.5 | 범위 +40px, 피해 +20                            |
+| Lv.6 | 넉백 +30px, 쿨타임 -0.5초                       |
+| Lv.7 | 피해 +20, 범위 +50px                            |
 | Lv.8 | **진화**: 범종 (梵鐘) - 범위 2배, 적 5초간 기절 |
 
 #### 구현 특징
@@ -171,26 +171,26 @@
 
 #### 기본 스펙
 
-| 속성 | 초기값 | 최대값 | 설명 |
-|------|--------|--------|------|
-| 기본 피해 | 30 | 100 | 1회 휘두르기 피해 |
-| 공격 범위 | 100px | 200px | 부채꼴 반경 |
-| 휘두르기 각도 | 120° | 270° | 공격 범위 각도 |
-| 공격 속도 | 1.5초 | 0.6초 | 쿨타임 |
-| 다단 공격 | 1 | 3 | 연속 휘두르기 횟수 |
-| 출혈 피해 | 0 | 5/s | DOT 효과 |
+| 속성          | 초기값 | 최대값 | 설명               |
+| ------------- | ------ | ------ | ------------------ |
+| 기본 피해     | 30     | 100    | 1회 휘두르기 피해  |
+| 공격 범위     | 100px  | 200px  | 부채꼴 반경        |
+| 휘두르기 각도 | 120°   | 270°   | 공격 범위 각도     |
+| 공격 속도     | 1.5초  | 0.6초  | 쿨타임             |
+| 다단 공격     | 1      | 3      | 연속 휘두르기 횟수 |
+| 출혈 피해     | 0      | 5/s    | DOT 효과           |
 
 #### 레벨별 업그레이드
 
-| 레벨 | 효과 |
-|------|------|
-| Lv.1 | 작두 1회 휘두르기 |
-| Lv.2 | 범위 +20px, 각도 +20° |
-| Lv.3 | 피해 +20, 공속 -0.2초 |
-| Lv.4 | **다단 +1** (2회 연속 휘두르기) |
-| Lv.5 | 범위 +30px, 피해 +25 |
-| Lv.6 | 공속 -0.3초, 출혈 +3/s |
-| Lv.7 | **다단 +1** (3회 연속) |
+| 레벨 | 효과                                                         |
+| ---- | ------------------------------------------------------------ |
+| Lv.1 | 작두 1회 휘두르기                                            |
+| Lv.2 | 범위 +20px, 각도 +20°                                        |
+| Lv.3 | 피해 +20, 공속 -0.2초                                        |
+| Lv.4 | **다단 +1** (2회 연속 휘두르기)                              |
+| Lv.5 | 범위 +30px, 피해 +25                                         |
+| Lv.6 | 공속 -0.3초, 출혈 +3/s                                       |
+| Lv.7 | **다단 +1** (3회 연속)                                       |
 | Lv.8 | **진화**: 무쇠작두 (巫鐵작두) - 범위 확장, 적 관통, 다단 5회 |
 
 #### 구현 특징
@@ -209,26 +209,26 @@
 
 #### 기본 스펙
 
-| 속성 | 초기값 | 최대값 | 설명 |
-|------|--------|--------|------|
-| 기본 피해 | 25 | 90 | 투사체 1개당 피해 |
-| 투사체 수량 | 1 | 6 | 동시 발사 개수 |
-| 투사체 속도 | 300 | 600 | px/s |
-| 관통력 | 무한 | 무한 | 모든 적 관통 |
-| 사거리 | 500px | 800px | 최대 비행 거리 |
-| 쿨타임 | 2.0초 | 0.8초 | 발사 간격 |
+| 속성        | 초기값 | 최대값 | 설명              |
+| ----------- | ------ | ------ | ----------------- |
+| 기본 피해   | 25     | 90     | 투사체 1개당 피해 |
+| 투사체 수량 | 1      | 6      | 동시 발사 개수    |
+| 투사체 속도 | 300    | 600    | px/s              |
+| 관통력      | 무한   | 무한   | 모든 적 관통      |
+| 사거리      | 500px  | 800px  | 최대 비행 거리    |
+| 쿨타임      | 2.0초  | 0.8초  | 발사 간격         |
 
 #### 레벨별 업그레이드
 
-| 레벨 | 효과 |
-|------|------|
-| Lv.1 | 부채바람 1개 (직선 발사) |
-| Lv.2 | 투사체 +1 (총 2개, 좌우 발산) |
-| Lv.3 | 피해 +15, 속도 +100 |
-| Lv.4 | 투사체 +1 (총 3개) |
-| Lv.5 | 사거리 +150px, 쿨타임 -0.3초 |
-| Lv.6 | 투사체 +2 (총 5개) |
-| Lv.7 | 피해 +30, 속도 +150 |
+| 레벨 | 효과                                                          |
+| ---- | ------------------------------------------------------------- |
+| Lv.1 | 부채바람 1개 (직선 발사)                                      |
+| Lv.2 | 투사체 +1 (총 2개, 좌우 발산)                                 |
+| Lv.3 | 피해 +15, 속도 +100                                           |
+| Lv.4 | 투사체 +1 (총 3개)                                            |
+| Lv.5 | 사거리 +150px, 쿨타임 -0.3초                                  |
+| Lv.6 | 투사체 +2 (총 5개)                                            |
+| Lv.7 | 피해 +30, 속도 +150                                           |
 | Lv.8 | **진화**: 태극선 (太極扇) - 투사체 회전하며 되돌아옴 (부메랑) |
 
 #### 구현 특징
@@ -247,26 +247,26 @@
 
 #### 기본 스펙
 
-| 속성 | 초기값 | 최대값 | 설명 |
-|------|--------|--------|------|
-| 초당 피해 | 8 | 35 | DOT 틱 피해 |
-| 투사체 수량 | 1 | 5 | 동시 생성 개수 |
-| 범위 반경 | 80px | 180px | 물웅덩이 크기 |
-| 지속 시간 | 3초 | 6초 | 바닥 유지 시간 |
-| 쿨타임 | 4.0초 | 2.0초 | 생성 간격 |
-| 슬로우 효과 | 0% | 30% | 적 이동 속도 감소 |
+| 속성        | 초기값 | 최대값 | 설명              |
+| ----------- | ------ | ------ | ----------------- |
+| 초당 피해   | 8      | 35     | DOT 틱 피해       |
+| 투사체 수량 | 1      | 5      | 동시 생성 개수    |
+| 범위 반경   | 80px   | 180px  | 물웅덩이 크기     |
+| 지속 시간   | 3초    | 6초    | 바닥 유지 시간    |
+| 쿨타임      | 4.0초  | 2.0초  | 생성 간격         |
+| 슬로우 효과 | 0%     | 30%    | 적 이동 속도 감소 |
 
 #### 레벨별 업그레이드
 
-| 레벨 | 효과 |
-|------|------|
-| Lv.1 | 정화수 1개 생성 |
-| Lv.2 | 투사체 +1 (총 2개) |
-| Lv.3 | 범위 +20px, 피해 +5 |
-| Lv.4 | 지속 시간 +1초 |
-| Lv.5 | 투사체 +1 (총 3개), 슬로우 +10% |
-| Lv.6 | 쿨타임 -0.5초, 피해 +10 |
-| Lv.7 | 범위 +40px, 슬로우 +10% |
+| 레벨 | 효과                                                    |
+| ---- | ------------------------------------------------------- |
+| Lv.1 | 정화수 1개 생성                                         |
+| Lv.2 | 투사체 +1 (총 2개)                                      |
+| Lv.3 | 범위 +20px, 피해 +5                                     |
+| Lv.4 | 지속 시간 +1초                                          |
+| Lv.5 | 투사체 +1 (총 3개), 슬로우 +10%                         |
+| Lv.6 | 쿨타임 -0.5초, 피해 +10                                 |
+| Lv.7 | 범위 +40px, 슬로우 +10%                                 |
 | Lv.8 | **진화**: 성수 (聖水) - 피해 2배, 적 정화(즉사) 확률 5% |
 
 #### 구현 특징
@@ -281,6 +281,7 @@
 ## 데이터 구조
 
 ### 파일 위치
+
 `src/game/data/weapons.ts`
 
 ### TypeScript 타입 정의
@@ -290,59 +291,59 @@
  * 무기 타입
  */
 export type WeaponType =
-  | 'talisman'      // 부적
-  | 'dokkaebi'      // 도깨비불
-  | 'moktak'        // 목탁소리
-  | 'jakdu'         // 작두
-  | 'fan'           // 부채바람
-  | 'water';        // 정화수
+  | 'talisman' // 부적
+  | 'dokkaebi' // 도깨비불
+  | 'moktak' // 목탁소리
+  | 'jakdu' // 작두
+  | 'fan' // 부채바람
+  | 'water'; // 정화수
 
 /**
  * 무기 분류
  */
 export type WeaponCategory =
-  | 'projectile'    // 투사체형
-  | 'orbital'       // 궤도형
-  | 'aoe'           // 광역형
-  | 'melee'         // 근접형
-  | 'ground';       // 설치형
+  | 'projectile' // 투사체형
+  | 'orbital' // 궤도형
+  | 'aoe' // 광역형
+  | 'melee' // 근접형
+  | 'ground'; // 설치형
 
 /**
  * 무기 데이터 인터페이스
  */
 export interface WeaponData {
-  id: string;                   // weapon_talisman 형식
-  name: string;                 // 한글 이름
-  description: string;          // 설명
-  category: WeaponCategory;     // 분류
-  icon?: string;                // 아이콘 경로
+  id: string; // weapon_talisman 형식
+  name: string; // 한글 이름
+  description: string; // 설명
+  category: WeaponCategory; // 분류
+  icon?: string; // 아이콘 경로
 
   // 기본 스탯
-  baseDamage: number;           // 기본 피해량
-  baseCooldown: number;         // 기본 쿨타임 (초)
-  baseSpeed?: number;           // 투사체 속도 (px/s)
-  baseRange?: number;           // 사거리 (px)
-  baseArea?: number;            // 범위 (px)
+  baseDamage: number; // 기본 피해량
+  baseCooldown: number; // 기본 쿨타임 (초)
+  baseSpeed?: number; // 투사체 속도 (px/s)
+  baseRange?: number; // 사거리 (px)
+  baseArea?: number; // 범위 (px)
 
   // 특수 속성
-  piercing?: number;            // 관통력
-  projectileCount?: number;     // 투사체 수량
-  orbitalCount?: number;        // 궤도 개수
-  duration?: number;            // 지속 시간
+  piercing?: number; // 관통력
+  projectileCount?: number; // 투사체 수량
+  orbitalCount?: number; // 궤도 개수
+  duration?: number; // 지속 시간
 
   // 레벨 스케일링
   levelScaling: {
-    damage: number;             // 레벨당 피해 증가
-    cooldownReduction: number;  // 레벨당 쿨타임 감소
+    damage: number; // 레벨당 피해 증가
+    cooldownReduction: number; // 레벨당 쿨타임 감소
     additionalEffects?: Record<string, number>; // 추가 효과
   };
 
   // 최대 레벨 및 진화
   maxLevel: number;
   evolution?: {
-    name: string;               // 진화 이름
-    description: string;        // 진화 설명
-    bonusEffect: string;        // 특별 효과
+    name: string; // 진화 이름
+    description: string; // 진화 설명
+    bonusEffect: string; // 특별 효과
   };
 }
 
@@ -388,8 +389,8 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
       damage: 5,
       cooldownReduction: 0.1,
       additionalEffects: {
-        projectileCount: 0.25,  // 4레벨마다 +1
-        piercing: 0.2,          // 5레벨마다 +1
+        projectileCount: 0.25, // 4레벨마다 +1
+        piercing: 0.2, // 5레벨마다 +1
         speed: 50,
       },
     },
@@ -403,15 +404,15 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
   },
 
   dokkaebi: {
-    id: 'weapon_dokkaebi',
+    id: 'weapon_dokkaebi_fire',
     name: '도깨비불 (도깨비火)',
     description: '플레이어 주변을 맴도는 푸른 불꽃입니다.',
     category: 'orbital',
 
     baseDamage: 10,
     baseCooldown: 0, // 지속형
-    baseSpeed: 2.0,  // 각속도 (rad/s)
-    baseRange: 80,   // 궤도 반경
+    baseSpeed: 2.0, // 각속도 (rad/s)
+    baseRange: 80, // 궤도 반경
 
     orbitalCount: 1,
 
@@ -419,9 +420,9 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
       damage: 5,
       cooldownReduction: 0,
       additionalEffects: {
-        orbitalCount: 0.5,  // 2레벨마다 +1
-        range: 10,          // 반경 증가
-        speed: 0.3,         // 회전 속도
+        orbitalCount: 0.5, // 2레벨마다 +1
+        range: 10, // 반경 증가
+        speed: 0.3, // 회전 속도
       },
     },
 
@@ -447,10 +448,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
 /**
  * 무기 스탯 계산 함수
  */
-export function calculateWeaponStats(
-  weaponType: WeaponType,
-  level: number
-): WeaponInstance {
+export function calculateWeaponStats(weaponType: WeaponType, level: number): WeaponInstance {
   const data = WEAPON_DATA[weaponType];
   if (!data) {
     throw new Error(`Unknown weapon type: ${weaponType}`);
@@ -460,10 +458,7 @@ export function calculateWeaponStats(
     type: weaponType,
     level: level,
     damage: data.baseDamage + data.levelScaling.damage * (level - 1),
-    cooldown: Math.max(
-      0.3,
-      data.baseCooldown - data.levelScaling.cooldownReduction * (level - 1)
-    ),
+    cooldown: Math.max(0.3, data.baseCooldown - data.levelScaling.cooldownReduction * (level - 1)),
     currentCooldown: 0,
   };
 
@@ -473,19 +468,16 @@ export function calculateWeaponStats(
 
     if (effects.projectileCount) {
       stats.projectileCount =
-        (data.projectileCount || 1) +
-        Math.floor((level - 1) * effects.projectileCount);
+        (data.projectileCount || 1) + Math.floor((level - 1) * effects.projectileCount);
     }
 
     if (effects.orbitalCount) {
       stats.orbitalCount =
-        (data.orbitalCount || 1) +
-        Math.floor((level - 1) * effects.orbitalCount);
+        (data.orbitalCount || 1) + Math.floor((level - 1) * effects.orbitalCount);
     }
 
     if (effects.piercing) {
-      stats.piercing =
-        (data.piercing || 0) + Math.floor((level - 1) * effects.piercing);
+      stats.piercing = (data.piercing || 0) + Math.floor((level - 1) * effects.piercing);
     }
 
     if (effects.range) {
@@ -574,7 +566,7 @@ export class Talisman extends Weapon {
 
     // 발사 각도 계산 (여러 개일 경우 분산)
     const angleSpread = Math.PI / 6; // 30도
-    const startAngle = -(this.projectileCount - 1) * angleSpread / 2;
+    const startAngle = (-(this.projectileCount - 1) * angleSpread) / 2;
 
     for (let i = 0; i < this.projectileCount; i++) {
       // 가장 가까운 적 찾기
@@ -681,9 +673,7 @@ export class JakduBlade extends Weapon {
     const swings: MeleeSwing[] = [];
 
     // 플레이어 이동 방향 또는 기본 방향
-    const baseAngle = playerDirection
-      ? Math.atan2(playerDirection.y, playerDirection.x)
-      : 0;
+    const baseAngle = playerDirection ? Math.atan2(playerDirection.y, playerDirection.x) : 0;
 
     // 다단 공격
     for (let i = 0; i < this.multiHitCount; i++) {
@@ -809,11 +799,7 @@ export class PurifyingWater extends Weapon {
     this.tickDamage = stats.damage / 2; // 초당 피해 = 총 피해 / 2
   }
 
-  private findDenseEnemyArea(
-    playerPos: Vector2,
-    enemies: Enemy[],
-    searchRadius: number
-  ): Vector2 {
+  private findDenseEnemyArea(playerPos: Vector2, enemies: Enemy[], searchRadius: number): Vector2 {
     // 플레이어 주변 200px 내 적 밀집 지역 찾기
     // 간단 구현: 적이 3마리 이상인 곳
     // TODO: 더 정교한 밀집도 계산
@@ -823,8 +809,7 @@ export class PurifyingWater extends Weapon {
     );
 
     if (nearbyEnemies.length > 0) {
-      const randomEnemy =
-        nearbyEnemies[Math.floor(Math.random() * nearbyEnemies.length)];
+      const randomEnemy = nearbyEnemies[Math.floor(Math.random() * nearbyEnemies.length)];
       return { x: randomEnemy.x, y: randomEnemy.y };
     }
 
@@ -857,7 +842,7 @@ private addWeapon(weaponId: string): void {
       break;
     }
 
-    case 'weapon_dokkaebi': {
+    case 'weapon_dokkaebi_fire': {
       const weapon = new DokkaebiFireWeapon();
       weapon.spawnOrbitals(this.player, this.gameLayer);
       this.dokkaebiWeapon = weapon;

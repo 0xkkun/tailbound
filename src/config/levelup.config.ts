@@ -79,8 +79,8 @@ export const WEAPON_SPRITE_INFO = {
     path: '/assets/weapon/jakdu.png',
     frameWidth: 128,
     frameHeight: 128,
-    frameCol: 1,
-    frameRow: 1, // 중앙 프레임
+    frameCol: 0,
+    frameRow: 2,
   },
   [WEAPON_IDS.DOKKAEBI_FIRE]: {
     path: '/assets/weapon/dokkabi-fire.png',

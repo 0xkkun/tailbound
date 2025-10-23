@@ -116,7 +116,8 @@ export class EnemyProjectile extends Container {
     frameHeight: number,
     totalFrames: number,
     columns: number,
-    scale: number = 1
+    scale: number = 1,
+    tint?: number // 색상 틴트 (선택)
   ): Promise<void> {
     try {
       const baseTexture = await Assets.load(path);
@@ -149,6 +150,11 @@ export class EnemyProjectile extends Container {
       this.visual.animationSpeed = 0.5;
       this.visual.loop = true;
       this.visual.play();
+
+      // 색상 틴트 적용 (선택적)
+      if (tint !== undefined) {
+        this.visual.tint = tint;
+      }
 
       this.addChild(this.visual);
 

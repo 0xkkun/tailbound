@@ -241,24 +241,24 @@ export const POWERUP_BALANCE = {
   combat: {
     // 치명타 확률 (필살)
     criticalRate: {
-      common: 0.05,    // +5%
-      rare: 0.10,      // +10%
-      epic: 0.20,      // +20%
-      max: 1.0,        // 100% (항상 치명타)
+      common: 0.05, // +5%
+      rare: 0.1, // +10%
+      epic: 0.2, // +20%
+      max: 1.0, // 100% (항상 치명타)
     },
     // 치명타 피해량 (극살)
     criticalDamage: {
-      common: 0.20,    // +20%
-      rare: 0.50,      // +50%
-      epic: 1.00,      // +100%
-      max: 5.0,        // 기본 150% -> 최대 650% (1.5 + 5.0)
+      common: 0.2, // +20%
+      rare: 0.5, // +50%
+      epic: 1.0, // +100%
+      max: 5.0, // 기본 150% -> 최대 650% (1.5 + 5.0)
     },
     // 공격 범위/폭발 반경 (기류확산)
     area: {
-      common: 0.05,    // +5%
-      rare: 0.12,      // +12%
-      epic: 0.25,      // +25%
-      max: 2.0,        // 200% (3배 크기)
+      common: 0.05, // +5%
+      rare: 0.12, // +12%
+      epic: 0.25, // +25%
+      max: 2.0, // 200% (3배 크기)
     },
   },
 
@@ -266,39 +266,39 @@ export const POWERUP_BALANCE = {
   defense: {
     // 피해 감소 (강체)
     damageReduction: {
-      common: 0.03,    // -3% 피해
-      rare: 0.08,      // -8% 피해
-      epic: 0.15,      // -15% 피해
-      max: 0.80,       // 최대 -80% (거의 무적 방지)
+      common: 0.03, // -3% 피해
+      rare: 0.08, // -8% 피해
+      epic: 0.15, // -15% 피해
+      max: 0.8, // 최대 -80% (거의 무적 방지)
     },
     // 초당 체력 재생 (회복)
     healthRegen: {
-      common: 0.2,     // +0.2 HP/s
-      rare: 0.5,       // +0.5 HP/s
-      epic: 1.0,       // +1.0 HP/s
-      max: 10.0,       // 최대 10 HP/s
+      common: 0.2, // +0.2 HP/s
+      rare: 0.5, // +0.5 HP/s
+      epic: 1.0, // +1.0 HP/s
+      max: 10.0, // 최대 10 HP/s
     },
     // 흡혈 (吸血)
     lifeSteal: {
-      common: 0.02,    // 피해량의 2%
-      rare: 0.05,      // 피해량의 5%
-      epic: 0.10,      // 피해량의 10%
-      max: 0.50,       // 최대 50% (밸런스 고려)
+      common: 0.02, // 피해량의 2%
+      rare: 0.05, // 피해량의 5%
+      epic: 0.1, // 피해량의 10%
+      max: 0.5, // 최대 50% (밸런스 고려)
     },
     // 보호막 쿨타임 (호신부) - 값이 작을수록 자주 발동
     shield: {
-      common: 30,      // 30초마다 보호막
-      rare: 20,        // 20초마다
-      epic: 10,        // 10초마다
-      min: 5,          // 최소 5초 쿨타임
-      blockCount: 1,   // 1회 피해 완전 흡수
+      common: 30, // 30초마다 보호막
+      rare: 20, // 20초마다
+      epic: 10, // 10초마다
+      min: 5, // 최소 5초 쿨타임
+      blockCount: 1, // 1회 피해 완전 흡수
     },
     // 회피 확률 (回避)
     dodgeRate: {
-      common: 0.03,    // +3% 회피
-      rare: 0.07,      // +7% 회피
-      epic: 0.15,      // +15% 회피
-      max: 0.75,       // 최대 75% (100% 회피는 밸런스 붕괴)
+      common: 0.03, // +3% 회피
+      rare: 0.07, // +7% 회피
+      epic: 0.15, // +15% 회피
+      max: 0.75, // 최대 75% (100% 회피는 밸런스 붕괴)
     },
   },
 
@@ -306,24 +306,24 @@ export const POWERUP_BALANCE = {
   utility: {
     // 경험치 획득량 (수련)
     xpGain: {
-      common: 0.05,    // +5%
-      rare: 0.12,      // +12%
-      epic: 0.25,      // +25%
-      max: 2.0,        // 최대 +200%
+      common: 0.05, // +5%
+      rare: 0.12, // +12%
+      epic: 0.25, // +25%
+      max: 2.0, // 최대 +200%
     },
     // 아이템 드롭률 (복덕)
     dropRate: {
-      common: 0.05,    // +5%
-      rare: 0.12,      // +12%
-      epic: 0.25,      // +25%
-      max: 2.0,        // 최대 +200%
+      common: 0.05, // +5%
+      rare: 0.12, // +12%
+      epic: 0.25, // +25%
+      max: 2.0, // 최대 +200%
     },
     // 높은 등급 선택지 확률 (인연)
     luck: {
-      common: 0.10,    // +10% 가중치
-      rare: 0.20,      // +20% 가중치
-      epic: 0.40,      // +40% 가중치
-      max: 1.0,        // 최대 +100%
+      common: 0.1, // +10% 가중치
+      rare: 0.2, // +20% 가중치
+      epic: 0.4, // +40% 가중치
+      max: 1.0, // 최대 +100%
     },
   },
 
@@ -332,46 +332,46 @@ export const POWERUP_BALANCE = {
     // 내공 (內功): 공격력 + 흡혈
     innerPower: {
       rarity: 'rare' as const,
-      damageBonus: 0.03,     // +3% 공격력
-      lifeStealBonus: 0.03,  // +3% 흡혈
+      damageBonus: 0.03, // +3% 공격력
+      lifeStealBonus: 0.03, // +3% 흡혈
     },
     // 심법 (心法): 치명타 확률 + 쿨타임 감소
     mentalTechnique: {
       rarity: 'rare' as const,
-      critRateBonus: 0.07,      // +7% 치명타
-      cooldownBonus: 0.05,      // -5% 쿨타임
+      critRateBonus: 0.07, // +7% 치명타
+      cooldownBonus: 0.05, // -5% 쿨타임
     },
     // 정기 (精氣): 체력 + 재생
     vitality: {
       rarity: 'rare' as const,
-      healthBonus: 10,          // +10 최대 체력
-      regenBonus: 0.3,          // +0.3 HP/s
+      healthBonus: 10, // +10 최대 체력
+      regenBonus: 0.3, // +0.3 HP/s
     },
     // 운기 (運氣): 드롭률 + 치명타 + 흡입 범위
     fortune: {
       rarity: 'epic' as const,
-      dropRateBonus: 0.15,      // +15% 드롭
-      critRateBonus: 0.05,      // +5% 치명타
-      pickupBonus: 0.10,        // +10% 흡입 범위
+      dropRateBonus: 0.15, // +15% 드롭
+      critRateBonus: 0.05, // +5% 치명타
+      pickupBonus: 0.1, // +10% 흡입 범위
     },
     // 호흡 (呼吸): 주기적 체력 회복
     breathing: {
       rarity: 'epic' as const,
-      interval: 5,              // 5초마다
-      healAmount: 10,           // 체력 10 회복
+      interval: 5, // 5초마다
+      healAmount: 10, // 체력 10 회복
     },
     // 선정 (禪定): 정지 시 재생 및 쿨타임 감소
     meditation: {
       rarity: 'epic' as const,
-      stillTimeRequired: 1.0,   // 1초 이상 정지 시
-      regenBonus: 2.0,          // +2 HP/s
-      cooldownBonus: 0.20,      // -20% 쿨타임
+      stillTimeRequired: 1.0, // 1초 이상 정지 시
+      regenBonus: 2.0, // +2 HP/s
+      cooldownBonus: 0.2, // -20% 쿨타임
     },
     // 혼백 (魂魄): 사망 시 1회 부활
     revive: {
       rarity: 'legendary' as const,
       reviveHealthPercent: 0.5, // 최대 체력의 50%로 부활
-      invincibleDuration: 2.0,  // 부활 후 2초 무적
+      invincibleDuration: 2.0, // 부활 후 2초 무적
     },
   },
 

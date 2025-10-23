@@ -264,7 +264,7 @@ export class Player extends Container {
       this.hasShield = false; // 보호막 소모
       this.shieldTimer = 0; // 쿨타임 다시 시작
       this.shieldIndicator.visible = false; // 인디케이터 숨김
-      this.showFloatingText('BLOCKED!', 0x00ffff, 16); // 텍스트 표시
+      this.showFloatingText('보호됨!', 0x00ffff, 16); // 텍스트 표시
       return; // 피해 완전 흡수
     }
 
@@ -278,16 +278,16 @@ export class Player extends Container {
     // 4. 최종 피해 적용
     this.health -= finalDamage;
 
-    // 5. 부활 체크 (혼백 파워업) - 주석 처리
+    // 5. 부활 체크 (혼백 파워업)
     if (this.health <= 0) {
-      // if (this.hasRevive) {
-      //   // 부활 발동
-      //   this.health = this.maxHealth * 0.5; // 최대 체력 50%로 부활
-      //   this.hasRevive = false; // 부활 소모
-      //   this.invincibleTime = 2.0; // 2초 무적
-      //   console.log('👻 혼백 발동! 부활! (최대 체력 50%)');
-      //   return;
-      // }
+      if (this.hasRevive) {
+        // 부활 발동
+        this.health = this.maxHealth * 0.5; // 최대 체력 50%로 부활
+        this.hasRevive = false; // 부활 소모
+        this.invincibleTime = 2.0; // 2초 무적
+        // console.log('👻 혼백 발동! 부활! (최대 체력 50%)');
+        return;
+      }
 
       this.health = 0;
     }
@@ -525,10 +525,12 @@ export class Player extends Container {
       if (this.shieldCooldown === 0) {
         this.shieldCooldown = cooldown;
         this.shieldTimer = cooldown; // 즉시 준비됨
-        console.log(`🛡️ 보호막 획득! (${cooldown}초마다 발동)`);
+        this.hasShield = true; // 즉시 보호막 1개 지급
+        console.log(`🛡️ 보호막 획득! (${cooldown}초마다 발동, 즉시 1개 지급)`);
       } else {
         this.shieldCooldown = Math.max(cooldown, this.MIN_SHIELD_COOLDOWN);
-        console.log(`🛡️ 보호막 쿨타임 감소! ${this.shieldCooldown}초`);
+        this.hasShield = true; // 보호막 업그레이드 시에도 1개 지급
+        console.log(`🛡️ 보호막 쿨타임 감소! ${this.shieldCooldown}초 (보호막 1개 지급)`);
       }
     } else if (type === 'dodge') {
       // 회피
@@ -950,6 +952,17 @@ export class Player extends Container {
     const healthBarWidth = this.radius * 2;
     const healthBarHeight = GAME_CONFIG.ui.healthBarHeight;
     const healthBarY = -this.radius - GAME_CONFIG.ui.healthBarOffset;
+
+    // 체력바 배경 재렌더링 (보호막 활성 시 파란 테두리)
+    this.healthBarBg.clear();
+    this.healthBarBg.rect(-healthBarWidth / 2, healthBarY, healthBarWidth, healthBarHeight);
+    this.healthBarBg.fill({ color: 0xff0000 });
+
+    // 보호막이 활성화되어 있으면 파란 테두리 추가
+    if (this.hasShield) {
+      this.healthBarBg.rect(-healthBarWidth / 2, healthBarY, healthBarWidth, healthBarHeight);
+      this.healthBarBg.stroke({ color: 0x00bfff, width: 2 }); // 진한 하늘색 테두리
+    }
 
     this.healthBarFill.clear();
     this.healthBarFill.rect(
