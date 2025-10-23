@@ -2,7 +2,7 @@
  * 게임 씬 - 메인 게임 로직
  */
 
-import { Assets, Container, Graphics, Sprite, Text, TilingSprite } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
@@ -119,8 +119,9 @@ export class OverworldGameScene extends BaseGameScene {
       MaskEnemy.preloadSprites(),
       MaidenGhostEnemy.preloadSprites(),
       EvilSpiritEnemy.preloadSprites(),
-      Assets.load('/assets/tile/tile_green1.png'), // 바닥 타일
-      Assets.load('/assets/tile/tile_deco.png'), // 풀 장식
+      Assets.load('/assets/tile/tile1.png'), // 바닥 타일 1 (32x48)
+      Assets.load('/assets/tile/tile2.png'), // 바닥 타일 2 (32x48)
+      Assets.load('/assets/tile/tile3.png'), // 바닥 타일 3 (32x32)
     ]);
   }
 
@@ -128,19 +129,11 @@ export class OverworldGameScene extends BaseGameScene {
    * 플레이어 생성 (BaseGameScene abstract 메서드 구현)
    */
   protected createPlayer(): void {
-    // 월드 배경 (타일링)
-    const texture = Assets.get('/assets/tile/tile_green1.png');
-    texture.source.scaleMode = 'nearest'; // 픽셀 아트용: 픽셀 단위 렌더링
-    const bg = new TilingSprite({
-      texture,
-      width: GAME_CONFIG.world.overworld.width,
-      height: GAME_CONFIG.world.overworld.height,
-    });
-    bg.tileScale.set(2, 2); // 16x16을 2배로 확대
-    this.gameLayer.addChild(bg);
+    // 월드 배경 (무작위 타일 배치)
+    this.createRandomTileBackground();
 
     // 풀 장식 무작위 배치
-    this.createGrassDecorations();
+    // this.createGrassDecorations();
 
     // 월드 경계선 (시각화용)
     const border = new Graphics();
@@ -157,34 +150,101 @@ export class OverworldGameScene extends BaseGameScene {
   }
 
   /**
-   * 풀 장식 무작위 배치
+   * 무작위 타일 배경 생성
+   * tile1, tile2 (32x48), tile3 (32x32)를 자연스럽게 배치
    */
-  private createGrassDecorations(): void {
-    const grassTexture = Assets.get('/assets/tile/tile_deco.png');
-    grassTexture.source.scaleMode = 'nearest';
+  private createRandomTileBackground(): void {
+    const tile1Texture = Assets.get('/assets/tile/tile1.png');
+    const tile2Texture = Assets.get('/assets/tile/tile2.png');
+    const tile3Texture = Assets.get('/assets/tile/tile3.png');
+
+    // 픽셀 아트 렌더링 설정
+    tile1Texture.source.scaleMode = 'nearest';
+    tile2Texture.source.scaleMode = 'nearest';
+    tile3Texture.source.scaleMode = 'nearest';
 
     const worldWidth = GAME_CONFIG.world.overworld.width;
     const worldHeight = GAME_CONFIG.world.overworld.height;
-    const tileSize = 32; // 타일 크기 (16x16을 2배 확대한 크기)
-    const grassScale = 2; // 풀 장식 크기 (16x16을 2배 확대)
+    const tileWidth = 32;
+    const tileHeight = 32; // 기본 높이
 
-    // 그리드 기반으로 일정 간격마다 랜덤 배치 (듬성듬성)
-    for (let x = 0; x < worldWidth; x += tileSize) {
-      for (let y = 0; y < worldHeight; y += tileSize) {
-        // 5% 확률로 풀 장식 배치
-        if (Math.random() < 0.05) {
-          const grass = new Sprite(grassTexture);
-          grass.anchor.set(0, 1); // 하단 중앙 기준
-          grass.scale.set(grassScale);
-          grass.x = x + Math.random() * tileSize; // 타일 내 랜덤 위치
-          grass.y = y + tileSize; // 타일 하단
-          this.gameLayer.addChild(grass);
+    // 타일 타입별 가중치 (자연스러운 분포를 위해)
+    const tileWeights = [
+      { texture: tile1Texture, weight: 4, height: 48 }, // 40%
+      { texture: tile2Texture, weight: 4, height: 48 }, // 40%
+      { texture: tile3Texture, weight: 2, height: 32 }, // 20%
+    ];
+
+    // 클러스터링을 위한 노이즈 시뮬레이션 (간단한 방법)
+    const getClusterValue = (x: number, y: number): number => {
+      // 간단한 체커보드 패턴 + 랜덤으로 자연스러운 변화
+      const gridX = Math.floor(x / (tileWidth * 4));
+      const gridY = Math.floor(y / (tileHeight * 4));
+      const seed = (gridX * 73856093) ^ (gridY * 19349663);
+      return ((seed % 100) / 100 + Math.random() * 0.3) % 1;
+    };
+
+    // 타일 배치
+    for (let y = 0; y < worldHeight; y += tileHeight) {
+      for (let x = 0; x < worldWidth; x += tileWidth) {
+        // 클러스터 값으로 타일 선택 편향
+        const clusterValue = getClusterValue(x, y);
+        const randomValue = Math.random() * 0.7 + clusterValue * 0.3;
+
+        // 가중치 기반 타일 선택
+        let selectedTile = tileWeights[0];
+        let cumulative = 0;
+        const totalWeight = tileWeights.reduce((sum, t) => sum + t.weight, 0);
+
+        for (const tileType of tileWeights) {
+          cumulative += tileType.weight / totalWeight;
+          if (randomValue < cumulative) {
+            selectedTile = tileType;
+            break;
+          }
         }
+
+        // 타일 스프라이트 생성
+        const tile = new Sprite(selectedTile.texture);
+        tile.x = x;
+        tile.y = y + (tileHeight - selectedTile.height); // 하단 정렬
+        tile.anchor.set(0, 0);
+        this.gameLayer.addChild(tile);
       }
     }
 
-    console.log('풀 장식 배치 완료');
+    console.log('무작위 타일 배경 생성 완료');
   }
+
+  /**
+   * 풀 장식 무작위 배치
+   */
+  // private createGrassDecorations(): void {
+  //   const grassTexture = Assets.get('/assets/tile/tile_deco.png');
+  //   grassTexture.source.scaleMode = 'nearest';
+
+  //   const worldWidth = GAME_CONFIG.world.overworld.width;
+  //   const worldHeight = GAME_CONFIG.world.overworld.height;
+  //   const tileSize = 32; // 타일 크기 (16x16을 2배 확대한 크기)
+  //   const grassScale = 2; // 풀 장식 크기 (16x16을 2배 확대)
+
+  //   // 그리드 기반으로 일정 간격마다 랜덤 배치 (듬성듬성)
+  //   for (let x = 0; x < worldWidth; x += tileSize) {
+  //     for (let y = 0; y < worldHeight; y += tileSize) {
+  //       // 5% 확률로 풀 장식 배치
+  //       if (Math.random() < 0.05) {
+  //         const grass = new Sprite(grassTexture);
+  //         grass.anchor.set(0, 1); // 하단 중앙 기준
+  //         grass.scale.set(grassScale);
+  //         grass.x = x + Math.random() * tileSize; // 타일 내 랜덤 위치
+  //         grass.y = y + tileSize; // 타일 하단
+  //         this.gameLayer.addChild(grass);
+  //       }
+  //     }
+  //   }
+
+  //   console.log('풀 장식 배치 완료');
+  // }
 
   /**
    * 씬 초기화 (BaseGameScene abstract 메서드 구현)

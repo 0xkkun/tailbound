@@ -43,7 +43,7 @@ export class LobbyScene extends Container {
     // 버튼과 어울리는 따뜻한 갈색 톤의 단색 배경
     const bg = new Graphics();
     bg.rect(0, 0, width, height);
-    bg.fill(0x4a3226);
+    bg.fill(0x2e1f1b);
     this.addChild(bg);
   }
 
