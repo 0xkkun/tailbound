@@ -22,6 +22,40 @@ export const GameContainer = () => {
   const overworldSceneRef = useRef<OverworldGameScene | null>(null);
   const boundarySceneRef = useRef<BoundaryGameScene | null>(null);
 
+  // iOS 웹뷰: Canvas 터치 이벤트 완전 차단
+  useEffect(() => {
+    if (!app?.canvas) return;
+
+    const preventDefaultTouch = (e: TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const preventDefaultContextMenu = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const canvas = app.canvas as HTMLCanvasElement;
+
+    // 모든 터치 이벤트를 차단하여 iOS 기본 동작 방지
+    canvas.addEventListener('touchstart', preventDefaultTouch, { passive: false });
+    canvas.addEventListener('touchmove', preventDefaultTouch, { passive: false });
+    canvas.addEventListener('touchend', preventDefaultTouch, { passive: false });
+    canvas.addEventListener('touchcancel', preventDefaultTouch, { passive: false });
+
+    // 추가: 컨텍스트 메뉴 차단
+    canvas.addEventListener('contextmenu', preventDefaultContextMenu);
+
+    return () => {
+      canvas.removeEventListener('touchstart', preventDefaultTouch);
+      canvas.removeEventListener('touchmove', preventDefaultTouch);
+      canvas.removeEventListener('touchend', preventDefaultTouch);
+      canvas.removeEventListener('touchcancel', preventDefaultTouch);
+      canvas.removeEventListener('contextmenu', preventDefaultContextMenu);
+    };
+  }, [app]);
+
   // 화면 리사이즈 처리
   useEffect(() => {
     if (!app) return;

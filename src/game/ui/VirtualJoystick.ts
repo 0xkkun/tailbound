@@ -2,6 +2,7 @@
  * 가상 조이스틱 (모바일용)
  */
 
+import type { FederatedPointerEvent } from 'pixi.js';
 import { Container, Graphics } from 'pixi.js';
 
 import { GAME_CONFIG } from '@/config/game.config';
@@ -50,8 +51,15 @@ export class VirtualJoystick {
    */
   private setupEvents(): void {
     // 터치 시작
-    this.touchArea.on('pointerdown', (event) => {
-      event.preventDefault?.();
+    this.touchArea.on('pointerdown', (event: FederatedPointerEvent) => {
+      // iOS 웹뷰에서 텍스트 선택 및 컨텍스트 메뉴 방지
+      const nativeEvent = (event as unknown as { nativeEvent?: Event }).nativeEvent;
+      if (nativeEvent) {
+        nativeEvent.preventDefault();
+        nativeEvent.stopPropagation();
+      }
+      event.stopPropagation();
+
       this.isActive = true;
 
       // 터치 시작 위치 저장
@@ -64,10 +72,16 @@ export class VirtualJoystick {
     });
 
     // 터치 이동
-    this.touchArea.on('pointermove', (event) => {
+    this.touchArea.on('pointermove', (event: FederatedPointerEvent) => {
       if (!this.isActive) return;
 
-      event.preventDefault?.();
+      // iOS 웹뷰에서 스크롤 및 기본 동작 방지
+      const nativeEvent = (event as unknown as { nativeEvent?: Event }).nativeEvent;
+      if (nativeEvent) {
+        nativeEvent.preventDefault();
+        nativeEvent.stopPropagation();
+      }
+      event.stopPropagation();
 
       const pos = event.global;
       const dx = pos.x - this.touchStartX;
@@ -101,9 +115,13 @@ export class VirtualJoystick {
     });
 
     // 터치 종료
-    const endTouch = (event?: unknown) => {
-      if (event && typeof event === 'object' && 'preventDefault' in event) {
-        (event.preventDefault as (() => void) | undefined)?.();
+    const endTouch = (event?: FederatedPointerEvent) => {
+      if (event) {
+        const nativeEvent = (event as unknown as { nativeEvent?: Event }).nativeEvent;
+        if (nativeEvent) {
+          nativeEvent.preventDefault();
+          nativeEvent.stopPropagation();
+        }
       }
       this.isActive = false;
       this.joystickX = 0;
@@ -176,6 +194,10 @@ export class VirtualJoystick {
     this.joystickY = 0;
     this.targetX = 0;
     this.targetY = 0;
+
+    // 터치 영역 이벤트 리스너 명시적으로 재활성화
+    // (다른 UI가 오버레이되었다가 사라진 후에도 동작하도록)
+    this.touchArea.eventMode = 'static';
   }
 
   /**

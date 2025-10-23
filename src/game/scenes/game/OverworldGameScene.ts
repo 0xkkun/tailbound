@@ -966,6 +966,11 @@ export class OverworldGameScene extends BaseGameScene {
       // 스탯 업그레이드
       this.player.applyStatUpgrade(choiceId);
     }
+
+    // 조이스틱 상태 리셋 (레벨업 UI가 닫힌 후)
+    if (this.virtualJoystick) {
+      this.virtualJoystick.reset();
+    }
   }
 
   /**

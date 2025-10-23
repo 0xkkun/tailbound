@@ -38,6 +38,17 @@ body {
   touch-action: none;
 }
 
+/* PixiJS 컨테이너 터치 동작 최적화 */
+#pixi-container {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* 캔버스 터치 동작 최적화 */
 canvas {
   touch-action: none;
