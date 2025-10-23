@@ -24,18 +24,35 @@ export class MoktakSoundWeapon extends Weapon {
   /**
    * 광역 공격 발동
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async fire(playerPos: Vector2, _enemies: BaseEnemy[], _player?: Player): Promise<AoEEffect[]> {
+
+  public async fire(
+    playerPos: Vector2,
+    _enemies: BaseEnemy[],
+    player?: Player
+  ): Promise<AoEEffect[]> {
     if (!this.canFire()) {
       return [];
+    }
+
+    // 플레이어 스탯 적용
+    let finalDamage = this.damage;
+    let finalRadius = this.aoeRadius;
+
+    if (player) {
+      // 치명타 판정 및 데미지 배율 적용
+      const critResult = player.rollCritical();
+      finalDamage = this.damage * critResult.damageMultiplier;
+
+      // 범위 배율 적용
+      finalRadius = this.aoeRadius * player.areaMultiplier;
     }
 
     // 하나의 광역 이펙트 생성
     const effect = new AoEEffect(
       playerPos.x,
       playerPos.y,
-      this.aoeRadius,
-      this.damage,
+      finalRadius,
+      finalDamage,
       0xffa500 // 주황색 (목탁 소리)
     );
 
@@ -44,7 +61,9 @@ export class MoktakSoundWeapon extends Weapon {
 
     this.resetCooldown();
 
-    console.log(`🔔 목탁 소리 발동! (범위: ${this.aoeRadius}px)`);
+    console.log(
+      `🔔 목탁 소리 발동! (범위: ${finalRadius.toFixed(0)}px, 데미지: ${finalDamage.toFixed(1)})`
+    );
 
     return [effect];
   }

@@ -604,7 +604,10 @@ export class OverworldGameScene extends BaseGameScene {
             if (checkCircleCollision(orbital, enemy)) {
               // 틱 데미지: 일정 시간마다만 데미지 적용
               if (orbital.canHitEnemy(enemy.id)) {
-                enemy.takeDamage(orbital.damage);
+                // 플레이어 데미지 배율 적용 (치명타 포함)
+                const critResult = this.player.rollCritical();
+                const finalDamage = orbital.damage * critResult.damageMultiplier;
+                enemy.takeDamage(finalDamage);
                 orbital.recordEnemyHit(enemy.id);
 
                 // 넉백 적용 (궤도 위치에서 바깥쪽으로)
@@ -653,7 +656,10 @@ export class OverworldGameScene extends BaseGameScene {
 
             // 작두와 적 충돌 체크 (원형 충돌)
             if (checkCircleCollision(blade, enemy)) {
-              enemy.takeDamage(blade.damage);
+              // 플레이어 데미지 배율 적용 (치명타 포함)
+              const critResult = this.player.rollCritical();
+              const finalDamage = blade.damage * critResult.damageMultiplier;
+              enemy.takeDamage(finalDamage);
               blade.recordHit(enemy.id); // 타격 기록
 
               // 넉백 적용 (작두 위치에서 바깥쪽으로)
