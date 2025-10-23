@@ -29,7 +29,7 @@ import { DokkaebiFireWeapon } from '@/game/weapons/DokkaebiFireWeapon';
 import { FanWindWeapon } from '@/game/weapons/FanWindWeapon';
 import { JakduBladeWeapon } from '@/game/weapons/JakduBladeWeapon';
 import { MoktakSoundWeapon } from '@/game/weapons/MoktakSoundWeapon';
-import { Talisman } from '@/game/weapons/Talisman';
+import { TalismanWeapon } from '@/game/weapons/TalismanWeapon';
 import type { Weapon } from '@/game/weapons/Weapon';
 import type { PlayerSnapshot } from '@/hooks/useGameState';
 import i18n from '@/i18n/config';
@@ -117,8 +117,8 @@ export class OverworldGameScene extends BaseGameScene {
       MaskEnemy.preloadSprites(),
       MaidenGhostEnemy.preloadSprites(),
       EvilSpiritEnemy.preloadSprites(),
-      Assets.load('/assets/tile_green1.png'), // 바닥 타일
-      Assets.load('/assets/tile_deco.png'), // 풀 장식
+      Assets.load('/assets/tile/tile_green1.png'), // 바닥 타일
+      Assets.load('/assets/tile/tile_deco.png'), // 풀 장식
     ]);
   }
 
@@ -127,7 +127,7 @@ export class OverworldGameScene extends BaseGameScene {
    */
   protected createPlayer(): void {
     // 월드 배경 (타일링)
-    const texture = Assets.get('/assets/tile_green1.png');
+    const texture = Assets.get('/assets/tile/tile_green1.png');
     texture.source.scaleMode = 'nearest'; // 픽셀 아트용: 픽셀 단위 렌더링
     const bg = new TilingSprite({
       texture,
@@ -158,7 +158,7 @@ export class OverworldGameScene extends BaseGameScene {
    * 풀 장식 무작위 배치
    */
   private createGrassDecorations(): void {
-    const grassTexture = Assets.get('/assets/tile_deco.png');
+    const grassTexture = Assets.get('/assets/tile/tile_deco.png');
     grassTexture.source.scaleMode = 'nearest';
 
     const worldWidth = GAME_CONFIG.world.overworld.width;
@@ -199,7 +199,7 @@ export class OverworldGameScene extends BaseGameScene {
     };
 
     // 초기 무기: 부적
-    const talisman = new Talisman();
+    const talisman = new TalismanWeapon();
     this.weapons.push(talisman);
 
     // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
@@ -621,8 +621,15 @@ export class OverworldGameScene extends BaseGameScene {
             projectile.speed = 300;
             projectile.radius = 10;
 
-            // woman-attack.png 스프라이트 로드 (16x16, 30프레임, 2배 크기)
-            projectile.loadSpriteSheet('/assets/woman-attack.png', 16, 16, 30, 6, 2);
+            // woman-ghost-projectile.png 스프라이트 로드 (16x16, 30프레임, 2배 크기)
+            projectile.loadSpriteSheet(
+              '/assets/enemy/woman-ghost-projectile.png',
+              16,
+              16,
+              30,
+              6,
+              2
+            );
 
             this.enemyProjectiles.push(projectile);
             this.gameLayer.addChild(projectile);
@@ -869,12 +876,12 @@ export class OverworldGameScene extends BaseGameScene {
     switch (weaponId) {
       case 'weapon_talisman': {
         // 이미 부적이 있으면 업그레이드, 없으면 추가
-        const existingTalisman = this.weapons.find((w) => w instanceof Talisman);
+        const existingTalisman = this.weapons.find((w) => w instanceof TalismanWeapon);
         if (existingTalisman) {
           existingTalisman.levelUp();
           console.log(`부적 레벨업! Lv.${existingTalisman.level}`);
         } else {
-          const talisman = new Talisman();
+          const talisman = new TalismanWeapon();
           this.weapons.push(talisman);
           console.log('부적 무기 추가 완료!');
         }
@@ -1122,7 +1129,7 @@ export class OverworldGameScene extends BaseGameScene {
     buttonContainer.zIndex = 1000; // 다른 UI보다 위에
 
     // 설정 아이콘 (톱니바퀴 이미지)
-    const icon = Sprite.from('/assets/Settings.png');
+    const icon = Sprite.from('/assets/gui/settings.png');
     icon.width = 32;
     icon.height = 32;
     icon.anchor.set(0.5);

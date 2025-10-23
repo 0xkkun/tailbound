@@ -14,7 +14,7 @@ import type { EnemySpriteConfig } from './EnemySprite';
 export class MaidenGhostEnemy extends BaseEnemy {
   // 처녀귀신 스프라이트 설정
   private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/woman-ghost.png',
+    assetPath: '/assets/enemy/woman-ghost.png',
     totalWidth: 224,
     height: 32,
     frameCount: 7,
@@ -81,7 +81,7 @@ export class MaidenGhostEnemy extends BaseEnemy {
    * 공격 애니메이션 로드
    */
   private async loadAttackAnimation(): Promise<void> {
-    const assetPath = '/assets/woman-ghost-acctack-motion.png';
+    const assetPath = '/assets/enemy/woman-ghost-attack.png';
 
     // 텍스처 로드
     const texture = await Assets.load(assetPath);

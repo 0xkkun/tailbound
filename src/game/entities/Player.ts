@@ -139,7 +139,7 @@ export class Player extends Container {
    */
   private async loadSprite(): Promise<void> {
     try {
-      const texture = await Assets.load('/assets/shaman-walk.png');
+      const texture = await Assets.load('/assets/player/shaman-walk.png');
 
       // 로드 중 destroy될 수 있으므로 체크
       if (this.destroyed) {

@@ -128,13 +128,13 @@ export abstract class BaseGameScene extends Container {
   protected async loadAssets(): Promise<void> {
     // 공통 에셋 로딩
     await Assets.load([
-      '/assets/monk.png',
-      '/assets/shaman.png',
-      '/assets/fire.png', // 부적용
-      '/assets/dokkabi.png', // 도깨비불용
-      '/assets/mocktak.png',
-      '/assets/jakdu.png',
-      '/assets/Settings.png', // 설정 버튼용
+      '/assets/npc/monk.png',
+      '/assets/player/shaman.png',
+      '/assets/weapon/talisman.png', // 부적용
+      '/assets/weapon/dokkabi-fire.png', // 도깨비불용
+      '/assets/weapon/mocktak.png',
+      '/assets/weapon/jakdu.png',
+      '/assets/gui/settings.png', // 설정 버튼용
     ]);
   }
 

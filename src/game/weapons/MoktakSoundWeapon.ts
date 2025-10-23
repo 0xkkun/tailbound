@@ -39,7 +39,7 @@ export class MoktakSoundWeapon extends Weapon {
     );
 
     // 목탁 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 120x120)
-    await effect.loadSpriteSheet('/assets/mocktak.png', 120, 120, 30, 6);
+    await effect.loadSpriteSheet('/assets/weapon/mocktak.png', 120, 120, 30, 6);
 
     this.resetCooldown();
 

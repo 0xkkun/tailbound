@@ -84,7 +84,7 @@ export class DialogUI extends Container {
     const y = this.screenHeight - dialogBoxHeight - boxHeight - padding - 10;
 
     // 초상화 스프라이트 (NPC별 portraitPath 사용, 없으면 기본값)
-    const spritePath = this.currentNPC?.portraitPath || '/assets/monk.png';
+    const spritePath = this.currentNPC?.portraitPath || '/assets/npc/monk.png';
     this.portraitSprite = Sprite.from(spritePath);
 
     // 크기 확대 (2.5배)

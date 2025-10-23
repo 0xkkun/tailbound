@@ -75,7 +75,7 @@ export class FanWindWeapon extends Weapon {
       projectile.piercing = Infinity; // 무제한 관통
 
       // wind.png 스프라이트 애니메이션 로드
-      projectile.loadSpriteSheet('/assets/wind.png', 96, 96, 12, 12);
+      projectile.loadSpriteSheet('/assets/weapon/wind.png', 96, 96, 12, 12);
 
       projectiles.push(projectile);
     }

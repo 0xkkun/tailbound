@@ -10,7 +10,7 @@ import type { EnemySpriteConfig } from './EnemySprite';
 export class DokkaebiEnemy extends BaseEnemy {
   // 도깨비 스프라이트 설정
   private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/dokkaebi-walk.png',
+    assetPath: '/assets/enemy/dokkaebi-walk.png',
     totalWidth: 352, // 32 * 11 frames
     height: 32,
     frameCount: 11,

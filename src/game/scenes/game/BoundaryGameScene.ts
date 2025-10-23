@@ -40,8 +40,8 @@ export class BoundaryGameScene extends BaseGameScene {
    */
   protected async loadAssets(): Promise<void> {
     await super.loadAssets();
-    await Assets.load('/assets/tile_green1.png'); // 바닥 타일
-    await Assets.load('/assets/tile_deco.png'); // 풀 장식
+    await Assets.load('/assets/tile/tile_green1.png'); // 바닥 타일
+    await Assets.load('/assets/tile/tile_deco.png'); // 풀 장식
   }
 
   /**
@@ -50,7 +50,7 @@ export class BoundaryGameScene extends BaseGameScene {
    */
   protected createPlayer(): void {
     // 월드 배경 (타일링)
-    const texture = Assets.get('/assets/tile_green1.png');
+    const texture = Assets.get('/assets/tile/tile_green1.png');
     texture.source.scaleMode = 'nearest'; // 픽셀 아트용: 픽셀 단위 렌더링
     const bg = new TilingSprite({
       texture,
@@ -82,7 +82,7 @@ export class BoundaryGameScene extends BaseGameScene {
    * 풀 장식 무작위 배치
    */
   private createGrassDecorations(): void {
-    const grassTexture = Assets.get('/assets/tile_deco.png');
+    const grassTexture = Assets.get('/assets/tile/tile_deco.png');
     grassTexture.source.scaleMode = 'nearest';
 
     const tileSize = 32; // 타일 크기 (16x16을 2배 확대한 크기)
@@ -134,7 +134,7 @@ export class BoundaryGameScene extends BaseGameScene {
       id: 'merchant_boundary',
       name: '저승의 상인',
       dialogId: 'boundary_merchant',
-      portraitPath: '/assets/monk.png', // 상인 초상화 (현재는 monk 사용)
+      portraitPath: '/assets/npc/monk.png', // 상인 초상화 (현재는 monk 사용)
     };
     this.npc = new NPC(this.worldWidth / 2, 300, merchantData);
     this.npc.onInteract = () => this.startDialog();

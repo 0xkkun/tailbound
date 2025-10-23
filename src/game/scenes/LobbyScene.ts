@@ -81,7 +81,7 @@ export class LobbyScene extends Container {
   private async loadAndCreateTitleImage(): Promise<void> {
     try {
       // 이미지 로드
-      const texture = await Assets.load('/assets/loby-title.png');
+      const texture = await Assets.load('/assets/gui/lobby-title.png');
 
       // 픽셀 아트 렌더링 설정
       if (texture.baseTexture) {

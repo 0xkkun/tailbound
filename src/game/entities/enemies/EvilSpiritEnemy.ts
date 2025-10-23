@@ -14,7 +14,7 @@ import type { EnemySpriteConfig } from './EnemySprite';
 export class EvilSpiritEnemy extends BaseEnemy {
   // 악령 스프라이트 설정
   private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/noob.png',
+    assetPath: '/assets/enemy/evil-spirit.png',
     totalWidth: 192, // 32 * 6 = 192
     height: 32,
     frameCount: 6,
@@ -81,7 +81,7 @@ export class EvilSpiritEnemy extends BaseEnemy {
    * 공격 애니메이션 로드
    */
   private async loadAttackAnimation(): Promise<void> {
-    const assetPath = '/assets/noob-attack.png';
+    const assetPath = '/assets/enemy/evil-spirit-attack.png';
 
     // 텍스처 로드
     const texture = await Assets.load(assetPath);

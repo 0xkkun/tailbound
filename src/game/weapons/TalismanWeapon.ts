@@ -10,7 +10,7 @@ import type { Vector2 } from '@/types/game.types';
 
 import { Weapon } from './Weapon';
 
-export class Talisman extends Weapon {
+export class TalismanWeapon extends Weapon {
   private projectileCount: number = 0;
   private readonly MAX_FIRE_RANGE = 600; // 최대 발사 거리 (화면 크기 정도)
 
@@ -53,7 +53,7 @@ export class Talisman extends Weapon {
     projectile.damage = this.damage;
 
     // 부적 스프라이트 로드 (6x4 = 24 프레임, 각 프레임 32x32)
-    await projectile.loadSpriteSheet('/assets/fire.png', 32, 32, 24, 6);
+    await projectile.loadSpriteSheet('/assets/weapon/talisman.png', 32, 32, 24, 6);
 
     projectiles.push(projectile);
 

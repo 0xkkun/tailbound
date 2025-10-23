@@ -59,7 +59,7 @@ export class DokkaebiFireWeapon extends Weapon {
       orbital.damage = this.damage;
 
       // 도깨비불 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 48x48)
-      await orbital.loadSpriteSheet('/assets/dokkabi.png', 48, 48, 30, 6);
+      await orbital.loadSpriteSheet('/assets/weapon/dokkabi-fire.png', 48, 48, 30, 6);
 
       this.orbitals.push(orbital);
       gameLayer.addChild(orbital);
