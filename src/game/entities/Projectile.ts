@@ -6,6 +6,8 @@ import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 
 
 import type { Vector2 } from '@/types/game.types';
 
+import { Player } from './Player';
+
 export class Projectile extends Container {
   public id: string;
   public active: boolean = true;
@@ -23,6 +25,10 @@ export class Projectile extends Container {
   // 관통력
   public piercing: number = 1; // 1이면 적 1마리 관통 후 소멸, Infinity면 무제한
   private hitEnemies: Set<string> = new Set(); // 이미 맞힌 적 ID 기록
+
+  // 치명타 및 흡혈 (파워업 시스템)
+  public isCritical: boolean = false; // 치명타 여부
+  public playerRef?: Player; // Player 참조 (흡혈용)
 
   // 시각 효과
   private visual: Graphics | AnimatedSprite;

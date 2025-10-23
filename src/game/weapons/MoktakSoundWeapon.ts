@@ -8,6 +8,7 @@
 import { calculateWeaponStats } from '@/game/data/weapons';
 import { AoEEffect } from '@/game/entities/AoEEffect';
 import type { BaseEnemy } from '@/game/entities/enemies';
+import type { Player } from '@/game/entities/Player';
 import type { Vector2 } from '@/types/game.types';
 
 import { Weapon } from './Weapon';
@@ -24,7 +25,7 @@ export class MoktakSoundWeapon extends Weapon {
    * 광역 공격 발동
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async fire(playerPos: Vector2, _enemies: BaseEnemy[]): Promise<AoEEffect[]> {
+  public async fire(playerPos: Vector2, _enemies: BaseEnemy[], _player?: Player): Promise<AoEEffect[]> {
     if (!this.canFire()) {
       return [];
     }

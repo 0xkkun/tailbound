@@ -30,7 +30,7 @@ export class DokkaebiFireWeapon extends Weapon {
    * 투사체형이 아니므로 fire는 빈 배열 반환
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public fire(_playerPos: Vector2, _enemies: BaseEnemy[]): never[] {
+  public fire(_playerPos: Vector2, _enemies: BaseEnemy[], _player?: Player): never[] {
     return [];
   }
 

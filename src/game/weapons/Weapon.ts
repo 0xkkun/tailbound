@@ -5,6 +5,7 @@
 import type { AoEEffect } from '@/game/entities/AoEEffect';
 import type { BaseEnemy } from '@/game/entities/enemies';
 import type { MeleeSwing } from '@/game/entities/MeleeSwing';
+import type { Player } from '@/game/entities/Player';
 import type { Projectile } from '@/game/entities/Projectile';
 import type { Vector2 } from '@/types/game.types';
 
@@ -29,10 +30,18 @@ export abstract class Weapon {
 
   /**
    * 무기 업데이트 (쿨다운 감소)
+   * @param deltaTime 델타 타임
+   * @param player 플레이어 (선정 시스템용, optional)
    */
-  public update(deltaTime: number): void {
+  public update(deltaTime: number, player?: Player): void {
     if (this.cooldownTimer > 0) {
-      this.cooldownTimer -= deltaTime;
+      // 선정 시스템: 1초 이상 정지 시 쿨타임 -20% 보너스
+      let cooldownMultiplier = 1.0;
+      if (player?.meditationEnabled && player.stillTime >= 1.0) {
+        cooldownMultiplier = 1.2; // 20% 빠르게 감소
+      }
+
+      this.cooldownTimer -= deltaTime * cooldownMultiplier;
     }
   }
 
@@ -45,11 +54,15 @@ export abstract class Weapon {
 
   /**
    * 무기 발사 (추상 메서드)
+   * @param playerPos 플레이어 위치
+   * @param enemies 적 배열
+   * @param player 플레이어 객체 (치명타, 흡혈 등 적용용)
    * @returns 생성된 엔티티 배열 (투사체, AoE, 근접 등)
    */
   public abstract fire(
     playerPos: Vector2,
-    enemies: BaseEnemy[]
+    enemies: BaseEnemy[],
+    player?: Player
   ): WeaponEntity[] | Promise<WeaponEntity[]>;
 
   /**

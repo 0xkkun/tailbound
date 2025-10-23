@@ -4,6 +4,7 @@
 
 import { calculateWeaponStats } from '@/game/data/weapons';
 import type { BaseEnemy } from '@/game/entities/enemies';
+import type { Player } from '@/game/entities/Player';
 import { Projectile } from '@/game/entities/Projectile';
 import { getDirection, getDistance } from '@/game/utils/collision';
 import type { Vector2 } from '@/types/game.types';
@@ -22,7 +23,11 @@ export class TalismanWeapon extends Weapon {
   /**
    * 발사
    */
-  public async fire(playerPos: Vector2, enemies: BaseEnemy[]): Promise<Projectile[]> {
+  public async fire(
+    playerPos: Vector2,
+    enemies: BaseEnemy[],
+    player?: Player
+  ): Promise<Projectile[]> {
     if (!this.canFire()) {
       return [];
     }
@@ -50,7 +55,20 @@ export class TalismanWeapon extends Weapon {
       0xffff00 // 노란색
     );
 
-    projectile.damage = this.damage;
+    // 치명타 판정 및 데미지 계산
+    if (player) {
+      const critResult = player.rollCritical();
+      projectile.isCritical = critResult.isCritical;
+      projectile.damage = this.damage * critResult.damageMultiplier;
+      projectile.playerRef = player; // 흡혈용
+
+      // 치명타 시각 효과 (노란색 -> 빨간색)
+      if (critResult.isCritical) {
+        // 색상은 나중에 스프라이트 로드 전에 변경
+      }
+    } else {
+      projectile.damage = this.damage;
+    }
 
     // 부적 스프라이트 로드 (6x4 = 24 프레임, 각 프레임 32x32)
     await projectile.loadSpriteSheet('/assets/weapon/talisman.png', 32, 32, 24, 6);

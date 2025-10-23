@@ -183,40 +183,39 @@ export class LevelSystem {
         type: 'weapon' as const,
         name: i18n.t('weapons.talisman.name'),
         description: i18n.t('weapons.talisman.description'),
-        rarity: 'common' as const,
+        rarity: 'epic' as const,
       },
       {
-        id: 'weapon_dokkaebi',
+        id: 'weapon_dokkaebi_fire',
         type: 'weapon' as const,
         name: i18n.t('weapons.dokkaebi.name'),
         description: i18n.t('weapons.dokkaebi.description'),
-        rarity: 'common' as const,
+        rarity: 'epic' as const,
       },
       {
         id: 'weapon_moktak',
         type: 'weapon' as const,
         name: i18n.t('weapons.moktak.name'),
         description: i18n.t('weapons.moktak.description'),
-        rarity: 'rare' as const,
+        rarity: 'epic' as const,
       },
       {
         id: 'weapon_jakdu',
         type: 'weapon' as const,
         name: i18n.t('weapons.jakdu.name'),
         description: i18n.t('weapons.jakdu.description'),
-        rarity: 'rare' as const,
+        rarity: 'epic' as const,
       },
       {
         id: 'weapon_fan_wind',
         type: 'weapon' as const,
         name: i18n.t('weapons.fanWind.name'),
         description: i18n.t('weapons.fanWind.description'),
-        rarity: 'common' as const,
+        rarity: 'epic' as const,
       },
     ];
 
-    // TODO: 더 많은 스탯 업그레이드 추가 필요 (현재 15개 -> 목표 30개+)
-    // === 스탯 업그레이드 선택지 (등급별 증가폭) ===
+    // === 기존 스탯 업그레이드 (무력, 신속, 시간왜곡, 생명력, 영혼흡인) ===
     const statUpgrades = [
       // Common 등급 (작은 증가)
       {
@@ -330,12 +329,327 @@ export class LevelSystem {
       },
     ];
 
-    // 무기 비율을 높이기 위해 무기를 여러 번 추가 (가중치 효과)
-    // 무기 4개 x 3배 = 12개, 스탯 15개 -> 총 27개 중 무기 비율 44%
+    // === 새로운 파워업 (⚔️ 공격 강화) ===
+    const combatPowerups = [
+      // 치명타 확률 (필살)
+      {
+        id: 'powerup_crit_rate_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.criticalRate.common.name'),
+        description: i18n.t('powerups.combat.criticalRate.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_crit_rate_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.criticalRate.rare.name'),
+        description: i18n.t('powerups.combat.criticalRate.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_crit_rate_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.criticalRate.epic.name'),
+        description: i18n.t('powerups.combat.criticalRate.epic.description'),
+        rarity: 'epic' as const,
+      },
+      // 치명타 피해량 (극살)
+      {
+        id: 'powerup_crit_damage_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.criticalDamage.common.name'),
+        description: i18n.t('powerups.combat.criticalDamage.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_crit_damage_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.criticalDamage.rare.name'),
+        description: i18n.t('powerups.combat.criticalDamage.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_crit_damage_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.criticalDamage.epic.name'),
+        description: i18n.t('powerups.combat.criticalDamage.epic.description'),
+        rarity: 'epic' as const,
+      },
+      // 공격 범위 (기류확산)
+      {
+        id: 'powerup_area_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.area.common.name'),
+        description: i18n.t('powerups.combat.area.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_area_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.area.rare.name'),
+        description: i18n.t('powerups.combat.area.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_area_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.combat.area.epic.name'),
+        description: i18n.t('powerups.combat.area.epic.description'),
+        rarity: 'epic' as const,
+      },
+    ];
+
+    // === 새로운 파워업 (💪 생존/방어) ===
+    const defensePowerups = [
+      // 피해 감소 (강체)
+      {
+        id: 'powerup_damage_reduction_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.damageReduction.common.name'),
+        description: i18n.t('powerups.defense.damageReduction.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_damage_reduction_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.damageReduction.rare.name'),
+        description: i18n.t('powerups.defense.damageReduction.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_damage_reduction_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.damageReduction.epic.name'),
+        description: i18n.t('powerups.defense.damageReduction.epic.description'),
+        rarity: 'epic' as const,
+      },
+      // 체력 재생 (회복)
+      {
+        id: 'powerup_health_regen_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.healthRegen.common.name'),
+        description: i18n.t('powerups.defense.healthRegen.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_health_regen_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.healthRegen.rare.name'),
+        description: i18n.t('powerups.defense.healthRegen.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_health_regen_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.healthRegen.epic.name'),
+        description: i18n.t('powerups.defense.healthRegen.epic.description'),
+        rarity: 'epic' as const,
+      },
+      // 흡혈 (吸血)
+      {
+        id: 'powerup_life_steal_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.lifeSteal.common.name'),
+        description: i18n.t('powerups.defense.lifeSteal.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_life_steal_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.lifeSteal.rare.name'),
+        description: i18n.t('powerups.defense.lifeSteal.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_life_steal_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.lifeSteal.epic.name'),
+        description: i18n.t('powerups.defense.lifeSteal.epic.description'),
+        rarity: 'epic' as const,
+      },
+      // 보호막 (호신부)
+      {
+        id: 'powerup_shield_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.shield.common.name'),
+        description: i18n.t('powerups.defense.shield.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_shield_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.shield.rare.name'),
+        description: i18n.t('powerups.defense.shield.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_shield_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.shield.epic.name'),
+        description: i18n.t('powerups.defense.shield.epic.description'),
+        rarity: 'epic' as const,
+      },
+      // 회피 (回避)
+      {
+        id: 'powerup_dodge_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.dodgeRate.common.name'),
+        description: i18n.t('powerups.defense.dodgeRate.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_dodge_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.dodgeRate.rare.name'),
+        description: i18n.t('powerups.defense.dodgeRate.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_dodge_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.defense.dodgeRate.epic.name'),
+        description: i18n.t('powerups.defense.dodgeRate.epic.description'),
+        rarity: 'epic' as const,
+      },
+    ];
+
+    // === 새로운 파워업 (⚙️ 유틸리티) ===
+    const utilityPowerups = [
+      // 경험치 획득량 (수련)
+      {
+        id: 'powerup_xp_gain_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.xpGain.common.name'),
+        description: i18n.t('powerups.utility.xpGain.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_xp_gain_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.xpGain.rare.name'),
+        description: i18n.t('powerups.utility.xpGain.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_xp_gain_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.xpGain.epic.name'),
+        description: i18n.t('powerups.utility.xpGain.epic.description'),
+        rarity: 'epic' as const,
+      },
+      // 아이템 드롭률 (복덕)
+      {
+        id: 'powerup_drop_rate_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.dropRate.common.name'),
+        description: i18n.t('powerups.utility.dropRate.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_drop_rate_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.dropRate.rare.name'),
+        description: i18n.t('powerups.utility.dropRate.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_drop_rate_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.dropRate.epic.name'),
+        description: i18n.t('powerups.utility.dropRate.epic.description'),
+        rarity: 'epic' as const,
+      },
+      // 높은 등급 확률 (인연)
+      {
+        id: 'powerup_luck_common',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.luck.common.name'),
+        description: i18n.t('powerups.utility.luck.common.description'),
+        rarity: 'common' as const,
+      },
+      {
+        id: 'powerup_luck_rare',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.luck.rare.name'),
+        description: i18n.t('powerups.utility.luck.rare.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_luck_epic',
+        type: 'passive' as const,
+        name: i18n.t('powerups.utility.luck.epic.name'),
+        description: i18n.t('powerups.utility.luck.epic.description'),
+        rarity: 'epic' as const,
+      },
+    ];
+
+    // === 복합 파워업 (🧿 하이브리드) ===
+    const hybridPowerups = [
+      {
+        id: 'powerup_inner_power',
+        type: 'passive' as const,
+        name: i18n.t('powerups.hybrid.innerPower.name'),
+        description: i18n.t('powerups.hybrid.innerPower.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_mental_technique',
+        type: 'passive' as const,
+        name: i18n.t('powerups.hybrid.mentalTechnique.name'),
+        description: i18n.t('powerups.hybrid.mentalTechnique.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_vitality',
+        type: 'passive' as const,
+        name: i18n.t('powerups.hybrid.vitality.name'),
+        description: i18n.t('powerups.hybrid.vitality.description'),
+        rarity: 'rare' as const,
+      },
+      {
+        id: 'powerup_fortune',
+        type: 'passive' as const,
+        name: i18n.t('powerups.hybrid.fortune.name'),
+        description: i18n.t('powerups.hybrid.fortune.description'),
+        rarity: 'epic' as const,
+      },
+      {
+        id: 'powerup_breathing',
+        type: 'passive' as const,
+        name: i18n.t('powerups.hybrid.breathing.name'),
+        description: i18n.t('powerups.hybrid.breathing.description'),
+        rarity: 'epic' as const,
+      },
+      {
+        id: 'powerup_meditation',
+        type: 'passive' as const,
+        name: i18n.t('powerups.hybrid.meditation.name'),
+        description: i18n.t('powerups.hybrid.meditation.description'),
+        rarity: 'epic' as const,
+      },
+      {
+        id: 'powerup_revive',
+        type: 'passive' as const,
+        name: i18n.t('powerups.hybrid.revive.name'),
+        description: i18n.t('powerups.hybrid.revive.description'),
+        rarity: 'legendary' as const,
+      },
+    ];
+
+    // 선택지 풀 구성 (가중치 적용)
+    // - 무기: 3배 가중치 (빠른 무기 확보 유도)
+    // - 기존 스탯: 2배 가중치 (기본 빌드)
+    // - 공격/방어/유틸: 1배 (새로운 파워업)
+    // - 복합: 선택지에 포함 (희귀하지만 강력한 효과)
     allPossibleChoices.push(...weapons);
     allPossibleChoices.push(...weapons); // 2번째
     allPossibleChoices.push(...weapons); // 3번째
     allPossibleChoices.push(...statUpgrades);
+    allPossibleChoices.push(...statUpgrades); // 2번째
+    allPossibleChoices.push(...combatPowerups);
+    allPossibleChoices.push(...defensePowerups);
+    allPossibleChoices.push(...utilityPowerups);
+    allPossibleChoices.push(...hybridPowerups); // 복합 파워업 (rare/epic/legendary)
 
     // Fisher-Yates 셔플 알고리즘으로 완전한 랜덤 보장
     for (let i = allPossibleChoices.length - 1; i > 0; i--) {

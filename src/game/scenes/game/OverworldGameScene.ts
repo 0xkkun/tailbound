@@ -257,7 +257,8 @@ export class OverworldGameScene extends BaseGameScene {
       if (this.virtualJoystick) {
         this.virtualJoystick.reset();
       }
-      this.levelUpUI.show(choices);
+      // await는 콜백 함수를 async로 만들어야 하지만, 레벨업 UI는 비동기로 로드해도 무방
+      void this.levelUpUI.show(choices);
     };
 
     // 초기 무기: 부적
@@ -435,7 +436,7 @@ export class OverworldGameScene extends BaseGameScene {
     for (const weapon of this.weapons) {
       // 쿨다운 배율 적용 (쿨타임이 낮을수록 빠르게 발사)
       const effectiveDeltaTime = deltaTime / this.player.cooldownMultiplier;
-      weapon.update(effectiveDeltaTime);
+      weapon.update(effectiveDeltaTime, this.player);
 
       // 궤도형 무기 (DokkaebiFireWeapon) 업데이트
       if (weapon instanceof DokkaebiFireWeapon) {
@@ -449,7 +450,7 @@ export class OverworldGameScene extends BaseGameScene {
 
       // 발사 (투사체형, AoE형, 근접형)
       const playerPos = { x: this.player.x, y: this.player.y };
-      const fireResult = await Promise.resolve(weapon.fire(playerPos, this.enemies));
+      const fireResult = await Promise.resolve(weapon.fire(playerPos, this.enemies, this.player));
 
       // 결과 타입에 따라 분기 처리
       for (const entity of fireResult) {
@@ -963,8 +964,11 @@ export class OverworldGameScene extends BaseGameScene {
       // 무기 추가
       await this.addWeapon(choiceId);
     } else if (choiceId.startsWith('stat_')) {
-      // 스탯 업그레이드
+      // 기존 스탯 업그레이드 (무력, 신속, 생명력, 영혼흡인)
       this.player.applyStatUpgrade(choiceId);
+    } else if (choiceId.startsWith('powerup_')) {
+      // 새로운 파워업 시스템
+      this.player.applyPowerup(choiceId);
     }
 
     // 조이스틱 상태 리셋 (레벨업 UI가 닫힌 후)

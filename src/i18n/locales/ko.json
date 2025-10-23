@@ -116,5 +116,197 @@
         "description": "경험치 젬 획득 범위가 30% 증가합니다."
       }
     }
+  },
+  "powerups": {
+    "combat": {
+      "criticalRate": {
+        "common": {
+          "name": "필살 (必殺)",
+          "description": "치명타 확률이 5% 증가합니다."
+        },
+        "rare": {
+          "name": "필살 (必殺)",
+          "description": "치명타 확률이 10% 증가합니다."
+        },
+        "epic": {
+          "name": "필살 (必殺)",
+          "description": "치명타 확률이 20% 증가합니다."
+        }
+      },
+      "criticalDamage": {
+        "common": {
+          "name": "극살 (極殺)",
+          "description": "치명타 피해량이 20% 증가합니다."
+        },
+        "rare": {
+          "name": "극살 (極殺)",
+          "description": "치명타 피해량이 50% 증가합니다."
+        },
+        "epic": {
+          "name": "극살 (極殺)",
+          "description": "치명타 피해량이 100% 증가합니다."
+        }
+      },
+      "area": {
+        "common": {
+          "name": "기류 확산 (氣流 擴散)",
+          "description": "공격 범위가 5% 증가합니다."
+        },
+        "rare": {
+          "name": "기류 확산 (氣流 擴散)",
+          "description": "공격 범위가 12% 증가합니다."
+        },
+        "epic": {
+          "name": "기류 확산 (氣流 擴散)",
+          "description": "공격 범위가 25% 증가합니다."
+        }
+      }
+    },
+    "defense": {
+      "damageReduction": {
+        "common": {
+          "name": "강체 (剛體)",
+          "description": "받는 피해가 3% 감소합니다."
+        },
+        "rare": {
+          "name": "강체 (剛體)",
+          "description": "받는 피해가 8% 감소합니다."
+        },
+        "epic": {
+          "name": "강체 (剛體)",
+          "description": "받는 피해가 15% 감소합니다."
+        }
+      },
+      "healthRegen": {
+        "common": {
+          "name": "회복 (回復)",
+          "description": "초당 체력이 0.2씩 재생됩니다."
+        },
+        "rare": {
+          "name": "회복 (回復)",
+          "description": "초당 체력이 0.5씩 재생됩니다."
+        },
+        "epic": {
+          "name": "회복 (回復)",
+          "description": "초당 체력이 1씩 재생됩니다."
+        }
+      },
+      "lifeSteal": {
+        "common": {
+          "name": "흡혈 (吸血)",
+          "description": "피해량의 2%만큼 체력을 흡수합니다."
+        },
+        "rare": {
+          "name": "흡혈 (吸血)",
+          "description": "피해량의 5%만큼 체력을 흡수합니다."
+        },
+        "epic": {
+          "name": "흡혈 (吸血)",
+          "description": "피해량의 10%만큼 체력을 흡수합니다."
+        }
+      },
+      "shield": {
+        "common": {
+          "name": "호신부 (護身符)",
+          "description": "30초마다 피해 1회를 완전히 막습니다."
+        },
+        "rare": {
+          "name": "호신부 (護身符)",
+          "description": "20초마다 피해 1회를 완전히 막습니다."
+        },
+        "epic": {
+          "name": "호신부 (護身符)",
+          "description": "10초마다 피해 1회를 완전히 막습니다."
+        }
+      },
+      "dodgeRate": {
+        "common": {
+          "name": "회피 (回避)",
+          "description": "공격 회피 확률이 3% 증가합니다."
+        },
+        "rare": {
+          "name": "회피 (回避)",
+          "description": "공격 회피 확률이 7% 증가합니다."
+        },
+        "epic": {
+          "name": "회피 (回避)",
+          "description": "공격 회피 확률이 15% 증가합니다."
+        }
+      }
+    },
+    "utility": {
+      "xpGain": {
+        "common": {
+          "name": "수련 (修鍊)",
+          "description": "경험치 획득량이 5% 증가합니다."
+        },
+        "rare": {
+          "name": "수련 (修鍊)",
+          "description": "경험치 획득량이 12% 증가합니다."
+        },
+        "epic": {
+          "name": "수련 (修鍊)",
+          "description": "경험치 획득량이 25% 증가합니다."
+        }
+      },
+      "dropRate": {
+        "common": {
+          "name": "복덕 (福德)",
+          "description": "아이템 드롭률이 5% 증가합니다."
+        },
+        "rare": {
+          "name": "복덕 (福德)",
+          "description": "아이템 드롭률이 12% 증가합니다."
+        },
+        "epic": {
+          "name": "복덕 (福德)",
+          "description": "아이템 드롭률이 25% 증가합니다."
+        }
+      },
+      "luck": {
+        "common": {
+          "name": "인연 (因緣)",
+          "description": "높은 등급 선택지가 나올 확률이 증가합니다."
+        },
+        "rare": {
+          "name": "인연 (因緣)",
+          "description": "높은 등급 선택지가 더 자주 나타납니다."
+        },
+        "epic": {
+          "name": "인연 (因緣)",
+          "description": "높은 등급 선택지가 훨씬 자주 나타납니다."
+        }
+      }
+    },
+    "hybrid": {
+      "innerPower": {
+        "name": "내공 (內功)",
+        "description": "공격력 +3%, 흡혈 +3%"
+      },
+      "mentalTechnique": {
+        "name": "심법 (心法)",
+        "description": "치명타 확률 +7%, 쿨타임 -5%"
+      },
+      "vitality": {
+        "name": "정기 (精氣)",
+        "description": "최대 체력 +10, 재생 +0.3/초"
+      },
+      "fortune": {
+        "name": "운기 (運氣)",
+        "description": "드롭률 +15%, 치명타 +5%, 흡입 범위 +10%"
+      },
+      "breathing": {
+        "name": "호흡 (呼吸)",
+        "description": "5초마다 체력 10 회복"
+      },
+      "meditation": {
+        "name": "선정 (禪定)",
+        "description": "1초 이상 정지 시: 재생 +2/초, 쿨타임 -20%"
+      },
+      "revive": {
+        "name": "혼백 (魂魄)",
+        "description": "사망 시 1회 부활 (최대 체력 50%)"
+      }
+    }
   }
 }

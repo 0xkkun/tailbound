@@ -9,6 +9,7 @@ import { calculateWeaponStats, getWeaponData } from '@/game/data/weapons';
 import type { Vector2 } from '@/types/game.types';
 
 import type { BaseEnemy } from '../entities/enemies/BaseEnemy';
+import type { Player } from '../entities/Player';
 import { Projectile } from '../entities/Projectile';
 
 import { Weapon } from './Weapon';
@@ -26,7 +27,7 @@ export class FanWindWeapon extends Weapon {
   /**
    * 부채꼴 패턴으로 투사체 발사
    */
-  public fire(playerPos: Vector2, enemies: BaseEnemy[]): Projectile[] {
+  public fire(playerPos: Vector2, enemies: BaseEnemy[], player?: Player): Projectile[] {
     if (!this.canFire()) return [];
 
     const projectiles: Projectile[] = [];
@@ -68,7 +69,16 @@ export class FanWindWeapon extends Weapon {
         0x87ceeb // 하늘색 (부채바람 색상)
       );
 
-      projectile.damage = this.damage;
+      // 치명타 판정 및 데미지 계산
+      if (player) {
+        const critResult = player.rollCritical();
+        projectile.isCritical = critResult.isCritical;
+        projectile.damage = this.damage * critResult.damageMultiplier;
+        projectile.playerRef = player; // 흡혈용
+      } else {
+        projectile.damage = this.damage;
+      }
+
       projectile.speed = this.weaponData.projectileSpeed || 350;
       projectile.lifeTime = this.weaponData.projectileLifetime || 1.2;
       projectile.radius = this.weaponData.projectileRadius || 15;
