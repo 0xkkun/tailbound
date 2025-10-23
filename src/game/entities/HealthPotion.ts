@@ -5,7 +5,7 @@
  * 플레이어가 획득 시 최대 체력의 50% 회복
  */
 
-import { Container, Sprite, Text } from 'pixi.js';
+import { Assets, Container, Sprite, Text } from 'pixi.js';
 
 import { POTION_BALANCE } from '@/config/balance.config';
 
@@ -29,7 +29,7 @@ export class HealthPotion extends Container {
     this.x = x;
     this.y = y;
 
-    // 임시 이모지 (나중에 Sprite로 교체 가능)
+    // 임시 이모지 폴백 (스프라이트 로드 전)
     this.visual = new Text({
       text: '❤️',
       style: {
@@ -38,6 +38,32 @@ export class HealthPotion extends Container {
     });
     this.visual.anchor.set(0.5);
     this.addChild(this.visual);
+
+    // health-plus 스프라이트 로드
+    this.loadSprite();
+  }
+
+  /**
+   * health-plus 스프라이트 로드
+   */
+  private async loadSprite(): Promise<void> {
+    try {
+      const texture = await Assets.load('/assets/power-up/health-plus.png');
+
+      // 기존 이모지 제거
+      this.removeChild(this.visual);
+      if (this.visual instanceof Text) {
+        this.visual.destroy();
+      }
+
+      // 스프라이트로 교체
+      this.visual = new Sprite(texture);
+      this.visual.anchor.set(0.5);
+      this.visual.scale.set(0.5); // 크기 조정 (48x48 아이콘)
+      this.addChild(this.visual);
+    } catch (error) {
+      console.warn('Failed to load health-plus sprite, using emoji fallback:', error);
+    }
   }
 
   /**
@@ -85,20 +111,6 @@ export class HealthPotion extends Container {
     );
 
     this.active = false;
-  }
-
-  /**
-   * 이미지로 교체 (나중에)
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async loadTexture(_texturePath: string): Promise<void> {
-    // TODO: 포션 이미지가 준비되면 Sprite로 교체
-    // const texture = await Assets.load(_texturePath);
-    // this.removeChild(this.visual);
-    // this.visual.destroy();
-    // this.visual = new Sprite(texture);
-    // this.visual.anchor.set(0.5);
-    // this.addChild(this.visual);
   }
 
   /**
