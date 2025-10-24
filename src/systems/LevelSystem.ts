@@ -637,13 +637,14 @@ export class LevelSystem {
     ];
 
     // 선택지 풀 구성 (가중치 적용)
-    // - 무기: 3배 가중치 (빠른 무기 확보 유도)
+    // - 무기: 레벨 3 이하일 때 6배, 이후 3배 가중치 (빠른 무기 확보 유도)
     // - 기존 스탯: 2배 가중치 (기본 빌드)
     // - 공격/방어/유틸: 1배 (새로운 파워업)
     // - 복합: 선택지에 포함 (희귀하지만 강력한 효과)
-    allPossibleChoices.push(...weapons);
-    allPossibleChoices.push(...weapons); // 2번째
-    allPossibleChoices.push(...weapons); // 3번째
+    const weaponWeight = this.level <= 3 ? 6 : 3; // 레벨 3 이하일 때 무기 확률 2배 증가
+    for (let i = 0; i < weaponWeight; i++) {
+      allPossibleChoices.push(...weapons);
+    }
     allPossibleChoices.push(...statUpgrades);
     allPossibleChoices.push(...statUpgrades); // 2번째
     allPossibleChoices.push(...combatPowerups);
