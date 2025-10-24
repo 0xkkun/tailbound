@@ -44,7 +44,7 @@ export class MaidenGhostEnemy extends BaseEnemy {
 
     // 처녀귀신 고유 스탯: 높은 체력, 느림, 원거리 공격
     const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
-    this.health = 55 * tierMultiplier; // 원거리 유틸형으로 체력 높음
+    this.health = 40 * tierMultiplier; // 원거리 유틸형으로 체력 높음
     this.maxHealth = this.health;
     this.speed = 85; // 기본보다 15% 느림 (거리 유지가 목적)
     this.damage = 15 * tierMultiplier; // 투사체 데미지
