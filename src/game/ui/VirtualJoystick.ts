@@ -25,7 +25,7 @@ export class VirtualJoystick {
   // 입력 스무딩을 위한 변수
   private targetX: number = 0;
   private targetY: number = 0;
-  private smoothFactor: number = 0.3; // 스무딩 강도 (0~1, 낮을수록 부드러움)
+  private smoothFactor: number = 1.0; // 스무딩 강도 (0~1, 낮을수록 부드러움)
 
   private touchStartX: number = 0;
   private touchStartY: number = 0;
