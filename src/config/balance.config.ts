@@ -104,7 +104,7 @@ export const WEAPON_BALANCE = {
   // 작두날 (추후 구현)
   jakdu_blade: {
     name: '작두날',
-    baseDamage: 30,
+    baseDamage: 18,
     baseCooldown: 3.0,
     projectileSpeed: 400,
     projectileRadius: 20,
@@ -112,7 +112,7 @@ export const WEAPON_BALANCE = {
     piercing: 5,
     projectileCount: 1,
     levelScaling: {
-      damage: 10,
+      damage: 6,
       cooldownReduction: 0.1,
       piercingPerLevel: 1,
     },
