@@ -62,6 +62,9 @@ export class TalismanWeapon extends Weapon {
       projectile.damage = this.damage * critResult.damageMultiplier;
       projectile.playerRef = player; // 흡혈용
 
+      // 범위 배율 적용
+      projectile.radius = projectile.radius * player.areaMultiplier;
+
       // 치명타 시각 효과 (노란색 -> 빨간색)
       if (critResult.isCritical) {
         // 색상은 나중에 스프라이트 로드 전에 변경

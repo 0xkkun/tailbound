@@ -37,7 +37,7 @@ export class DokkaebiFireWeapon extends Weapon {
   /**
    * 궤도 생성 (무기 추가 시 또는 레벨업 시 호출)
    */
-  public async spawnOrbitals(_player: Player, gameLayer: Container): Promise<void> {
+  public async spawnOrbitals(player: Player, gameLayer: Container): Promise<void> {
     // 기존 궤도 제거
     for (const orbital of this.orbitals) {
       gameLayer.removeChild(orbital);
@@ -57,6 +57,9 @@ export class DokkaebiFireWeapon extends Weapon {
         0x00ffff // 청록색 (도깨비불)
       );
       orbital.damage = this.damage;
+
+      // 범위 배율 적용
+      orbital.radius = orbital.radius * player.areaMultiplier;
 
       // 도깨비불 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 48x48)
       await orbital.loadSpriteSheet('/assets/weapon/dokkabi-fire.png', 48, 48, 30, 6);
