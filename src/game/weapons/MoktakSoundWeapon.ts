@@ -45,8 +45,7 @@ export class MoktakSoundWeapon extends Weapon {
       finalDamage = this.damage * critResult.damageMultiplier;
       isCritical = critResult.isCritical;
 
-      // 범위 배율 적용
-      finalRadius = this.aoeRadius * player.areaMultiplier;
+      finalRadius = this.aoeRadius;
     }
 
     // 하나의 광역 이펙트 생성

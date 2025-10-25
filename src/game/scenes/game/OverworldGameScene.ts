@@ -484,7 +484,7 @@ export class OverworldGameScene extends BaseGameScene {
     for (const weapon of this.weapons) {
       // 쿨다운 배율 적용 (쿨타임이 낮을수록 빠르게 발사)
       const effectiveDeltaTime = deltaTime / this.player.cooldownMultiplier;
-      weapon.update(effectiveDeltaTime, this.player);
+      weapon.update(effectiveDeltaTime);
 
       // 궤도형 무기 (DokkaebiFireWeapon) 업데이트
       if (weapon instanceof DokkaebiFireWeapon) {
@@ -1079,13 +1079,13 @@ export class OverworldGameScene extends BaseGameScene {
         if (existingDokkaebi) {
           existingDokkaebi.levelUp();
           // 레벨업 시 궤도 재생성
-          await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.player, this.gameLayer);
+          await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.gameLayer);
           console.log(`도깨비불 레벨업! Lv.${existingDokkaebi.level}`);
         } else {
           const dokkaebi = new DokkaebiFireWeapon();
           this.weapons.push(dokkaebi);
           // 최초 생성 시 궤도 생성
-          await dokkaebi.spawnOrbitals(this.player, this.gameLayer);
+          await dokkaebi.spawnOrbitals(this.gameLayer);
           console.log('도깨비불 무기 추가 완료!');
         }
         break;
@@ -1109,13 +1109,13 @@ export class OverworldGameScene extends BaseGameScene {
         if (existingJakdu) {
           existingJakdu.levelUp();
           // 레벨업 시 작두 재생성
-          await (existingJakdu as JakduBladeWeapon).spawnBlades(this.player, this.gameLayer);
+          await (existingJakdu as JakduBladeWeapon).spawnBlades(this.gameLayer);
           console.log(`작두날 레벨업! Lv.${existingJakdu.level}`);
         } else {
           const jakdu = new JakduBladeWeapon();
           this.weapons.push(jakdu);
           // 최초 생성 시 작두 생성
-          await jakdu.spawnBlades(this.player, this.gameLayer);
+          await jakdu.spawnBlades(this.gameLayer);
           console.log('작두날 무기 추가 완료!');
         }
         break;
