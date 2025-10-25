@@ -184,11 +184,11 @@ export abstract class BaseGameScene extends Container {
     window.addEventListener('keyup', this.handleKeyUp);
   }
 
-  private handleKeyDown = (e: KeyboardEvent) => {
+  protected handleKeyDown = (e: KeyboardEvent) => {
     this.keys.add(e.key.toLowerCase());
   };
 
-  private handleKeyUp = (e: KeyboardEvent) => {
+  protected handleKeyUp = (e: KeyboardEvent) => {
     this.keys.delete(e.key.toLowerCase());
   };
 

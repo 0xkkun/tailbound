@@ -123,13 +123,12 @@ export class Projectile extends Container {
     this.visual.clear();
 
     // 원형 투사체 (부적 이미지 대신)
-    this.visual.beginFill(color);
-    this.visual.drawCircle(0, 0, this.radius);
-    this.visual.endFill();
+    this.visual.circle(0, 0, this.radius);
+    this.visual.fill(color);
 
     // 테두리
-    this.visual.lineStyle(2, 0xffffff);
-    this.visual.drawCircle(0, 0, this.radius);
+    this.visual.circle(0, 0, this.radius);
+    this.visual.stroke({ width: 2, color: 0xffffff });
   }
 
   /**
