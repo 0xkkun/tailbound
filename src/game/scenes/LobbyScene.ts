@@ -9,6 +9,7 @@ export class LobbyScene extends Container {
   private startButton!: PixelButton;
   private characterSelectButton!: PixelButton;
   private optionsButton!: PixelButton;
+  private testButton?: PixelButton; // 개발 환경 전용
   private copyrightText!: Text;
   private isMobile: boolean;
   private scaleFactor: number;
@@ -16,6 +17,7 @@ export class LobbyScene extends Container {
   private screenHeight: number;
 
   public onStartGame?: () => void;
+  public onStartTestMode?: () => void;
 
   constructor(screenWidth: number, screenHeight: number) {
     super();
@@ -53,8 +55,8 @@ export class LobbyScene extends Container {
       const texture = await Assets.load('/assets/gui/title.png');
 
       // 픽셀 아트 렌더링 설정
-      if (texture.baseTexture) {
-        texture.baseTexture.scaleMode = 'nearest';
+      if (texture.source) {
+        texture.source.scaleMode = 'nearest';
       }
 
       const titleY = this.isMobile ? 40 * this.scaleFactor : 80;
@@ -82,10 +84,13 @@ export class LobbyScene extends Container {
     const subtitleY = this.isMobile ? 40 * this.scaleFactor + titleSize + 10 : 160;
 
     // 부제
-    this.subtitleText = new Text('Talebound', {
-      fontFamily: 'NeoDunggeunmo',
-      fontSize: subtitleSize,
-      fill: 0xb8b8b8,
+    this.subtitleText = new Text({
+      text: 'Talebound',
+      style: {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: subtitleSize,
+        fill: 0xb8b8b8,
+      },
     });
     this.subtitleText.resolution = 3; // 초고해상도 렌더링 (로비 화면용)
     this.subtitleText.anchor.set(0.5, 0);
@@ -100,8 +105,8 @@ export class LobbyScene extends Container {
       const texture = await Assets.load('/assets/gui/title-fan.png');
 
       // 픽셀 아트 렌더링 설정
-      if (texture.baseTexture) {
-        texture.baseTexture.scaleMode = 'nearest';
+      if (texture.source) {
+        texture.source.scaleMode = 'nearest';
       }
 
       // 타이틀 하단 위치 계산
@@ -184,6 +189,24 @@ export class LobbyScene extends Container {
       this.scaleFactor
     );
     this.addChild(this.optionsButton);
+
+    // 테스트 모드 버튼 (개발 환경에서만 표시)
+    if (import.meta.env.DEV) {
+      this.testButton = PixelButton.createResponsive(
+        '테스트 모드',
+        screenWidth,
+        buttonX,
+        baseY + gap * 3,
+        () => {
+          console.log('테스트 모드 시작!');
+          this.onStartTestMode?.();
+        },
+        false, // 활성화 상태
+        this.isMobile,
+        this.scaleFactor
+      );
+      this.addChild(this.testButton);
+    }
   }
 
   private createCopyright(screenWidth: number, screenHeight: number): void {
@@ -192,10 +215,13 @@ export class LobbyScene extends Container {
     const lineHeight = this.isMobile ? 32 : 40;
 
     // 프로젝트 저작권 (위)
-    this.copyrightText = new Text('0xkkun © 2025', {
-      fontFamily: 'NeoDunggeunmo',
-      fontSize: fontSize,
-      fill: 0x888888,
+    this.copyrightText = new Text({
+      text: '0xkkun © 2025',
+      style: {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: fontSize,
+        fill: 0x888888,
+      },
     });
     this.copyrightText.resolution = 2;
     this.copyrightText.anchor.set(0.5, 1);
@@ -204,15 +230,15 @@ export class LobbyScene extends Container {
     this.addChild(this.copyrightText);
 
     // 폰트 저작권 (아래, 줄바꿈)
-    const fontCopyright = new Text(
-      'Neo둥근모 Pro © 2017-2024, Eunbin Jeong (Dalgona.)\n<project-neodgm@dalgona.dev>',
-      {
+    const fontCopyright = new Text({
+      text: 'Neo둥근모 Pro © 2017-2024, Eunbin Jeong (Dalgona.)\n<project-neodgm@dalgona.dev>',
+      style: {
         fontFamily: 'NeoDunggeunmo',
         fontSize: fontSize,
         fill: 0x888888,
         align: 'center',
-      }
-    );
+      },
+    });
     fontCopyright.resolution = 2;
     fontCopyright.anchor.set(0.5, 1);
     fontCopyright.x = screenWidth / 2;
@@ -224,6 +250,9 @@ export class LobbyScene extends Container {
     this.startButton.destroy();
     this.characterSelectButton.destroy();
     this.optionsButton.destroy();
+    if (this.testButton) {
+      this.testButton.destroy();
+    }
     super.destroy({ children: true });
   }
 }
