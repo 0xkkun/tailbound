@@ -74,15 +74,14 @@ export class FanWindWeapon extends Weapon {
         const critResult = player.rollCritical();
         projectile.isCritical = critResult.isCritical;
         projectile.damage = this.damage * critResult.damageMultiplier;
-        projectile.playerRef = player; // 흡혈용
+        projectile.playerRef = player;
       } else {
         projectile.damage = this.damage;
       }
 
       projectile.speed = this.weaponData.projectileSpeed || 350;
       projectile.lifeTime = this.weaponData.projectileLifetime || 1.2;
-      projectile.radius =
-        (this.weaponData.projectileRadius || 15) * (player?.areaMultiplier ?? 1.0);
+      projectile.radius = this.weaponData.projectileRadius || 15;
       projectile.piercing = Infinity; // 무제한 관통
 
       // wind.png 스프라이트 애니메이션 로드

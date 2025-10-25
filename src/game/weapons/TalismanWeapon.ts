@@ -60,10 +60,7 @@ export class TalismanWeapon extends Weapon {
       const critResult = player.rollCritical();
       projectile.isCritical = critResult.isCritical;
       projectile.damage = this.damage * critResult.damageMultiplier;
-      projectile.playerRef = player; // 흡혈용
-
-      // 범위 배율 적용
-      projectile.radius = projectile.radius * player.areaMultiplier;
+      projectile.playerRef = player;
 
       // 치명타 시각 효과 (노란색 -> 빨간색)
       if (critResult.isCritical) {

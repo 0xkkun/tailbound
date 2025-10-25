@@ -26,30 +26,18 @@ export const POWERUP_ID_PREFIXES = {
   // 공격 파워업
   CRIT_RATE: 'powerup_crit_rate',
   CRIT_DAMAGE: 'powerup_crit_damage',
-  AREA: 'powerup_area',
 
   // 방어 파워업
   DAMAGE_REDUCTION: 'powerup_damage_reduction',
-  HEALTH_REGEN: 'powerup_health_regen',
-  LIFE_STEAL: 'powerup_life_steal',
-  SHIELD: 'powerup_shield',
-  DODGE: 'powerup_dodge',
+  BREATHING: 'powerup_breathing', // 호흡 (복합에서 이동)
 
   // 유틸리티 파워업
   XP_GAIN: 'powerup_xp_gain',
-  DROP_RATE: 'powerup_drop_rate',
-  LUCK: 'powerup_luck',
 } as const;
 
-// 복합 파워업 ID
-export const HYBRID_POWERUP_IDS = {
-  INNER_POWER: 'powerup_inner_power',
-  MENTAL_TECHNIQUE: 'powerup_mental_technique',
-  VITALITY: 'powerup_vitality',
-  FORTUNE: 'powerup_fortune',
-  BREATHING: 'powerup_breathing',
-  MEDITATION: 'powerup_meditation',
-  REVIVE: 'powerup_revive',
+// 특수 드롭 아이템 ID
+export const SPECIAL_DROP_IDS = {
+  REVIVE: 'drop_revive', // 혼백 (보스 드롭)
 } as const;
 
 // 무기 스프라이트 시트 정보
@@ -105,28 +93,16 @@ export const POWERUP_ICON_MAP = {
   // 공격 파워업
   [POWERUP_ID_PREFIXES.CRIT_RATE]: '/assets/power-up/kill.png',
   [POWERUP_ID_PREFIXES.CRIT_DAMAGE]: '/assets/power-up/kill.png',
-  [POWERUP_ID_PREFIXES.AREA]: '/assets/power-up/attack-power.png',
 
   // 방어 파워업
   [POWERUP_ID_PREFIXES.DAMAGE_REDUCTION]: '/assets/power-up/health-plus.png',
-  [POWERUP_ID_PREFIXES.HEALTH_REGEN]: '/assets/power-up/health-generate.png',
-  [POWERUP_ID_PREFIXES.LIFE_STEAL]: '/assets/power-up/drain.png',
-  [POWERUP_ID_PREFIXES.SHIELD]: '/assets/power-up/health-plus.png',
-  [POWERUP_ID_PREFIXES.DODGE]: '/assets/power-up/move-speed.png',
+  [POWERUP_ID_PREFIXES.BREATHING]: '/assets/power-up/health-generate.png',
 
   // 유틸리티 파워업
   [POWERUP_ID_PREFIXES.XP_GAIN]: '/assets/power-up/attack-speed.png',
-  [POWERUP_ID_PREFIXES.DROP_RATE]: '/assets/power-up/attack-speed.png',
-  [POWERUP_ID_PREFIXES.LUCK]: '/assets/power-up/health-plus.png',
 
-  // 복합 파워업
-  [HYBRID_POWERUP_IDS.INNER_POWER]: '/assets/power-up/attack-power.png',
-  [HYBRID_POWERUP_IDS.MENTAL_TECHNIQUE]: '/assets/power-up/kill.png',
-  [HYBRID_POWERUP_IDS.VITALITY]: '/assets/power-up/health-plus.png',
-  [HYBRID_POWERUP_IDS.FORTUNE]: '/assets/power-up/attack-speed.png',
-  [HYBRID_POWERUP_IDS.BREATHING]: '/assets/power-up/health-generate.png',
-  [HYBRID_POWERUP_IDS.MEDITATION]: '/assets/power-up/attack-speed.png',
-  [HYBRID_POWERUP_IDS.REVIVE]: '/assets/power-up/health-plus.png',
+  // 특수 드롭 아이템
+  [SPECIAL_DROP_IDS.REVIVE]: '/assets/power-up/health-plus.png',
 } as const;
 
 // 기본 아이콘
