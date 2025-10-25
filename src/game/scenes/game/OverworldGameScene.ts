@@ -517,7 +517,7 @@ export class OverworldGameScene extends BaseGameScene {
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance <= aoe.radius) {
-            enemy.takeDamage(aoe.damage);
+            enemy.takeDamage(aoe.damage, aoe.isCritical);
             aoe.markEnemyHit(enemy.id); // 이 적을 맞힌 것으로 기록
 
             // 넉백 적용 (AoE 중심에서 바깥쪽으로)
@@ -563,7 +563,7 @@ export class OverworldGameScene extends BaseGameScene {
         const angle = Math.atan2(dy, dx);
 
         if (swing.isInRange(angle, distance)) {
-          enemy.takeDamage(swing.damage);
+          enemy.takeDamage(swing.damage, swing.isCritical);
           swing.markEnemyHit(enemyId);
 
           // 넉백 적용 (휘두르기 중심에서 바깥쪽으로)
@@ -607,7 +607,7 @@ export class OverworldGameScene extends BaseGameScene {
                 // 플레이어 데미지 배율 적용 (치명타 포함)
                 const critResult = this.player.rollCritical();
                 const finalDamage = orbital.damage * critResult.damageMultiplier;
-                enemy.takeDamage(finalDamage);
+                enemy.takeDamage(finalDamage, critResult.isCritical);
                 orbital.recordEnemyHit(enemy.id);
 
                 // 넉백 적용 (궤도 위치에서 바깥쪽으로)
@@ -659,7 +659,7 @@ export class OverworldGameScene extends BaseGameScene {
               // 플레이어 데미지 배율 적용 (치명타 포함)
               const critResult = this.player.rollCritical();
               const finalDamage = blade.damage * critResult.damageMultiplier;
-              enemy.takeDamage(finalDamage);
+              enemy.takeDamage(finalDamage, critResult.isCritical);
               blade.recordHit(enemy.id); // 타격 기록
 
               // 넉백 적용 (작두 위치에서 바깥쪽으로)
@@ -902,21 +902,29 @@ export class OverworldGameScene extends BaseGameScene {
    */
   private updateUI(): void {
     // 점수 (아이콘이 있으므로 숫자만 표시)
-    this.scoreText.text = `${this.enemiesKilled}`;
+    if (this.scoreText) {
+      this.scoreText.text = `${this.enemiesKilled}`;
+    }
 
     // 시간
-    const minutes = Math.floor(this.gameTime / 60);
-    const seconds = Math.floor(this.gameTime % 60);
-    this.timeText.text = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    if (this.timeText) {
+      const minutes = Math.floor(this.gameTime / 60);
+      const seconds = Math.floor(this.gameTime % 60);
+      this.timeText.text = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
 
     // 레벨
-    this.levelText.text = `Lv.${this.player.getLevel()}`;
+    if (this.levelText) {
+      this.levelText.text = `Lv.${this.player.getLevel()}`;
+    }
 
     // 경험치 바
-    const progress = this.player.getLevelProgress();
-    this.xpBarFill.clear();
-    this.xpBarFill.rect(0, 0, 300 * progress, 15);
-    this.xpBarFill.fill(0x00ff00);
+    if (this.xpBarFill) {
+      const progress = this.player.getLevelProgress();
+      this.xpBarFill.clear();
+      this.xpBarFill.rect(0, 0, 300 * progress, 15);
+      this.xpBarFill.fill(0x00ff00);
+    }
   }
 
   /**
