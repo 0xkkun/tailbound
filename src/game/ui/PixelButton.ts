@@ -140,7 +140,7 @@ export class PixelButton extends Container {
   }
 
   private setupInteraction(): void {
-    this.interactive = true;
+    this.eventMode = 'static';
     this.cursor = 'pointer';
 
     this.on('pointerover', () => {
