@@ -115,9 +115,10 @@ export class LobbyScene extends Container {
       this.titleImage.x = this.screenWidth / 2;
       this.titleImage.y = 100;
 
-      // 이미지 크기 조정
-      const baseScale = this.isMobile ? 2.0 * this.scaleFactor : 3.0;
-      this.titleImage.scale.set(baseScale);
+      // 이미지 크기 조정 - 화면 가로의 2/3, 최대 400px
+      const targetWidth = Math.min(Math.floor((this.screenWidth * 2) / 3), 400);
+      const scale = targetWidth / texture.width;
+      this.titleImage.scale.set(scale);
 
       this.addChild(this.titleImage);
       console.log('타이틀 이미지 로드 완료');
