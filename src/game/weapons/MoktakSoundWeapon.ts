@@ -13,6 +13,19 @@ import type { Vector2 } from '@/types/game.types';
 
 import { Weapon } from './Weapon';
 
+// 목탁 소리 무기 상수
+const MOKTAK_CONSTANTS = {
+  SPRITE: {
+    PATH: '/assets/weapon/mocktak.png',
+    FRAME_WIDTH: 120,
+    FRAME_HEIGHT: 120,
+    TOTAL_FRAMES: 30,
+    COLUMNS: 6,
+  },
+  COLOR: 0xffa500, // 주황색
+  TICK_INTERVAL: 0.5, // 0.5초마다 데미지
+} as const;
+
 export class MoktakSoundWeapon extends Weapon {
   private aoeRadius: number = 150;
 
@@ -53,11 +66,20 @@ export class MoktakSoundWeapon extends Weapon {
       playerPos.y,
       finalRadius,
       finalDamage,
-      0xffa500 // 주황색 (목탁 소리)
+      MOKTAK_CONSTANTS.COLOR
     );
 
-    // 목탁 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 120x120)
-    await effect.loadSpriteSheet('/assets/weapon/mocktak.png', 120, 120, 30, 6);
+    // 목탁 스프라이트 로드
+    await effect.loadSpriteSheet(
+      MOKTAK_CONSTANTS.SPRITE.PATH,
+      MOKTAK_CONSTANTS.SPRITE.FRAME_WIDTH,
+      MOKTAK_CONSTANTS.SPRITE.FRAME_HEIGHT,
+      MOKTAK_CONSTANTS.SPRITE.TOTAL_FRAMES,
+      MOKTAK_CONSTANTS.SPRITE.COLUMNS
+    );
+
+    // 틱 데미지 설정
+    effect.setTickInterval(MOKTAK_CONSTANTS.TICK_INTERVAL);
 
     this.resetCooldown();
 
