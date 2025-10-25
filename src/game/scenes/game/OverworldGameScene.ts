@@ -14,6 +14,7 @@ import {
   MaidenGhostEnemy,
   MaskEnemy,
   SkeletonEnemy,
+  WhiteTigerBoss,
 } from '@/game/entities/enemies';
 import { EnemyProjectile } from '@/game/entities/EnemyProjectile';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
@@ -34,6 +35,7 @@ import { TalismanWeapon } from '@/game/weapons/TalismanWeapon';
 import type { Weapon } from '@/game/weapons/Weapon';
 import type { PlayerSnapshot } from '@/hooks/useGameState';
 import i18n from '@/i18n/config';
+import { BossSystem } from '@/systems/BossSystem';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { PortalSpawner } from '@/systems/PortalSpawner';
 import { SpawnSystem } from '@/systems/SpawnSystem';
@@ -58,6 +60,7 @@ export class OverworldGameScene extends BaseGameScene {
   private combatSystem: CombatSystem;
   private spawnSystem: SpawnSystem;
   private portalSpawner: PortalSpawner;
+  private bossSystem?: BossSystem;
 
   // 포탈
   private portal: Portal | null = null;
@@ -68,6 +71,8 @@ export class OverworldGameScene extends BaseGameScene {
   private enemiesKilled: number = 0;
   private isGameOver: boolean = false;
   private bossDefeated: boolean = false; // 보스 처치 여부
+  private bossSpawned: boolean = false; // 보스 스폰 여부
+  private readonly BOSS_SPAWN_TIME: number = 600; // 10분 (600초)
 
   // UI 요소
   private scoreText!: Text;
@@ -119,6 +124,7 @@ export class OverworldGameScene extends BaseGameScene {
       MaskEnemy.preloadSprites(),
       MaidenGhostEnemy.preloadSprites(),
       EvilSpiritEnemy.preloadSprites(),
+      WhiteTigerBoss.preloadSprites(), // 보스
       Assets.load('/assets/tile/tile1.png'), // 바닥 타일 1 (32x48)
       Assets.load('/assets/tile/tile2.png'), // 바닥 타일 2 (32x48)
       Assets.load('/assets/tile/tile3.png'), // 바닥 타일 3 (32x32)
@@ -450,7 +456,10 @@ export class OverworldGameScene extends BaseGameScene {
 
       // 발사 (투사체형, AoE형, 근접형)
       const playerPos = { x: this.player.x, y: this.player.y };
-      const fireResult = await Promise.resolve(weapon.fire(playerPos, this.enemies, this.player));
+      // 보스가 있으면 타겟 배열에 포함 (무기가 보스를 공격할 수 있도록)
+      const boss = this.bossSystem?.getBoss();
+      const targetEnemies = boss && boss.active ? [...this.enemies, boss] : this.enemies;
+      const fireResult = await Promise.resolve(weapon.fire(playerPos, targetEnemies, this.player));
 
       // 결과 타입에 따라 분기 처리
       for (const entity of fireResult) {
@@ -507,8 +516,8 @@ export class OverworldGameScene extends BaseGameScene {
       // AoE 이펙트가 시작된 동안 범위 내 적에게 데미지
       if (aoe.isEffectStarted()) {
         for (const enemy of this.enemies) {
-          // 죽은 적이거나 이미 이 AoE에 맞은 적은 스킵
-          if (!enemy.active || !enemy.isAlive() || aoe.hasHitEnemy(enemy.id)) {
+          // 죽은 적이거나 이번 틱에 데미지를 받을 수 없는 적은 스킵
+          if (!enemy.active || !enemy.isAlive() || !aoe.canHitEnemyThisTick(enemy.id)) {
             continue;
           }
 
@@ -518,7 +527,7 @@ export class OverworldGameScene extends BaseGameScene {
 
           if (distance <= aoe.radius) {
             enemy.takeDamage(aoe.damage);
-            aoe.markEnemyHit(enemy.id); // 이 적을 맞힌 것으로 기록
+            aoe.recordEnemyHit(enemy.id); // 틱 데미지 기록
 
             // 넉백 적용 (AoE 중심에서 바깥쪽으로)
             enemy.applyKnockback({ x: dx, y: dy }, KNOCKBACK_BALANCE.aoe);
@@ -706,9 +715,27 @@ export class OverworldGameScene extends BaseGameScene {
       enemy.update(deltaTime);
     }
 
-    // 11. 적 스폰 (플레이어 위치 기준)
+    // 10-1. 보스 스폰 체크 (10분 도달 시)
+    if (this.gameTime >= this.BOSS_SPAWN_TIME && !this.bossSpawned) {
+      this.spawnBoss();
+    }
+
+    // 10-2. 보스 시스템 업데이트 (플레이어 공격과의 충돌 처리)
+    if (this.bossSystem) {
+      this.bossSystem.update(
+        deltaTime,
+        this.gameTime,
+        this.projectiles,
+        this.aoeEffects,
+        this.meleeSwings
+      );
+    }
+
+    // 11. 적 스폰 (보스 전투 중이 아닐 때만)
     const playerPos = { x: this.player.x, y: this.player.y };
-    this.spawnSystem.update(deltaTime, this.enemies, this.gameTime, playerPos);
+    if (!this.bossSystem || !this.bossSystem.active) {
+      this.spawnSystem.update(deltaTime, this.enemies, this.gameTime, playerPos);
+    }
 
     // 새로 생성된 적 게임 레이어에 추가
     for (const enemy of this.enemies) {
@@ -995,7 +1022,7 @@ export class OverworldGameScene extends BaseGameScene {
   /**
    * 무기 추가
    */
-  private async addWeapon(weaponId: string): Promise<void> {
+  protected async addWeapon(weaponId: string): Promise<void> {
     console.log(`무기 추가: ${weaponId}`);
 
     switch (weaponId) {
@@ -1437,6 +1464,50 @@ export class OverworldGameScene extends BaseGameScene {
   }
 
   /**
+   * 보스 스폰
+   */
+  private spawnBoss(): void {
+    this.bossSpawned = true;
+
+    console.log('보스 스폰! 10분 경과');
+
+    // BossSystem 생성
+    this.bossSystem = new BossSystem(
+      this.gameLayer,
+      this.uiLayer,
+      this.player,
+      this.screenWidth,
+      this.screenHeight
+    );
+
+    // 보스 스폰 (플레이어 앞쪽)
+    const spawnX = this.player.x;
+    const spawnY = this.player.y - 300; // 플레이어 위쪽에 스폰
+
+    this.bossSystem.spawnBoss(spawnX, spawnY);
+
+    // 스테이지 클리어 콜백
+    this.bossSystem.onStageClear = () => {
+      console.log('스테이지 클리어!');
+      this.bossDefeated = true;
+    };
+
+    // 레벨업 UI 콜백 (보상 상자에서 사용)
+    // TODO: Epic 파워업 보상 시스템 구현 필요
+    // - 보상 상자에서 Epic 등급 파워업 2개를 선택할 수 있어야 함
+    // - LevelSystem에서 Epic 파워업만 필터링하는 로직 추가 필요
+    this.bossSystem.onShowLevelUpUI = (choices) => {
+      void this.levelUpUI.show(choices);
+    };
+
+    // 로비 복귀 콜백
+    this.bossSystem.onReturnToLobby = () => {
+      console.log('보스 클리어 후 로비로 복귀');
+      this.onReturnToLobby?.();
+    };
+  }
+
+  /**
    * 화면 크기 업데이트 오버라이드
    */
   public updateScreenSize(width: number, height: number): void {
@@ -1485,6 +1556,12 @@ export class OverworldGameScene extends BaseGameScene {
       }
       for (const potion of this.healthPotions) {
         potion.destroy();
+      }
+
+      // 보스 시스템 정리
+      if (this.bossSystem) {
+        this.bossSystem.cleanup();
+        this.bossSystem = undefined;
       }
 
       // Static 캐시 정리 (게임 종료 시)

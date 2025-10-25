@@ -3,6 +3,7 @@ import { useApplication } from '@pixi/react';
 
 import { BoundaryGameScene } from '../game/scenes/game/BoundaryGameScene';
 import { OverworldGameScene } from '../game/scenes/game/OverworldGameScene';
+import { TestGameScene } from '../game/scenes/game/TestGameScene';
 import { LobbyScene } from '../game/scenes/LobbyScene';
 import { useGameState } from '../hooks/useGameState';
 
@@ -13,6 +14,7 @@ export const GameContainer = () => {
     playerSnapshot,
     gameKey,
     startGame,
+    startTestMode,
     enterBoundary,
     continueToStage2,
     returnToLobby,
@@ -21,6 +23,16 @@ export const GameContainer = () => {
   const lobbySceneRef = useRef<LobbyScene | null>(null);
   const overworldSceneRef = useRef<OverworldGameScene | null>(null);
   const boundarySceneRef = useRef<BoundaryGameScene | null>(null);
+  const testSceneRef = useRef<TestGameScene | null>(null);
+
+  // URL 파라미터로 테스트 모드 자동 진입
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('test') === 'true' && gamePhase === 'lobby') {
+      console.log('URL 파라미터로 테스트 모드 진입');
+      startTestMode();
+    }
+  }, [gamePhase, startTestMode]);
 
   // iOS 웹뷰: Canvas 터치 이벤트 완전 차단
   useEffect(() => {
@@ -70,6 +82,9 @@ export const GameContainer = () => {
         newLobbyScene.onStartGame = () => {
           startGame();
         };
+        newLobbyScene.onStartTestMode = () => {
+          startTestMode();
+        };
 
         app.stage.addChild(newLobbyScene);
         lobbySceneRef.current = newLobbyScene;
@@ -93,6 +108,11 @@ export const GameContainer = () => {
       // Connect game start callback
       lobbyScene.onStartGame = () => {
         startGame();
+      };
+
+      // Connect test mode callback
+      lobbyScene.onStartTestMode = () => {
+        startTestMode();
       };
 
       app.stage.addChild(lobbyScene);
@@ -177,12 +197,42 @@ export const GameContainer = () => {
           boundarySceneRef.current = null;
         }
       };
+    } else if (gamePhase === 'test') {
+      // Test scene
+      console.log('테스트 모드 시작!');
+
+      // Create TestGameScene
+      const testScene = new TestGameScene(app.screen.width, app.screen.height, playerSnapshot);
+
+      // Connect return to lobby callback
+      testScene.onReturnToLobby = () => {
+        console.log('로비로 돌아가기');
+        returnToLobby();
+      };
+
+      // Connect restart game callback
+      testScene.onRestartGame = () => {
+        console.log('게임 다시하기');
+        restartGame();
+      };
+
+      app.stage.addChild(testScene);
+      testSceneRef.current = testScene;
+
+      return () => {
+        if (testSceneRef.current) {
+          testSceneRef.current.destroy();
+          app.stage.removeChild(testSceneRef.current);
+          testSceneRef.current = null;
+        }
+      };
     }
   }, [
     gamePhase,
     playerSnapshot,
     gameKey,
     startGame,
+    startTestMode,
     enterBoundary,
     continueToStage2,
     returnToLobby,
