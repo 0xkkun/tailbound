@@ -23,7 +23,7 @@ export class PixelButton extends Container {
 
     this.buttonWidth = width;
     this.buttonHeight = height;
-    this.color = disabled ? 0x666666 : color;
+    this.color = color;
     this.isDisabled = disabled;
 
     this.initButton(text, disabled);
@@ -36,7 +36,8 @@ export class PixelButton extends Container {
     if (!disabled) {
       this.setupInteraction();
     } else {
-      this.alpha = 0.5;
+      // 비활성화 상태: 전체 alpha 0.6 (60% 불투명 = 40% 검은색 효과)
+      this.alpha = 0.6;
       this.cursor = 'not-allowed';
     }
   }
@@ -75,11 +76,6 @@ export class PixelButton extends Container {
         this.background.width = this.buttonWidth;
         this.background.height = this.buttonHeight;
         this.background.anchor.set(0.5);
-
-        // 비활성화 상태일 경우 회색조로
-        if (this.isDisabled) {
-          this.background.tint = 0x888888;
-        }
 
         this.addChild(this.background);
       }
@@ -127,7 +123,7 @@ export class PixelButton extends Container {
     this.labelText = new Text(text, {
       fontFamily: 'NeoDunggeunmo',
       fontSize: fontSize,
-      fill: this.isDisabled ? 0x888888 : 0x773f16,
+      fill: 0x773f16,
     });
     this.labelText.resolution = 3; // 초고해상도 렌더링 (로비 화면용)
 
