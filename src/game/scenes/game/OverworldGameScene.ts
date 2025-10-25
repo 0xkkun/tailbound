@@ -69,13 +69,26 @@ export class OverworldGameScene extends BaseGameScene {
   private isGameOver: boolean = false;
   private bossDefeated: boolean = false; // 보스 처치 여부
 
+  // UI 레이아웃 상수
+  private readonly UI_PADDING = 16;
+  private readonly UI_SETTINGS_SIZE = 32;
+  private readonly UI_GAP_SETTINGS_TO_BAR = 18;
+  private readonly UI_GAP_BAR_TO_LEVEL = 8;
+  private readonly UI_BAR_HEIGHT = 10;
+  private readonly UI_KILL_ICON_SIZE = 24;
+  private readonly UI_KILL_ICON_GAP = 6;
+  private readonly UI_KILL_ICON_OFFSET_Y = -4; // 텍스트와 수직 정렬 조정
+
   // UI 요소
   private scoreText!: Text;
   private killIcon!: Sprite;
   private timeText!: Text;
   private levelText!: Text;
-  private xpBarBg!: Graphics;
   private xpBarFill!: Graphics;
+  private xpBarContainer!: Graphics;
+  private xpBarWidth: number = 0; // 경험치바 너비 (동적 계산용)
+  private xpBarY: number = 0; // 경험치바 Y 위치
+  private levelTextY: number = 0; // 레벨/킬 텍스트 Y 위치
   private levelUpUI!: LevelUpUI;
   private portalIndicator!: PortalIndicator;
   private settingsButton!: Container;
@@ -301,47 +314,40 @@ export class OverworldGameScene extends BaseGameScene {
     // zIndex 정렬 활성화
     this.uiLayer.sortableChildren = true;
 
-    // 처치 아이콘 및 텍스트
-    this.loadAndCreateKillUI();
+    // 경험치 바 위치 계산 및 저장
+    this.xpBarY = this.UI_PADDING + this.UI_SETTINGS_SIZE + this.UI_GAP_SETTINGS_TO_BAR;
+    this.xpBarWidth = this.screenWidth - this.UI_PADDING * 2;
+    this.levelTextY = this.xpBarY + this.UI_BAR_HEIGHT + this.UI_GAP_BAR_TO_LEVEL;
 
-    // 시간 텍스트
+    // 시간 텍스트 (중앙 상단)
     this.timeText = new Text('0:00', {
       fontFamily: 'NeoDunggeunmo',
       fontSize: 32,
       fill: 0xffffff,
       fontWeight: 'bold',
     });
-    this.timeText.resolution = 2; // 고해상도 렌더링
+    this.timeText.resolution = 2;
     this.timeText.anchor.set(0.5, 0);
     this.timeText.x = this.screenWidth / 2;
-    this.timeText.y = 20;
+    this.timeText.y = this.UI_PADDING;
     this.uiLayer.addChild(this.timeText);
 
-    // 레벨 텍스트
+    // 경험치 바 생성
+    this.createXPBar();
+
+    // 레벨 텍스트 (경험치바 아래 왼쪽)
     this.levelText = new Text('Lv.1', {
       fontFamily: 'NeoDunggeunmo',
-      fontSize: 32,
-      fill: 0xffff00,
-      fontWeight: 'bold',
+      fontSize: 16,
+      fill: 0xffffff,
     });
-    this.levelText.resolution = 2; // 고해상도 렌더링
-    this.levelText.x = 20;
-    this.levelText.y = 88; // 위로 이동 (110 -> 75)
+    this.levelText.resolution = 2;
+    this.levelText.x = this.UI_PADDING;
+    this.levelText.y = this.levelTextY;
     this.uiLayer.addChild(this.levelText);
 
-    // 경험치 바 배경
-    this.xpBarBg = new Graphics();
-    this.xpBarBg.rect(0, 0, 300, 15);
-    this.xpBarBg.fill(0x333333);
-    this.xpBarBg.x = 20;
-    this.xpBarBg.y = 120; // 위로 이동 (145 -> 110)
-    this.uiLayer.addChild(this.xpBarBg);
-
-    // 경험치 바 채우기
-    this.xpBarFill = new Graphics();
-    this.xpBarFill.x = 20;
-    this.xpBarFill.y = 120; // 위로 이동 (145 -> 110)
-    this.uiLayer.addChild(this.xpBarFill);
+    // 처치 아이콘 및 텍스트 (우측에 배치)
+    this.loadAndCreateKillUI();
 
     // 레벨업 UI
     this.levelUpUI = new LevelUpUI();
@@ -362,6 +368,45 @@ export class OverworldGameScene extends BaseGameScene {
   }
 
   /**
+   * 경험치 바 생성 (리사이즈 대응)
+   */
+  private createXPBar(): void {
+    // 기존 경험치바 제거
+    if (this.xpBarContainer) {
+      this.uiLayer.removeChild(this.xpBarContainer);
+      this.xpBarContainer.destroy();
+    }
+    if (this.xpBarFill) {
+      this.uiLayer.removeChild(this.xpBarFill);
+      this.xpBarFill.destroy();
+    }
+
+    // 경험치 바 컨테이너 (테두리 + 배경)
+    this.xpBarContainer = new Graphics();
+
+    // 1. 테두리 (1px, #472612)
+    this.xpBarContainer.rect(
+      this.UI_PADDING - 1,
+      this.xpBarY - 1,
+      this.xpBarWidth + 2,
+      this.UI_BAR_HEIGHT + 2
+    );
+    this.xpBarContainer.fill(0x472612);
+
+    // 2. 배경 (#1E1611)
+    this.xpBarContainer.rect(this.UI_PADDING, this.xpBarY, this.xpBarWidth, this.UI_BAR_HEIGHT);
+    this.xpBarContainer.fill(0x1e1611);
+
+    this.uiLayer.addChild(this.xpBarContainer);
+
+    // 3. 경험치 바 채우기
+    this.xpBarFill = new Graphics();
+    this.xpBarFill.x = this.UI_PADDING;
+    this.xpBarFill.y = this.xpBarY;
+    this.uiLayer.addChild(this.xpBarFill);
+  }
+
+  /**
    * 처치 아이콘 및 텍스트 로드 및 생성
    */
   private async loadAndCreateKillUI(): Promise<void> {
@@ -374,36 +419,39 @@ export class OverworldGameScene extends BaseGameScene {
         texture.baseTexture.scaleMode = 'nearest';
       }
 
-      // 해골 아이콘 생성
-      this.killIcon = new Sprite(texture);
-      this.killIcon.anchor.set(0, 0.5);
-      this.killIcon.scale.set(0.5); // 크기 조정
-      this.killIcon.x = 10;
-      this.killIcon.y = 60 + 12; // 텍스트 중앙에 맞춤
-      this.uiLayer.addChild(this.killIcon);
-
-      // 점수 텍스트 (아이콘 오른쪽에 배치)
+      // 점수 텍스트 (우측 정렬)
       this.scoreText = new Text('0', {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 32,
+        fontSize: 16,
         fill: 0xffffff,
       });
-      this.scoreText.resolution = 2; // 고해상도 렌더링
-      this.scoreText.x = 4 + this.killIcon.width + 10; // 아이콘 너비 + 간격
-      this.scoreText.y = 60;
+      this.scoreText.resolution = 2;
+      this.scoreText.anchor.set(1, 0); // 오른쪽 정렬
+      this.scoreText.x = this.screenWidth - this.UI_PADDING;
+      this.scoreText.y = this.levelTextY;
       this.uiLayer.addChild(this.scoreText);
+
+      // 해골 아이콘 생성 (텍스트 왼쪽에 배치, 24px 크기)
+      this.killIcon = new Sprite(texture);
+      this.killIcon.anchor.set(1, 0); // 오른쪽 정렬
+      this.killIcon.width = this.UI_KILL_ICON_SIZE;
+      this.killIcon.height = this.UI_KILL_ICON_SIZE;
+      this.killIcon.x = this.scoreText.x - this.scoreText.width - this.UI_KILL_ICON_GAP;
+      this.killIcon.y = this.levelTextY + this.UI_KILL_ICON_OFFSET_Y;
+      this.uiLayer.addChild(this.killIcon);
     } catch (error) {
       console.error('해골 아이콘 로드 실패:', error);
 
       // 폴백: 텍스트만 표시
       this.scoreText = new Text('처치: 0', {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 32,
+        fontSize: 16,
         fill: 0xffffff,
       });
       this.scoreText.resolution = 2;
-      this.scoreText.x = 20;
-      this.scoreText.y = 50;
+      this.scoreText.anchor.set(1, 0);
+      this.scoreText.x = this.screenWidth - this.UI_PADDING;
+      this.scoreText.y = this.levelTextY;
       this.uiLayer.addChild(this.scoreText);
     }
   }
@@ -904,6 +952,11 @@ export class OverworldGameScene extends BaseGameScene {
     // 점수 (아이콘이 있으므로 숫자만 표시)
     if (this.scoreText) {
       this.scoreText.text = `${this.enemiesKilled}`;
+
+      // 킬 아이콘 위치 동적 업데이트 (텍스트 너비 변경 대응)
+      if (this.killIcon) {
+        this.killIcon.x = this.scoreText.x - this.scoreText.width - this.UI_KILL_ICON_GAP;
+      }
     }
 
     // 시간
@@ -922,8 +975,8 @@ export class OverworldGameScene extends BaseGameScene {
     if (this.xpBarFill) {
       const progress = this.player.getLevelProgress();
       this.xpBarFill.clear();
-      this.xpBarFill.rect(0, 0, 300 * progress, 15);
-      this.xpBarFill.fill(0x00ff00);
+      this.xpBarFill.rect(0, 0, this.xpBarWidth * progress, this.UI_BAR_HEIGHT);
+      this.xpBarFill.fill(0xe39f54);
     }
   }
 
@@ -1216,14 +1269,14 @@ export class OverworldGameScene extends BaseGameScene {
    */
   private createSettingsButton(): Container {
     const buttonContainer = new Container();
-    buttonContainer.x = 30; // 왼쪽 상단 (경험치 바 옆)
-    buttonContainer.y = 30;
+    buttonContainer.x = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
+    buttonContainer.y = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
     buttonContainer.zIndex = 1000; // 다른 UI보다 위에
 
     // 설정 아이콘 (톱니바퀴 이미지)
     const icon = Sprite.from('/assets/gui/settings.png');
-    icon.width = 40;
-    icon.height = 40;
+    icon.width = this.UI_SETTINGS_SIZE;
+    icon.height = this.UI_SETTINGS_SIZE;
     icon.anchor.set(0.5);
     buttonContainer.addChild(icon);
 
@@ -1452,11 +1505,39 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 씬별 추가 업데이트
     this.spawnSystem.updateScreenSize(width, height);
-    this.timeText.x = width / 2;
 
-    // 설정 버튼 위치 업데이트 (왼쪽 상단 고정)
+    // UI 위치 재계산
+    this.xpBarWidth = width - this.UI_PADDING * 2;
+    this.xpBarY = this.UI_PADDING + this.UI_SETTINGS_SIZE + this.UI_GAP_SETTINGS_TO_BAR;
+    this.levelTextY = this.xpBarY + this.UI_BAR_HEIGHT + this.UI_GAP_BAR_TO_LEVEL;
+
+    // 타이머 중앙 정렬
+    if (this.timeText) {
+      this.timeText.x = width / 2;
+    }
+
+    // 경험치바 재생성 (너비 변경 대응)
+    this.createXPBar();
+
+    // 레벨 텍스트 위치 업데이트
+    if (this.levelText) {
+      this.levelText.y = this.levelTextY;
+    }
+
+    // 킬 UI 위치 업데이트
+    if (this.scoreText) {
+      this.scoreText.x = width - this.UI_PADDING;
+      this.scoreText.y = this.levelTextY;
+    }
+    if (this.killIcon) {
+      this.killIcon.x = this.scoreText.x - this.scoreText.width - this.UI_KILL_ICON_GAP;
+      this.killIcon.y = this.levelTextY + this.UI_KILL_ICON_OFFSET_Y;
+    }
+
+    // 설정 버튼 위치 업데이트
     if (this.settingsButton) {
-      this.settingsButton.x = 350;
+      this.settingsButton.x = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
+      this.settingsButton.y = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
     }
   }
 
