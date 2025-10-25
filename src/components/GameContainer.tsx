@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApplication } from '@pixi/react';
+import { Assets } from 'pixi.js';
 
 import { BoundaryGameScene } from '../game/scenes/game/BoundaryGameScene';
 import { OverworldGameScene } from '../game/scenes/game/OverworldGameScene';
@@ -21,6 +22,7 @@ export const GameContainer = () => {
   const lobbySceneRef = useRef<LobbyScene | null>(null);
   const overworldSceneRef = useRef<OverworldGameScene | null>(null);
   const boundarySceneRef = useRef<BoundaryGameScene | null>(null);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
 
   // iOS 웹뷰: Canvas 터치 이벤트 완전 차단
   useEffect(() => {
@@ -79,6 +81,58 @@ export const GameContainer = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [app, gamePhase, startGame]);
+
+  // 에셋 프리로딩
+  useEffect(() => {
+    const preloadAssets = async () => {
+      try {
+        // 주요 에셋 미리 로드
+        await Assets.load([
+          '/assets/gui/bg-button.png',
+          '/assets/gui/settings.png',
+
+          '/assets/power-up/kill.png',
+
+          '/assets/npc/monk.png',
+
+          '/assets/player/shaman.png',
+
+          '/assets/weapon/talisman.png',
+          '/assets/weapon/dokkabi-fire.png',
+          '/assets/weapon/mocktak.png',
+          '/assets/weapon/jakdu.png',
+        ]);
+
+        setAssetsLoaded(true);
+      } catch (error) {
+        console.error('에셋 로딩 실패:', error);
+        // 에러가 발생해도 게임은 시작
+        setAssetsLoaded(true);
+      }
+    };
+
+    preloadAssets();
+  }, []);
+
+  // 로딩 화면 숨기기 (에셋 로딩 완료 후)
+  useEffect(() => {
+    if (!assetsLoaded) return;
+
+    // 게임이 로드되면 로딩 화면 페이드아웃
+    const timer = setTimeout(() => {
+      document.body.classList.add('loaded');
+
+      // 페이드아웃 완료 후 제거
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          loadingScreen.classList.add('hidden');
+        }
+      }, 500);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [assetsLoaded]);
 
   useEffect(() => {
     if (!app) return;
