@@ -42,7 +42,7 @@ export class CombatSystem {
           // 데미지 적용 (projectile.damage는 이미 치명타가 적용된 상태)
           const finalDamage = projectile.damage;
 
-          enemy.takeDamage(finalDamage);
+          enemy.takeDamage(finalDamage, projectile.isCritical);
 
           // 흡혈 처리 (플레이어가 있으면)
           if (projectile.playerRef) {

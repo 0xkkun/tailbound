@@ -2,7 +2,16 @@
  * 베이스 적 엔티티 (추상 클래스)
  */
 
-import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
+import {
+  AnimatedSprite,
+  Assets,
+  Container,
+  Graphics,
+  Rectangle,
+  Text,
+  Texture,
+  Ticker,
+} from 'pixi.js';
 
 import { ENEMY_BALANCE, KNOCKBACK_BALANCE } from '@/config/balance.config';
 import type { EnemyTier } from '@/game/data/enemies';
@@ -246,14 +255,70 @@ export abstract class BaseEnemy extends Container {
   /**
    * 데미지 받기
    */
-  public takeDamage(amount: number): void {
+  public takeDamage(amount: number, isCritical: boolean = false): void {
     this.health -= amount;
     if (this.health < 0) {
       this.health = 0;
     }
 
+    // 데미지 텍스트 표시
+    this.showFloatingText(Math.round(amount).toString(), isCritical);
+
     // 피격 효과 (빨간색으로 잠깐 변경)
     this.flashRed();
+  }
+
+  /**
+   * 플로팅 데미지 텍스트 표시
+   */
+  private showFloatingText(text: string, isCritical: boolean = false): void {
+    const floatingText = new Text({
+      text,
+      style: {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: isCritical ? 20 : 16,
+        fill: isCritical ? 0xffff00 : 0xffffff, // 치명타: 노란색, 일반: 흰색
+        fontWeight: 'bold',
+        stroke: { color: 0x000000, width: 3 },
+      },
+    });
+    floatingText.resolution = 2;
+    floatingText.anchor.set(0.5);
+    floatingText.x = this.x;
+    floatingText.y = this.y - this.radius - 20;
+
+    // 부모에 추가
+    if (this.parent) {
+      this.parent.addChild(floatingText);
+    }
+
+    // 애니메이션 설정
+    const duration = 1.0; // 1초
+    const startY = floatingText.y;
+    const riseDistance = 50; // 올라가는 거리
+    let elapsed = 0;
+
+    // Ticker 콜백 정의
+    const animate = (ticker: Ticker) => {
+      // deltaTime을 초 단위로 변환 (프레임율 독립적)
+      const deltaTime = ticker.deltaTime / 60;
+      elapsed += deltaTime;
+      const progress = Math.min(elapsed / duration, 1.0);
+
+      // 위로 올라가기
+      floatingText.y = startY - progress * riseDistance;
+      // 페이드아웃
+      floatingText.alpha = 1.0 - progress;
+
+      // 애니메이션 완료 시 정리
+      if (progress >= 1.0) {
+        Ticker.shared.remove(animate); // Ticker에서 제거
+        floatingText.destroy(); // 텍스트 제거
+      }
+    };
+
+    // Ticker에 추가
+    Ticker.shared.add(animate);
   }
 
   /**
