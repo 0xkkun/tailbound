@@ -2,6 +2,7 @@
  * 스켈레톤 적 - 빠르고 약한 유리대포형
  */
 
+import { ENEMY_BALANCE } from '@/config/balance.config';
 import type { EnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
@@ -21,11 +22,12 @@ export class SkeletonEnemy extends BaseEnemy {
     super(id, x, y, tier);
 
     // 스켈레톤 고유 스탯: 빠르고 약함
-    const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
-    this.health = 20 * tierMultiplier; // 기본보다 33% 낮음
+    // balance.config.ts의 티어 기본값에 타입별 배율 적용
+    const baseStats = ENEMY_BALANCE[tier];
+    this.health = Math.floor(baseStats.health * 0.67); // 기본보다 33% 낮음
     this.maxHealth = this.health;
     this.speed = 130; // 기본보다 30% 빠름
-    this.damage = 8 * tierMultiplier; // 기본보다 20% 낮음
+    this.damage = Math.floor(baseStats.damage * 0.8); // 기본보다 20% 낮음
     this.radius = 25; // 작은 히트박스
   }
 

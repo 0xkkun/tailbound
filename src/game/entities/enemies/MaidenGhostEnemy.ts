@@ -6,6 +6,7 @@
 
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
+import { ENEMY_BALANCE } from '@/config/balance.config';
 import type { EnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
@@ -43,11 +44,12 @@ export class MaidenGhostEnemy extends BaseEnemy {
     super(id, x, y, tier);
 
     // 처녀귀신 고유 스탯: 높은 체력, 느림, 원거리 공격
-    const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
-    this.health = 40 * tierMultiplier; // 원거리 유틸형으로 체력 높음
+    // balance.config.ts의 티어 기본값에 타입별 배율 적용
+    const baseStats = ENEMY_BALANCE[tier];
+    this.health = Math.floor(baseStats.health * 1.33); // 원거리 유틸형으로 체력 높음
     this.maxHealth = this.health;
     this.speed = 85; // 기본보다 15% 느림 (거리 유지가 목적)
-    this.damage = 15 * tierMultiplier; // 투사체 데미지
+    this.damage = Math.floor(baseStats.damage * 1.5); // 투사체 데미지
     this.radius = 30; // 기본 히트박스
 
     this.loadAttackAnimation();
