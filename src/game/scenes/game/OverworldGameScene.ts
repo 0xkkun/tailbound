@@ -2,7 +2,7 @@
  * 게임 씬 - 메인 게임 로직
  */
 
-import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Spritesheet, Text } from 'pixi.js';
 
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
@@ -50,6 +50,11 @@ export class OverworldGameScene extends BaseGameScene {
   private healthPotions: HealthPotion[] = [];
   private aoeEffects: AoEEffect[] = [];
   private meleeSwings: MeleeSwing[] = [];
+
+  // 스프라이트시트
+  private spiritEnergySpritesheet1!: Spritesheet;
+  private spiritEnergySpritesheet2!: Spritesheet;
+  private spiritEnergySpritesheet3!: Spritesheet;
 
   // 무기
   private weapons: Weapon[] = [];
@@ -136,6 +141,55 @@ export class OverworldGameScene extends BaseGameScene {
       Assets.load('/assets/tile/tile2.png'), // 바닥 타일 2 (32x48)
       Assets.load('/assets/tile/tile3.png'), // 바닥 타일 3 (32x32)
     ]);
+
+    // Spirit Energy 스프라이트시트 로드 (1, 2, 3)
+    [this.spiritEnergySpritesheet1, this.spiritEnergySpritesheet2, this.spiritEnergySpritesheet3] =
+      await Promise.all([
+        this.loadSpiritEnergySpritesheet('/assets/drop/spirit-enery-1.png'),
+        this.loadSpiritEnergySpritesheet('/assets/drop/spirit-enery-2.png'),
+        this.loadSpiritEnergySpritesheet('/assets/drop/spirit-enery-3.png'),
+      ]);
+  }
+
+  /**
+   * Spirit Energy 스프라이트시트 로드
+   */
+  private async loadSpiritEnergySpritesheet(path: string): Promise<Spritesheet> {
+    const texture = await Assets.load(path);
+
+    // 픽셀 아트 렌더링 설정
+    if (texture.baseTexture) {
+      texture.baseTexture.scaleMode = 'nearest';
+    }
+
+    // 스프라이트시트 설정 (11개 프레임, 여백 없음)
+    const frameWidth = texture.width / 11;
+    const frameHeight = texture.height;
+
+    const frames: Record<string, { frame: { x: number; y: number; w: number; h: number } }> = {};
+    for (let i = 0; i < 11; i++) {
+      frames[`spirit-energy-${i}`] = {
+        frame: {
+          x: i * frameWidth,
+          y: 0,
+          w: frameWidth,
+          h: frameHeight,
+        },
+      };
+    }
+
+    const spritesheet = new Spritesheet(texture, {
+      frames,
+      meta: {
+        scale: '1',
+      },
+      animations: {
+        'spirit-energy': Object.keys(frames),
+      },
+    });
+
+    await spritesheet.parse();
+    return spritesheet;
   }
 
   /**
@@ -281,8 +335,26 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
     this.combatSystem.onEnemyKilled = (result) => {
+      // 경험치 양에 따라 적절한 스프라이트시트 선택
+      let spritesheet: Spritesheet;
+      if (result.xpValue >= 100) {
+        // 보스 경험치 -> spirit-energy-3
+        spritesheet = this.spiritEnergySpritesheet3;
+      } else if (result.xpValue >= 25) {
+        // 엘리트 경험치 -> spirit-energy-2
+        spritesheet = this.spiritEnergySpritesheet2;
+      } else {
+        // 일반 경험치 -> spirit-energy-1
+        spritesheet = this.spiritEnergySpritesheet1;
+      }
+
       // 경험치 젬 드롭
-      const gem = new ExperienceGem(result.position.x, result.position.y, result.xpValue);
+      const gem = new ExperienceGem(
+        result.position.x,
+        result.position.y,
+        result.xpValue,
+        spritesheet
+      );
       this.experienceGems.push(gem);
       this.gameLayer.addChild(gem);
 

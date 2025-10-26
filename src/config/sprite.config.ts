@@ -23,3 +23,14 @@ export const ENEMY_SPRITE_CONFIG = {
     animationSpeed: 0.15,
   },
 } as const;
+
+/**
+ * 드롭 아이템 스프라이트 설정
+ */
+export const DROP_SPRITE_CONFIG = {
+  // 정기(경험치)
+  spiritEnergy: {
+    frameCount: 11, // 스프라이트시트 프레임 수
+    animationSpeed: 0.2, // 애니메이션 재생 속도
+  },
+} as const;

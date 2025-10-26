@@ -14,6 +14,7 @@ import {
 } from 'pixi.js';
 
 import { ENEMY_BALANCE, KNOCKBACK_BALANCE } from '@/config/balance.config';
+import { GAME_CONFIG } from '@/config/game.config';
 import type { EnemyTier } from '@/game/data/enemies';
 import { getDirection } from '@/game/utils/collision';
 import type { Vector2 } from '@/types/game.types';
@@ -59,6 +60,9 @@ export abstract class BaseEnemy extends Container {
     this.x = x;
     this.y = y;
     this.tier = tier;
+
+    // zIndex 설정
+    this.zIndex = GAME_CONFIG.entities.enemy;
 
     // 티어에 따른 스탯 설정
     const stats = ENEMY_BALANCE[tier];

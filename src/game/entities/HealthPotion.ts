@@ -8,6 +8,7 @@
 import { Assets, Container, Sprite, Text } from 'pixi.js';
 
 import { POTION_BALANCE } from '@/config/balance.config';
+import { GAME_CONFIG } from '@/config/game.config';
 
 import type { Player } from './Player';
 
@@ -28,6 +29,9 @@ export class HealthPotion extends Container {
 
     this.x = x;
     this.y = y;
+
+    // zIndex 설정 (드롭 아이템)
+    this.zIndex = GAME_CONFIG.entities.drops;
 
     // 임시 이모지 폴백 (스프라이트 로드 전)
     this.visual = new Text({

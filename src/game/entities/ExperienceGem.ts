@@ -2,9 +2,11 @@
  * 경험치 젬 - 적 처치 시 드랍되는 경험치 아이템
  */
 
-import { Container, Graphics, Text } from 'pixi.js';
+import { AnimatedSprite, Container, Spritesheet, Text } from 'pixi.js';
 
 import { XP_BALANCE } from '@/config/balance.config';
+import { GAME_CONFIG } from '@/config/game.config';
+import { DROP_SPRITE_CONFIG } from '@/config/sprite.config';
 
 import type { Player } from './Player';
 
@@ -17,8 +19,7 @@ export class ExperienceGem extends Container {
   private lifetime: number;
 
   // 비주얼
-  private gem!: Graphics;
-  private glow!: Graphics;
+  private sprite!: AnimatedSprite;
   private text?: Text;
 
   // 애니메이션
@@ -26,7 +27,7 @@ export class ExperienceGem extends Container {
   private magnetSpeed: number = 0;
   private isBeingCollected: boolean = false;
 
-  constructor(x: number, y: number, value: number) {
+  constructor(x: number, y: number, value: number, spritesheet: Spritesheet) {
     super();
 
     this.x = x;
@@ -34,8 +35,11 @@ export class ExperienceGem extends Container {
     this.value = value;
     this.lifetime = XP_BALANCE.gemLifetime; // 120초(2분)
 
+    // zIndex 설정 (적보다 낮게, 바닥보다는 높게)
+    this.zIndex = GAME_CONFIG.entities.drops;
+
     // 비주얼 생성
-    this.createVisual();
+    this.createVisual(spritesheet);
 
     // 디버그 모드에서 경험치 값 표시
     if (import.meta.env.DEV) {
@@ -46,72 +50,36 @@ export class ExperienceGem extends Container {
   /**
    * 비주얼 생성
    */
-  private createVisual(): void {
-    // 발광 효과
-    this.glow = new Graphics();
-    this.addChild(this.glow);
+  private createVisual(spritesheet: Spritesheet): void {
+    // 스프라이트 애니메이션 생성
+    const textures = spritesheet.animations['spirit-energy'];
+    this.sprite = new AnimatedSprite(textures);
 
-    // 젬 본체
-    this.gem = new Graphics();
-    this.addChild(this.gem);
+    // 애니메이션 설정
+    this.sprite.animationSpeed = DROP_SPRITE_CONFIG.spiritEnergy.animationSpeed;
+    this.sprite.anchor.set(0.5);
+    this.sprite.play();
 
-    this.updateVisual();
-  }
-
-  /**
-   * 비주얼 업데이트 (경험치 양에 따라)
-   */
-  private updateVisual(): void {
-    // 경험치 양에 따라 색상과 크기 결정
-    let color: number;
-    let glowColor: number;
-    let size: number;
+    // 경험치 양에 따라 크기 조정 (기존 크기: 일반 8px, 엘리트 12px, 보스 15px)
+    // 스프라이트 원본 크기를 기준으로 목표 크기에 맞춰 스케일 조정
+    const spriteWidth = this.sprite.width;
+    let targetSize: number;
 
     if (this.value >= 100) {
-      // 보스 경험치 (금색)
-      color = 0xffd700;
-      glowColor = 0xffff00;
-      size = 15;
+      // 보스 경험치 (16px 반지름 -> 32px 직경)
+      targetSize = 32;
     } else if (this.value >= 25) {
-      // 엘리트 경험치 (보라색)
-      color = 0x9370db;
-      glowColor = 0xda70d6;
-      size = 12;
+      // 엘리트 경험치 (12px 반지름 -> 24px 직경)
+      targetSize = 24;
     } else {
-      // 일반 경험치 (녹색)
-      color = 0x00ff00;
-      glowColor = 0x00ff00;
-      size = 8;
+      // 일반 경험치 (8px 반지름 -> 16px 직경)
+      targetSize = 16;
     }
 
-    // 발광 효과
-    this.glow.clear();
-    this.glow.beginFill(glowColor, 0.3);
-    this.glow.drawCircle(0, 0, size * 2);
-    this.glow.endFill();
+    const scale = targetSize / spriteWidth;
+    this.sprite.scale.set(scale);
 
-    // 젬 본체 (육각형)
-    this.gem.clear();
-    this.gem.beginFill(color);
-    this.drawHexagon(this.gem, size);
-    this.gem.endFill();
-  }
-
-  /**
-   * 육각형 그리기
-   */
-  private drawHexagon(graphics: Graphics, size: number): void {
-    const sides = 6;
-    const angleStep = (Math.PI * 2) / sides;
-
-    graphics.moveTo(size, 0);
-    for (let i = 1; i <= sides; i++) {
-      const angle = angleStep * i;
-      const x = Math.cos(angle) * size;
-      const y = Math.sin(angle) * size;
-      graphics.lineTo(x, y);
-    }
-    graphics.closePath();
+    this.addChild(this.sprite);
   }
 
   /**
@@ -153,8 +121,7 @@ export class ExperienceGem extends Container {
 
     // 애니메이션
     this.animTime += deltaTime;
-    this.gem.rotation = Math.sin(this.animTime * 2) * 0.1;
-    this.gem.scale.set(1 + Math.sin(this.animTime * 3) * 0.1);
+    this.sprite.rotation = Math.sin(this.animTime * 2) * 0.1;
 
     // 플레이어와의 거리 계산
     const dx = player.x - this.x;
@@ -216,8 +183,7 @@ export class ExperienceGem extends Container {
    * 정리
    */
   public destroy(): void {
-    this.gem?.destroy();
-    this.glow?.destroy();
+    this.sprite?.destroy();
     this.text?.destroy();
     super.destroy();
   }
