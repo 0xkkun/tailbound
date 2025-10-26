@@ -48,6 +48,7 @@ vercel deploy --prod
 ```
 
 **최초 배포 시 설정:**
+
 - Scope: `ferv0r2's projects` (개인 계정)
 - Link to existing project: No
 - GitHub 연결 여부: No (권한 이슈 회피)
@@ -90,13 +91,14 @@ src/
 프로젝트에서 다음 경로 alias를 사용합니다:
 
 ```typescript
-import App from '@/App';                    // src/App
-import I18nExample from '@components/I18nExample';  // src/components/I18nExample
-import i18n from '@i18n/config';            // src/i18n/config
-import { mockPixiModules } from '@test/utils';     // src/test/utils
+import App from '@/App'; // src/App
+import I18nExample from '@components/I18nExample'; // src/components/I18nExample
+import i18n from '@i18n/config'; // src/i18n/config
+import { mockPixiModules } from '@test/utils'; // src/test/utils
 ```
 
 설정 파일:
+
 - [vite.config.ts](vite.config.ts) - Vite alias 설정
 - [vitest.config.ts](vitest.config.ts) - Vitest alias 설정
 - [tsconfig.app.json](tsconfig.app.json) - TypeScript paths 설정
@@ -104,11 +106,13 @@ import { mockPixiModules } from '@test/utils';     // src/test/utils
 ## 문서
 
 ### 개발 가이드
+
 - [개발 환경 설정](docs/dev/setup.md) - 초기 설정 및 Path Aliases
 - [테스트 가이드](docs/dev/test.md) - Vitest 및 PixiJS 테스트 방법
 - [국제화 가이드](docs/dev/i18n.md) - i18n 사용법 및 번역 추가 방법
 
 ### 프로젝트 문서
+
 - [문서 허브](docs/README.md) - 모든 프로젝트 문서 목록
 - [아키텍처](docs/technical/architecture.md) - 코드 아키텍처 및 설계
 
@@ -136,7 +140,3 @@ import { mockPixiModules } from '@test/utils';     // src/test/utils
 - ✅ 테스트 환경 (Vitest + Canvas Mock)
 - ✅ ESLint + Prettier
 - 🚧 게임 메커니즘 (개발 중)
-
-## 라이선스
-
-MIT
