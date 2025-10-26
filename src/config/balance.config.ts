@@ -163,6 +163,32 @@ export const SPAWN_BALANCE = {
 } as const;
 
 /**
+ * 적 타입별 고유 밸런스 설정
+ */
+export const ENEMY_TYPE_BALANCE = {
+  // 악령 (원거리)
+  evilSpirit: {
+    healthMultiplier: 0.8, // 기본 체력의 80%
+    damageMultiplier: 0.8, // 기본 데미지의 80%
+    speed: 110, // 빠른 속도
+    radius: 28, // 작은 히트박스
+    attackCooldown: 1.5, // 공격 쿨타임
+    attackRange: 280, // 공격 사거리
+    keepDistance: 200, // 유지 거리
+  },
+  // 처녀귀신 (원거리)
+  maidenGhost: {
+    healthMultiplier: 0.9, // 기본 체력의 90%
+    damageMultiplier: 1.0, // 기본 데미지
+    speed: 85, // 느린 속도
+    radius: 30, // 기본 히트박스
+    attackCooldown: 2.0, // 공격 쿨타임
+    attackRange: 250, // 공격 사거리
+    keepDistance: 180, // 유지 거리
+  },
+} as const;
+
+/**
  * 스탯 효과 계산
  */
 export const STAT_EFFECTS = {

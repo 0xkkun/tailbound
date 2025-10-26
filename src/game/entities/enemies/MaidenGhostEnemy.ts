@@ -6,7 +6,7 @@
 
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
-import { ENEMY_BALANCE } from '@/config/balance.config';
+import { ENEMY_BALANCE, ENEMY_TYPE_BALANCE } from '@/config/balance.config';
 import type { EnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
@@ -28,10 +28,10 @@ export class MaidenGhostEnemy extends BaseEnemy {
   private hasProjectileFired: boolean = false; // 공격 중 발사체 발사 여부
 
   // 원거리 공격 설정
-  private attackCooldown: number = 2.0; // 2초마다 공격
+  private attackCooldown: number = ENEMY_TYPE_BALANCE.maidenGhost.attackCooldown;
   private attackTimer: number = 0;
-  private attackRange: number = 250; // 공격 사거리
-  private keepDistance: number = 180; // 유지 거리 (너무 가까이 오지 않음)
+  private attackRange: number = ENEMY_TYPE_BALANCE.maidenGhost.attackRange;
+  private keepDistance: number = ENEMY_TYPE_BALANCE.maidenGhost.keepDistance;
 
   // 투사체 생성 콜백
   public onFireProjectile?: (projInfo: {
@@ -45,11 +45,12 @@ export class MaidenGhostEnemy extends BaseEnemy {
 
     // 처녀귀신 고유 스탯: 중간 체력, 느림, 원거리 공격
     const baseStats = ENEMY_BALANCE[tier];
-    this.health = Math.floor(baseStats.health * 0.9); // 처녀귀신: 체력 -10% (원거리 유틸형)
+    const typeConfig = ENEMY_TYPE_BALANCE.maidenGhost;
+    this.health = Math.floor(baseStats.health * typeConfig.healthMultiplier);
     this.maxHealth = this.health;
-    this.speed = 85; // 기본보다 15% 느림 (거리 유지가 목적)
-    this.damage = Math.floor(baseStats.damage * 1.0); // 처녀귀신: 기본 데미지 (투사체 위주)
-    this.radius = 30; // 기본 히트박스
+    this.speed = typeConfig.speed;
+    this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
+    this.radius = typeConfig.radius;
 
     this.loadAttackAnimation();
   }
