@@ -49,6 +49,10 @@ export class DokkaebiFireWeapon extends Weapon {
     const angleStep = (Math.PI * 2) / this.orbitalCount;
     const isMaxCount = this.orbitalCount >= 5; // 5개 도달 여부
 
+    // 레벨에 따른 깜박임 간격 계산 (레벨업할수록 짧아짐)
+    const blinkOnDuration = Math.max(2.0, 5.0 - (this.level - 1) * 1.0); // 최소 2.0초
+    const blinkOffDuration = Math.max(1.2, 3.0 - (this.level - 1) * 0.6); // 최소 1.2초
+
     for (let i = 0; i < this.orbitalCount; i++) {
       const angle = angleStep * i;
       const orbital = new OrbitalEntity(
@@ -59,6 +63,8 @@ export class DokkaebiFireWeapon extends Weapon {
       );
       orbital.damage = this.damage;
       orbital.blinkEnabled = !isMaxCount; // 5개 이상이면 깜박임 비활성화
+      orbital.blinkOnDuration = blinkOnDuration; // 레벨에 따라 조정된 간격
+      orbital.blinkOffDuration = blinkOffDuration;
 
       // 도깨비불 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 48x48)
       await orbital.loadSpriteSheet('/assets/weapon/dokkabi-fire.png', 48, 48, 30, 6);
@@ -67,7 +73,7 @@ export class DokkaebiFireWeapon extends Weapon {
       gameLayer.addChild(orbital);
     }
 
-    const blinkStatus = isMaxCount ? '(항상 켜짐)' : '(깜박임)';
+    const blinkStatus = isMaxCount ? '(항상 켜짐)' : `(${blinkOnDuration.toFixed(1)}초/${blinkOffDuration.toFixed(1)}초)`;
     console.log(`🔥 도깨비불 x${this.orbitalCount} 생성 ${blinkStatus}`);
   }
 
@@ -104,14 +110,22 @@ export class DokkaebiFireWeapon extends Weapon {
     // 5개 이상이면 깜박임 비활성화
     const shouldDisableBlink = this.orbitalCount >= 5;
 
+    // 레벨에 따른 깜박임 간격 계산 (레벨업할수록 짧아짐)
+    const blinkOnDuration = Math.max(2.0, 5.0 - (this.level - 1) * 1.0); // 최소 2.0초
+    const blinkOffDuration = Math.max(1.2, 3.0 - (this.level - 1) * 0.6); // 최소 1.2초
+
     // 모든 궤도의 데미지, 회전속도, 깜박임 상태 업데이트
     for (const orbital of this.orbitals) {
       orbital.damage = this.damage;
       orbital.angularSpeed = this.angularSpeed;
       orbital.blinkEnabled = !shouldDisableBlink;
+      orbital.blinkOnDuration = blinkOnDuration;
+      orbital.blinkOffDuration = blinkOffDuration;
     }
 
-    const blinkStatus = shouldDisableBlink ? '항상 켜짐' : '깜박임';
+    const blinkStatus = shouldDisableBlink
+      ? '항상 켜짐'
+      : `${blinkOnDuration.toFixed(1)}초/${blinkOffDuration.toFixed(1)}초`;
     console.log(
       `🔥 도깨비불 레벨 ${this.level}! (개수: ${this.orbitalCount}, 속도: ${this.angularSpeed.toFixed(1)}, ${blinkStatus})`
     );

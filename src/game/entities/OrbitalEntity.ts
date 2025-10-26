@@ -27,10 +27,15 @@ export class OrbitalEntity extends Container {
 
   // 깜박임 시스템 (최대 개수 전까지)
   public blinkEnabled: boolean = true; // 깜박임 활성화 여부
+  public blinkOnDuration: number = 5.0; // 켜져있는 시간 (초) - 더 길게 조정
+  public blinkOffDuration: number = 3.0; // 꺼져있는 시간 (초) - 더 길게 조정
   private blinkTimer: number = 0; // 깜박임 타이머
-  private blinkOnDuration: number = 2.5; // 켜져있는 시간 (초)
-  private blinkOffDuration: number = 1.5; // 꺼져있는 시간 (초)
   private isBlinkOn: boolean = true; // 현재 켜짐 상태
+
+  // 사라짐 애니메이션
+  private fadeOutDuration: number = 0.5; // 페이드아웃 시간 (초)
+  private fadeOutTimer: number = 0; // 페이드아웃 타이머
+  private isFadingOut: boolean = false; // 페이드아웃 중
 
   // 시각화
   private orb: Graphics | Sprite | AnimatedSprite;
@@ -62,23 +67,52 @@ export class OrbitalEntity extends Container {
       this.blinkTimer += deltaTime;
 
       if (this.isBlinkOn) {
-        // 켜진 상태에서 일정 시간이 지나면 꺼짐
+        // 켜진 상태
+        this.scale.set(1.0); // 정상 크기
+        this.visible = true;
+        this.isFadingOut = false;
+        this.fadeOutTimer = 0;
+
+        // 일정 시간이 지나면 페이드아웃 시작
         if (this.blinkTimer >= this.blinkOnDuration) {
           this.isBlinkOn = false;
-          this.visible = false;
+          this.isFadingOut = true;
           this.blinkTimer = 0;
+          this.fadeOutTimer = 0;
         }
       } else {
-        // 꺼진 상태에서 일정 시간이 지나면 켜짐
-        if (this.blinkTimer >= this.blinkOffDuration) {
-          this.isBlinkOn = true;
-          this.visible = true;
-          this.blinkTimer = 0;
+        // 꺼진 상태 또는 페이드아웃 중
+        if (this.isFadingOut) {
+          // 페이드아웃 애니메이션 (점점 작아짐)
+          this.fadeOutTimer += deltaTime;
+          const progress = Math.min(this.fadeOutTimer / this.fadeOutDuration, 1.0);
+          const scale = 1.0 - progress; // 1.0 -> 0.0
+          this.scale.set(scale);
+          this.alpha = scale; // 투명도도 함께 감소
+
+          if (progress >= 1.0) {
+            // 페이드아웃 완료
+            this.isFadingOut = false;
+            this.visible = false;
+            this.scale.set(1.0);
+            this.alpha = 1.0;
+          }
+        } else {
+          // 완전히 꺼진 상태
+          this.visible = false;
+
+          // 일정 시간이 지나면 다시 켜짐
+          if (this.blinkTimer >= this.blinkOffDuration) {
+            this.isBlinkOn = true;
+            this.blinkTimer = 0;
+          }
         }
       }
     } else {
       // 깜박임 비활성화 시 항상 표시
       this.visible = true;
+      this.scale.set(1.0);
+      this.alpha = 1.0;
     }
 
     // 각도 증가 (반시계 방향)
