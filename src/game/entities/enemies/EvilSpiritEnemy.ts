@@ -6,6 +6,7 @@
 
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
+import { ENEMY_BALANCE } from '@/config/balance.config';
 import type { EnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
@@ -42,12 +43,12 @@ export class EvilSpiritEnemy extends BaseEnemy {
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
     super(id, x, y, tier);
 
-    // 악령 고유 스탯: 중간 체력, 빠름, 원거리 공격
-    const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
-    this.health = 45 * tierMultiplier; // 빠른 속도와 원거리 공격을 가진 중간 체력형
+    // 악령 고유 스탯: 낮은 체력, 빠름, 원거리 공격
+    const baseStats = ENEMY_BALANCE[tier];
+    this.health = Math.floor(baseStats.health * 0.8); // 악령: 체력 -20% (원거리 공격으로 생존력 높음)
     this.maxHealth = this.health;
     this.speed = 110; // 기본보다 10% 빠름
-    this.damage = 8 * tierMultiplier; // 기본보다 20% 낮음 (투사체 데미지는 별도)
+    this.damage = Math.floor(baseStats.damage * 0.8); // 악령: 데미지 -20% (투사체 위주)
     this.radius = 28; // 작은 히트박스
 
     this.loadAttackAnimation();
