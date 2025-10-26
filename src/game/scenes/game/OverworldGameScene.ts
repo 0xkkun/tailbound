@@ -178,14 +178,14 @@ export class OverworldGameScene extends BaseGameScene {
 
     const worldWidth = GAME_CONFIG.world.overworld.width;
     const worldHeight = GAME_CONFIG.world.overworld.height;
-    const tileWidth = 32;
-    const tileHeight = 32; // 기본 높이
+    const tileWidth = 64; // 스케일 적용 후 크기
+    const tileHeight = 64; // 스케일 적용 후 크기
 
     // 타일 타입별 가중치 (자연스러운 분포를 위해)
     const tileWeights = [
-      { texture: tile1Texture, weight: 4, height: 48 }, // 40%
-      { texture: tile2Texture, weight: 4, height: 48 }, // 40%
-      { texture: tile3Texture, weight: 2, height: 32 }, // 20%
+      { texture: tile1Texture, weight: 5, height: 48 }, // 60%
+      { texture: tile2Texture, weight: 2, height: 48 }, // 30%
+      { texture: tile3Texture, weight: 3, height: 32 }, // 10%
     ];
 
     // 클러스터링을 위한 노이즈 시뮬레이션 (간단한 방법)
@@ -219,8 +219,9 @@ export class OverworldGameScene extends BaseGameScene {
 
         // 타일 스프라이트 생성
         const tile = new Sprite(selectedTile.texture);
+        tile.scale.set(2); // 2배 확대
         tile.x = x;
-        tile.y = y + (tileHeight - selectedTile.height); // 하단 정렬
+        tile.y = y + (tileHeight - selectedTile.height * 2); // 하단 정렬 (스케일 적용)
         tile.anchor.set(0, 0);
         this.gameLayer.addChild(tile);
       }
