@@ -89,42 +89,9 @@ export class TalismanWeapon extends Weapon {
   }
 
   /**
-   * 가장 가까운 적 찾기 (범위 내에서만)
-   */
-  private findClosestEnemy(playerPos: Vector2, enemies: BaseEnemy[]): BaseEnemy | null {
-    if (enemies.length === 0) {
-      return null;
-    }
-
-    let closest: BaseEnemy | null = null;
-    let minDistance = Infinity;
-
-    for (const enemy of enemies) {
-      if (!enemy.active || !enemy.isAlive()) {
-        continue;
-      }
-
-      const enemyPos = { x: enemy.x, y: enemy.y };
-      const distance = getDistance(playerPos, enemyPos);
-
-      // 최대 발사 거리 내에 있고, 가장 가까운 적만 선택
-      if (distance <= this.MAX_FIRE_RANGE && distance < minDistance) {
-        minDistance = distance;
-        closest = enemy;
-      }
-    }
-
-    return closest;
-  }
-
-  /**
    * 가까운 적 N개 찾기 (범위 내에서만)
    */
-  private findClosestEnemies(
-    playerPos: Vector2,
-    enemies: BaseEnemy[],
-    count: number
-  ): BaseEnemy[] {
+  private findClosestEnemies(playerPos: Vector2, enemies: BaseEnemy[], count: number): BaseEnemy[] {
     // 범위 내 적들을 거리 순으로 정렬
     const enemiesWithDistance = enemies
       .filter((enemy) => enemy.active && enemy.isAlive())

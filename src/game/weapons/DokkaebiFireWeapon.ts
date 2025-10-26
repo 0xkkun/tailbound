@@ -7,6 +7,7 @@
 
 import type { Container } from 'pixi.js';
 
+import { WEAPON_BALANCE } from '@/config/balance.config';
 import { calculateWeaponStats } from '@/game/data/weapons';
 import type { BaseEnemy } from '@/game/entities/enemies';
 import { OrbitalEntity } from '@/game/entities/OrbitalEntity';
@@ -18,8 +19,8 @@ import { Weapon } from './Weapon';
 export class DokkaebiFireWeapon extends Weapon {
   private orbitals: OrbitalEntity[] = [];
   private orbitalCount: number = 1;
-  private orbitalRadius: number = 80;
-  private angularSpeed: number = 3.5; // rad/s (2.0 -> 3.5로 75% 증가)
+  private orbitalRadius: number = WEAPON_BALANCE.dokkaebi_fire.orbitalRadius;
+  private angularSpeed: number = WEAPON_BALANCE.dokkaebi_fire.baseAngularSpeed;
 
   constructor() {
     const stats = calculateWeaponStats('dokkaebi_fire', 1);
@@ -47,11 +48,18 @@ export class DokkaebiFireWeapon extends Weapon {
 
     // 새 궤도 생성
     const angleStep = (Math.PI * 2) / this.orbitalCount;
-    const isMaxCount = this.orbitalCount >= 5; // 5개 도달 여부
+    const config = WEAPON_BALANCE.dokkaebi_fire;
+    const isMaxCount = this.orbitalCount >= config.maxOrbitalCount;
 
     // 레벨에 따른 깜박임 간격 계산 (레벨업할수록 짧아짐)
-    const blinkOnDuration = Math.max(2.0, 5.0 - (this.level - 1) * 1.0); // 최소 2.0초
-    const blinkOffDuration = Math.max(1.2, 3.0 - (this.level - 1) * 0.6); // 최소 1.2초
+    const blinkOnDuration = Math.max(
+      config.blinkOnDurationMin,
+      config.blinkOnDurationBase - (this.level - 1) * config.levelScaling.blinkOnReductionPerLevel
+    );
+    const blinkOffDuration = Math.max(
+      config.blinkOffDurationMin,
+      config.blinkOffDurationBase - (this.level - 1) * config.levelScaling.blinkOffReductionPerLevel
+    );
 
     for (let i = 0; i < this.orbitalCount; i++) {
       const angle = angleStep * i;
@@ -73,7 +81,9 @@ export class DokkaebiFireWeapon extends Weapon {
       gameLayer.addChild(orbital);
     }
 
-    const blinkStatus = isMaxCount ? '(항상 켜짐)' : `(${blinkOnDuration.toFixed(1)}초/${blinkOffDuration.toFixed(1)}초)`;
+    const blinkStatus = isMaxCount
+      ? '(항상 켜짐)'
+      : `(${blinkOnDuration.toFixed(1)}초/${blinkOffDuration.toFixed(1)}초)`;
     console.log(`🔥 도깨비불 x${this.orbitalCount} 생성 ${blinkStatus}`);
   }
 
@@ -95,24 +105,35 @@ export class DokkaebiFireWeapon extends Weapon {
     const stats = calculateWeaponStats('dokkaebi_fire', this.level);
     this.damage = stats.damage;
 
+    const config = WEAPON_BALANCE.dokkaebi_fire;
+
     // 레벨업 효과
-    if (this.orbitalCount < 5) {
-      this.orbitalCount++; // 매 레벨마다 개수 +1 (최대 5개)
+    if (this.orbitalCount < config.maxOrbitalCount) {
+      this.orbitalCount++; // 매 레벨마다 개수 +1 (최대 설정값까지)
     }
 
-    if (this.level % 3 === 0) {
-      this.orbitalRadius += 10; // 3레벨마다 반경 +10
+    if (this.level % config.levelScaling.radiusIncreaseInterval === 0) {
+      this.orbitalRadius += config.levelScaling.radiusPerLevel;
     }
 
-    // 레벨업 시 회전속도도 증가 (레벨당 +0.1, 최대 5.5)
-    this.angularSpeed = Math.min(5.5, 3.5 + (this.level - 1) * 0.1);
+    // 레벨업 시 회전속도도 증가
+    this.angularSpeed = Math.min(
+      config.maxAngularSpeed,
+      config.baseAngularSpeed + (this.level - 1) * config.levelScaling.angularSpeedPerLevel
+    );
 
-    // 5개 이상이면 깜박임 비활성화
-    const shouldDisableBlink = this.orbitalCount >= 5;
+    // 최대 개수 도달 시 깜박임 비활성화
+    const shouldDisableBlink = this.orbitalCount >= config.maxOrbitalCount;
 
     // 레벨에 따른 깜박임 간격 계산 (레벨업할수록 짧아짐)
-    const blinkOnDuration = Math.max(2.0, 5.0 - (this.level - 1) * 1.0); // 최소 2.0초
-    const blinkOffDuration = Math.max(1.2, 3.0 - (this.level - 1) * 0.6); // 최소 1.2초
+    const blinkOnDuration = Math.max(
+      config.blinkOnDurationMin,
+      config.blinkOnDurationBase - (this.level - 1) * config.levelScaling.blinkOnReductionPerLevel
+    );
+    const blinkOffDuration = Math.max(
+      config.blinkOffDurationMin,
+      config.blinkOffDurationBase - (this.level - 1) * config.levelScaling.blinkOffReductionPerLevel
+    );
 
     // 모든 궤도의 데미지, 회전속도, 깜박임 상태 업데이트
     for (const orbital of this.orbitals) {

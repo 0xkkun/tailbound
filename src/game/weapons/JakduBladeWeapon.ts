@@ -19,8 +19,8 @@ import { Weapon } from './Weapon';
 export class JakduBladeWeapon extends Weapon {
   private blades: AttachedEntity[] = [];
   private bladeCount: number = 1; // 처음엔 왼쪽 1개
-  private offsetDistance: number = 60; // 플레이어로부터의 거리
-  private attackRadius: number = WEAPON_BALANCE.jakdu_blade.attackRadius || 80; // 공격 범위
+  private offsetDistance: number = WEAPON_BALANCE.jakdu_blade.offsetDistance;
+  private attackRadius: number = WEAPON_BALANCE.jakdu_blade.attackRadius;
 
   constructor() {
     const stats = calculateWeaponStats('jakdu_blade', 1);

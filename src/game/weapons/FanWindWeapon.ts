@@ -5,6 +5,7 @@
  * 레벨업 시 투사체 수량이 증가하고 데미지가 증가
  */
 
+import { WEAPON_BALANCE } from '@/config/balance.config';
 import { calculateWeaponStats, getWeaponData } from '@/game/data/weapons';
 import type { Vector2 } from '@/types/game.types';
 
@@ -16,7 +17,6 @@ import { Weapon } from './Weapon';
 
 export class FanWindWeapon extends Weapon {
   private projectileCount: number = 1; // 투사체 개수
-  private spreadAngle: number = Math.PI / 6; // 30도 부채꼴
   private weaponData = getWeaponData('fan_wind');
 
   constructor() {
@@ -73,7 +73,7 @@ export class FanWindWeapon extends Weapon {
 
       // 관통 시 데미지 감소 활성화
       projectile.damageDecayEnabled = true;
-      projectile.damageDecayMin = 0.33; // 최대 33%까지 감소
+      projectile.damageDecayMin = WEAPON_BALANCE.fan_wind.damageDecayMin;
 
       // wind.png 스프라이트 애니메이션 로드
       projectile.loadSpriteSheet('/assets/weapon/wind.png', 96, 96, 12, 12);
