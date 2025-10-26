@@ -13,6 +13,7 @@ export class MeleeSwing extends Container {
   public radius: number = 0;
   public startAngle: number = 0;
   public sweepAngle: number = Math.PI; // 180도 (라디안)
+  public isCritical: boolean = false;
 
   private lifetime: number = 0;
   private maxLifetime: number = 0.3; // 0.3초 동안 휘두르기

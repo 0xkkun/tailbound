@@ -74,7 +74,7 @@ export class FanWindWeapon extends Weapon {
         const critResult = player.rollCritical();
         projectile.isCritical = critResult.isCritical;
         projectile.damage = this.damage * critResult.damageMultiplier;
-        projectile.playerRef = player; // 흡혈용
+        projectile.playerRef = player;
       } else {
         projectile.damage = this.damage;
       }

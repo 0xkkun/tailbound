@@ -11,6 +11,7 @@ export class AoEEffect extends Container {
   public active: boolean = true;
   public damage: number = 0;
   public radius: number = 100;
+  public isCritical: boolean = false;
 
   private lifetime: number = 0;
   private maxLifetime: number = 0.5; // 0.5초 동안 표시

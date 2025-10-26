@@ -70,6 +70,7 @@ export const GAME_CONFIG = {
   // 엔티티 z-index 설정 (gameLayer 내부)
   entities: {
     background: 0, // 배경 타일
+    drops: 50, // 드롭 아이템 (경험치, 포션 등) - 적보다 아래
     aoeEffect: 90, // AoE 이펙트 (목탁 소리 등)
     enemy: 100, // 적
     player: 100, // 플레이어

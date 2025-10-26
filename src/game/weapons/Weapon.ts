@@ -31,17 +31,10 @@ export abstract class Weapon {
   /**
    * 무기 업데이트 (쿨다운 감소)
    * @param deltaTime 델타 타임
-   * @param player 플레이어 (선정 시스템용, optional)
    */
-  public update(deltaTime: number, player?: Player): void {
+  public update(deltaTime: number): void {
     if (this.cooldownTimer > 0) {
-      // 선정 시스템: 1초 이상 정지 시 쿨타임 -20% 보너스
-      let cooldownMultiplier = 1.0;
-      if (player?.meditationEnabled && player.stillTime >= 1.0) {
-        cooldownMultiplier = 1.2; // 20% 빠르게 감소
-      }
-
-      this.cooldownTimer -= deltaTime * cooldownMultiplier;
+      this.cooldownTimer -= deltaTime;
     }
   }
 

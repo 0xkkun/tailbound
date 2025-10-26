@@ -4,6 +4,7 @@
 
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
+import { GAME_CONFIG } from '@/config/game.config';
 import type { Vector2 } from '@/types/game.types';
 
 import { Player } from './Player';
@@ -40,6 +41,9 @@ export class Projectile extends Container {
     this.direction = direction;
     this.x = x;
     this.y = y;
+
+    // zIndex 설정
+    this.zIndex = GAME_CONFIG.entities.projectile;
 
     // 그래픽 생성 (스프라이트 로드 전 폴백)
     this.visual = new Graphics();

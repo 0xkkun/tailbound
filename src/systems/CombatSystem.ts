@@ -42,12 +42,7 @@ export class CombatSystem {
           // 데미지 적용 (projectile.damage는 이미 치명타가 적용된 상태)
           const finalDamage = projectile.damage;
 
-          enemy.takeDamage(finalDamage);
-
-          // 흡혈 처리 (플레이어가 있으면)
-          if (projectile.playerRef) {
-            projectile.playerRef.applyLifeSteal(finalDamage);
-          }
+          enemy.takeDamage(finalDamage, projectile.isCritical);
 
           // 넉백 적용 (투사체 방향으로 밀어냄)
           const knockbackDir = {
@@ -65,9 +60,8 @@ export class CombatSystem {
             // 경험치 값은 enemy 객체에서 직접 가져옴
             const xpValue = enemy.xpDrop;
 
-            // 체력 포션 드랍 확률 (플레이어의 드롭률 배수 적용)
-            const finalDropRate = POTION_BALANCE.dropRate * player.dropRateMultiplier;
-            const dropPotion = Math.random() < finalDropRate;
+            // 체력 포션 드랍 확률
+            const dropPotion = Math.random() < POTION_BALANCE.dropRate;
 
             // 적 처치 콜백 호출 (경험치 젬 및 포션 드랍용)
             this.onEnemyKilled?.({

@@ -50,14 +50,15 @@ export class MoktakSoundWeapon extends Weapon {
     // 플레이어 스탯 적용
     let finalDamage = this.damage;
     let finalRadius = this.aoeRadius;
+    let isCritical = false;
 
     if (player) {
       // 치명타 판정 및 데미지 배율 적용
       const critResult = player.rollCritical();
       finalDamage = this.damage * critResult.damageMultiplier;
+      isCritical = critResult.isCritical;
 
-      // 범위 배율 적용
-      finalRadius = this.aoeRadius * player.areaMultiplier;
+      finalRadius = this.aoeRadius;
     }
 
     // 하나의 광역 이펙트 생성
@@ -68,6 +69,7 @@ export class MoktakSoundWeapon extends Weapon {
       finalDamage,
       MOKTAK_CONSTANTS.COLOR
     );
+    effect.isCritical = isCritical;
 
     // 목탁 스프라이트 로드
     await effect.loadSpriteSheet(
