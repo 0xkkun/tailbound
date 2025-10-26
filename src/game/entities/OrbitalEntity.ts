@@ -15,15 +15,22 @@ export class OrbitalEntity extends Container {
   public active: boolean = true;
   public damage: number = 10;
   public radius: number = 15; // 엔티티 크기 (충돌 판정)
+  public angularSpeed: number; // 회전 속도 (rad/s) - public으로 변경
 
   private orbitAngle: number; // 현재 각도 (라디안)
-  private angularSpeed: number; // 회전 속도 (rad/s)
   private orbitRadius: number; // 궤도 반경
 
   // 틱 데미지 시스템
   private tickInterval: number = TICK_DAMAGE_BALANCE.orbital; // 틱 간격
   private enemyLastHitTime: Map<string, number> = new Map(); // 각 적의 마지막 피해 시간
   private lifetime: number = 0; // 누적 시간
+
+  // 깜박임 시스템 (최대 개수 전까지)
+  public blinkEnabled: boolean = true; // 깜박임 활성화 여부
+  private blinkTimer: number = 0; // 깜박임 타이머
+  private blinkOnDuration: number = 2.5; // 켜져있는 시간 (초)
+  private blinkOffDuration: number = 1.5; // 꺼져있는 시간 (초)
+  private isBlinkOn: boolean = true; // 현재 켜짐 상태
 
   // 시각화
   private orb: Graphics | Sprite | AnimatedSprite;
@@ -49,6 +56,30 @@ export class OrbitalEntity extends Container {
   public update(deltaTime: number, player: Player): void {
     // 누적 시간 증가
     this.lifetime += deltaTime;
+
+    // 깜박임 처리
+    if (this.blinkEnabled) {
+      this.blinkTimer += deltaTime;
+
+      if (this.isBlinkOn) {
+        // 켜진 상태에서 일정 시간이 지나면 꺼짐
+        if (this.blinkTimer >= this.blinkOnDuration) {
+          this.isBlinkOn = false;
+          this.visible = false;
+          this.blinkTimer = 0;
+        }
+      } else {
+        // 꺼진 상태에서 일정 시간이 지나면 켜짐
+        if (this.blinkTimer >= this.blinkOffDuration) {
+          this.isBlinkOn = true;
+          this.visible = true;
+          this.blinkTimer = 0;
+        }
+      }
+    } else {
+      // 깜박임 비활성화 시 항상 표시
+      this.visible = true;
+    }
 
     // 각도 증가 (반시계 방향)
     this.orbitAngle += this.angularSpeed * deltaTime;

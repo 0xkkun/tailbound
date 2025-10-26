@@ -47,6 +47,7 @@ export class DokkaebiFireWeapon extends Weapon {
 
     // 새 궤도 생성
     const angleStep = (Math.PI * 2) / this.orbitalCount;
+    const isMaxCount = this.orbitalCount >= 5; // 5개 도달 여부
 
     for (let i = 0; i < this.orbitalCount; i++) {
       const angle = angleStep * i;
@@ -57,6 +58,7 @@ export class DokkaebiFireWeapon extends Weapon {
         0x00ffff // 청록색 (도깨비불)
       );
       orbital.damage = this.damage;
+      orbital.blinkEnabled = !isMaxCount; // 5개 이상이면 깜박임 비활성화
 
       // 도깨비불 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 48x48)
       await orbital.loadSpriteSheet('/assets/weapon/dokkabi-fire.png', 48, 48, 30, 6);
@@ -65,7 +67,8 @@ export class DokkaebiFireWeapon extends Weapon {
       gameLayer.addChild(orbital);
     }
 
-    console.log(`🔥 도깨비불 x${this.orbitalCount} 생성`);
+    const blinkStatus = isMaxCount ? '(항상 켜짐)' : '(깜박임)';
+    console.log(`🔥 도깨비불 x${this.orbitalCount} 생성 ${blinkStatus}`);
   }
 
   /**
@@ -98,14 +101,19 @@ export class DokkaebiFireWeapon extends Weapon {
     // 레벨업 시 회전속도도 증가 (레벨당 +0.1, 최대 5.5)
     this.angularSpeed = Math.min(5.5, 3.5 + (this.level - 1) * 0.1);
 
-    // 모든 궤도의 데미지 및 회전속도 업데이트
+    // 5개 이상이면 깜박임 비활성화
+    const shouldDisableBlink = this.orbitalCount >= 5;
+
+    // 모든 궤도의 데미지, 회전속도, 깜박임 상태 업데이트
     for (const orbital of this.orbitals) {
       orbital.damage = this.damage;
       orbital.angularSpeed = this.angularSpeed;
+      orbital.blinkEnabled = !shouldDisableBlink;
     }
 
+    const blinkStatus = shouldDisableBlink ? '항상 켜짐' : '깜박임';
     console.log(
-      `🔥 도깨비불 레벨 ${this.level}! (개수: ${this.orbitalCount}, 속도: ${this.angularSpeed.toFixed(1)})`
+      `🔥 도깨비불 레벨 ${this.level}! (개수: ${this.orbitalCount}, 속도: ${this.angularSpeed.toFixed(1)}, ${blinkStatus})`
     );
   }
 
