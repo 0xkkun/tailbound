@@ -111,10 +111,12 @@ export const WEAPON_BALANCE = {
     projectileLifetime: 5,
     piercing: 5,
     projectileCount: 1,
+    attackRadius: 80, // 작두날 공격 범위 (기본 64 -> 80으로 증가)
     levelScaling: {
       damage: 6,
       cooldownReduction: 0.1,
       piercingPerLevel: 1,
+      radiusPerLevel: 8, // 레벨당 범위 +8
     },
   },
   // 부채바람
