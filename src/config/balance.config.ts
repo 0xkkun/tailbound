@@ -6,6 +6,7 @@
  * 플레이어 밸런스
  */
 export const PLAYER_BALANCE = {
+  // 기본 스탯
   health: 100,
   speed: 250,
   radius: 40,
@@ -14,6 +15,34 @@ export const PLAYER_BALANCE = {
     strength: 0, // 공격력
     agility: 0, // 이동속도, 공격속도
     intelligence: 0, // 투사체 수, 범위
+  },
+
+  // 파워업 초기값
+  initialStats: {
+    criticalRate: 0.05, // 치명타 확률 기본 5%
+    criticalDamage: 1.5, // 치명타 피해 기본 150%
+    damageReduction: 0, // 피해 감소 기본 0%
+    xpMultiplier: 1.0, // 경험치 배수 기본 100%
+    damageMultiplier: 1.0, // 공격력 배수 기본 100%
+    speedMultiplier: 1.0, // 이동속도 배수 기본 100%
+    cooldownMultiplier: 1.0, // 쿨타임 배수 기본 100%
+    pickupRangeMultiplier: 1.0, // 획득 범위 배수 기본 100%
+  },
+
+  // 파워업 최대/최소치
+  maxStats: {
+    damageMultiplier: 5.0, // 500%
+    speedMultiplier: 2.0, // 200%
+    pickupRangeMultiplier: 5.0, // 500%
+    maxHealth: 500, // 최대 체력
+    criticalRate: 1.0, // 100%
+    criticalDamage: 6.5, // 650% (기본 1.5 + 최대 5.0)
+    damageReduction: 0.8, // 80%
+    xpMultiplier: 3.0, // 300%
+  },
+
+  minStats: {
+    cooldownMultiplier: 0.3, // 30% (70% 감소)
   },
 } as const;
 
@@ -230,68 +259,65 @@ export const TICK_DAMAGE_BALANCE = {
 /**
  * 파워업 밸런스 설정
  *
- * 카테고리:
- * - combat: 공격 강화 (⚔️)
- * - defense: 생존/방어 (💪)
- * - utility: 유틸리티 (⚙️)
+ * 전체 10종 파워업의 등급별 증가량 정의
+ * - 공격: damage, cooldown, crit_rate, crit_damage
+ * - 방어: health, damage_reduction, breathing
+ * - 유틸: speed, pickup, xp_gain
  */
 export const POWERUP_BALANCE = {
-  // ⚔️ 공격 강화 파워업
-  combat: {
-    // 치명타 확률 (필살)
-    criticalRate: {
-      common: 0.05, // +5%
-      rare: 0.1, // +10%
-      epic: 0.2, // +20%
-      max: 1.0, // 100% (항상 치명타)
-    },
-    // 치명타 피해량 (극살)
-    criticalDamage: {
-      common: 0.2, // +20%
-      rare: 0.5, // +50%
-      epic: 1.0, // +100%
-      max: 5.0, // 기본 150% -> 최대 650% (1.5 + 5.0)
-    },
+  // ⚔️ 공격 파워업
+  damage: {
+    common: 0.02, // +2%
+    rare: 0.05, // +5%
+    epic: 0.1, // +10%
+  },
+  cooldown: {
+    common: 0.02, // -2%
+    rare: 0.05, // -5%
+    epic: 0.1, // -10%
+  },
+  crit_rate: {
+    common: 0.05, // +5%
+    rare: 0.1, // +10%
+    epic: 0.2, // +20%
+  },
+  crit_damage: {
+    common: 0.2, // +20%
+    rare: 0.5, // +50%
+    epic: 1.0, // +100%
   },
 
-  // 💪 생존/방어 파워업
-  defense: {
-    // 피해 감소 (강체)
-    damageReduction: {
-      common: 0.03, // -3% 피해
-      rare: 0.08, // -8% 피해
-      epic: 0.15, // -15% 피해
-      max: 0.8, // 최대 -80% (거의 무적 방지)
-    },
-    // 호흡 (呼吸): 주기적 체력 회복
-    breathing: {
-      common: { interval: 8, healAmount: 5 }, // 8초마다 5 회복
-      rare: { interval: 6, healAmount: 8 }, // 6초마다 8 회복
-      epic: { interval: 4, healAmount: 12 }, // 4초마다 12 회복
-    },
+  // 💪 방어 파워업
+  health: {
+    common: 5, // +5 HP
+    rare: 15, // +15 HP
+    epic: 30, // +30 HP
+  },
+  damage_reduction: {
+    common: 0.03, // -3%
+    rare: 0.08, // -8%
+    epic: 0.15, // -15%
+  },
+  breathing: {
+    common: { interval: 8, healAmount: 5 },
+    rare: { interval: 6, healAmount: 8 },
+    epic: { interval: 4, healAmount: 12 },
   },
 
   // ⚙️ 유틸리티 파워업
-  utility: {
-    // 경험치 획득량 (수련)
-    xpGain: {
-      common: 0.05, // +5%
-      rare: 0.12, // +12%
-      epic: 0.25, // +25%
-      max: 2.0, // 최대 +200%
-    },
+  speed: {
+    common: 0.03, // +3%
+    rare: 0.07, // +7%
+    epic: 0.15, // +15%
   },
-
-  // 🎁 특수 드롭 아이템
-  specialDrop: {
-    // 혼백 (魂魄): 사망 시 1회 부활 (보스 드롭)
-    revive: {
-      dropRate: 0.1, // 보스 처치 시 10% 확률
-      reviveHealthPercent: 0.5, // 최대 체력의 50%로 부활
-      invincibleDuration: 2.0, // 부활 후 2초 무적
-    },
+  pickup: {
+    common: 0.05, // +5%
+    rare: 0.15, // +15%
+    epic: 0.3, // +30%
   },
-
-  // 기본 치명타 배율 (치명타 발동 시 기본 데미지)
-  baseCriticalMultiplier: 1.5, // 기본 150% 피해
+  xp_gain: {
+    common: 0.05, // +5%
+    rare: 0.12, // +12%
+    epic: 0.25, // +25%
+  },
 } as const;

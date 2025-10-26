@@ -6,6 +6,7 @@ import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Text, Texture }
 
 import { PLAYER_BALANCE } from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
+import { parsePowerupId, POWERUPS_CONFIG } from '@/config/powerups.config';
 import { PLAYER_SPRITE_CONFIG } from '@/config/sprite.config';
 import { LevelSystem, type LevelUpChoice } from '@/systems/LevelSystem';
 import type { InputState } from '@/types/game.types';
@@ -21,36 +22,36 @@ export class Player extends Container {
   public speed: number = PLAYER_BALANCE.speed;
 
   // 기존 스탯 배율 (업그레이드로 증가)
-  public damageMultiplier: number = 1.0;
-  public speedMultiplier: number = 1.0;
-  public cooldownMultiplier: number = 1.0;
-  public pickupRangeMultiplier: number = 1.0;
+  public damageMultiplier: number = PLAYER_BALANCE.initialStats.damageMultiplier;
+  public speedMultiplier: number = PLAYER_BALANCE.initialStats.speedMultiplier;
+  public cooldownMultiplier: number = PLAYER_BALANCE.initialStats.cooldownMultiplier;
+  public pickupRangeMultiplier: number = PLAYER_BALANCE.initialStats.pickupRangeMultiplier;
 
   // 새로운 파워업 스탯 (⚔️ 공격)
-  public criticalRate: number = 0; // 치명타 확률 (0.0 ~ 1.0)
-  public criticalDamage: number = 1.5; // 치명타 배율 (기본 1.5배 = 150%)
+  public criticalRate: number = PLAYER_BALANCE.initialStats.criticalRate;
+  public criticalDamage: number = PLAYER_BALANCE.initialStats.criticalDamage;
 
   // 새로운 파워업 스탯 (💪 방어)
-  public damageReduction: number = 0; // 피해 감소 (0.0 ~ 0.8)
+  public damageReduction: number = PLAYER_BALANCE.initialStats.damageReduction;
 
   // 새로운 파워업 스탯 (⚙️ 유틸)
-  public xpMultiplier: number = 1.0; // 경험치 획득량 배수
+  public xpMultiplier: number = PLAYER_BALANCE.initialStats.xpMultiplier;
 
   // 호흡 파워업
-  public breathingTimer: number = 0; // 호흡 타이머
-  public breathingInterval: number = 0; // 호흡 주기 (0 = 비활성)
-  public breathingHealAmount: number = 0; // 호흡 회복량
+  public breathingTimer: number = 0;
+  public breathingInterval: number = 0;
+  public breathingHealAmount: number = 0;
 
-  // 스탯 상한선
-  private readonly MAX_DAMAGE_MULTIPLIER = 5.0; // 500% (5배)
-  private readonly MAX_SPEED_MULTIPLIER = 2.0; // 200% (2배)
-  private readonly MIN_COOLDOWN_MULTIPLIER = 0.3; // 30% (쿨타임 70% 감소)
-  private readonly MAX_PICKUP_MULTIPLIER = 5.0; // 500% (5배)
-  private readonly MAX_HEALTH = 500; // 최대 체력
-  private readonly MAX_CRITICAL_RATE = 1.0; // 100% 치명타
-  private readonly MAX_CRITICAL_DAMAGE = 6.5; // 기본 1.5 + 최대 5.0 = 650%
-  private readonly MAX_DAMAGE_REDUCTION = 0.8; // 최대 80% 감소
-  private readonly MAX_XP_MULTIPLIER = 3.0; // 최대 300%
+  // 스탯 상한선 (balance.config.ts에서 관리)
+  private readonly MAX_DAMAGE_MULTIPLIER = PLAYER_BALANCE.maxStats.damageMultiplier;
+  private readonly MAX_SPEED_MULTIPLIER = PLAYER_BALANCE.maxStats.speedMultiplier;
+  private readonly MIN_COOLDOWN_MULTIPLIER = PLAYER_BALANCE.minStats.cooldownMultiplier;
+  private readonly MAX_PICKUP_MULTIPLIER = PLAYER_BALANCE.maxStats.pickupRangeMultiplier;
+  private readonly MAX_HEALTH = PLAYER_BALANCE.maxStats.maxHealth;
+  private readonly MAX_CRITICAL_RATE = PLAYER_BALANCE.maxStats.criticalRate;
+  private readonly MAX_CRITICAL_DAMAGE = PLAYER_BALANCE.maxStats.criticalDamage;
+  private readonly MAX_DAMAGE_REDUCTION = PLAYER_BALANCE.maxStats.damageReduction;
+  private readonly MAX_XP_MULTIPLIER = PLAYER_BALANCE.maxStats.xpMultiplier;
 
   // 레벨 시스템
   private levelSystem: LevelSystem;
@@ -266,36 +267,32 @@ export class Player extends Container {
   }
 
   /**
-   * 스탯 업그레이드 적용
+   * 파워업 적용 (통합된 파워업 시스템)
+   *
+   * @param powerupId - 파워업 ID (예: "powerup_damage_common", "stat_health_rare")
+   *
+   * 지원하는 ID 형식:
+   * - 새 형식: powerup_<type>_<rarity> (예: powerup_damage_common)
+   * - 구 형식: stat_<type>_<rarity> (호환성, 예: stat_damage_common)
+   * - 언더스코어 타입: powerup_crit_rate_common, powerup_damage_reduction_epic
    */
-  public applyStatUpgrade(statId: string): void {
-    // 스탯 ID 파싱 (예: stat_damage_common -> damage, common)
-    const parts = statId.split('_');
-    if (parts.length !== 3 || parts[0] !== 'stat') {
-      console.warn(`Invalid stat ID: ${statId}`);
+  public applyPowerup(powerupId: string): void {
+    // 파워업 ID 파싱 (헬퍼 함수 사용)
+    const parsed = parsePowerupId(powerupId);
+    if (!parsed) {
+      console.warn(`Invalid powerup ID: ${powerupId}`);
       return;
     }
 
-    const statType = parts[1]; // damage, speed, cooldown, health, pickup
-    const rarity = parts[2]; // common, rare, epic
+    const { type, rarity } = parsed;
 
-    // 등급별 증가량 정의
-    const increments: Record<string, Record<string, number>> = {
-      damage: { common: 0.02, rare: 0.05, epic: 0.1 },
-      speed: { common: 0.03, rare: 0.07, epic: 0.15 },
-      cooldown: { common: 0.02, rare: 0.05, epic: 0.1 },
-      health: { common: 5, rare: 15, epic: 30 },
-      pickup: { common: 0.05, rare: 0.15, epic: 0.3 },
-    };
+    // 파워업 메타데이터 가져오기
+    const powerupMeta = POWERUPS_CONFIG[type];
+    const increment = powerupMeta.increment[rarity];
 
-    const increment = increments[statType]?.[rarity];
-    if (increment === undefined) {
-      console.warn(`Unknown stat type or rarity: ${statType}, ${rarity}`);
-      return;
-    }
-
-    // 스탯 적용 (상한선 체크)
-    switch (statType) {
+    // 각 파워업별 적용 로직
+    switch (type) {
+      // ⚔️ 공격 파워업
       case 'damage':
         if (this.damageMultiplier >= this.MAX_DAMAGE_MULTIPLIER) {
           console.log(`⚠️ 공격력이 최대치입니다! (${this.MAX_DAMAGE_MULTIPLIER * 100}%)`);
@@ -307,17 +304,7 @@ export class Player extends Container {
         );
         console.log(`⚔️ 공격력 증가! ${(this.damageMultiplier * 100).toFixed(0)}%`);
         break;
-      case 'speed':
-        if (this.speedMultiplier >= this.MAX_SPEED_MULTIPLIER) {
-          console.log(`⚠️ 이동 속도가 최대치입니다! (${this.MAX_SPEED_MULTIPLIER * 100}%)`);
-          return;
-        }
-        this.speedMultiplier = Math.min(
-          this.speedMultiplier + increment,
-          this.MAX_SPEED_MULTIPLIER
-        );
-        console.log(`🏃 이동 속도 증가! ${(this.speedMultiplier * 100).toFixed(0)}%`);
-        break;
+
       case 'cooldown':
         if (this.cooldownMultiplier <= this.MIN_COOLDOWN_MULTIPLIER) {
           console.log(`⚠️ 쿨타임이 최소치입니다! (${this.MIN_COOLDOWN_MULTIPLIER * 100}%)`);
@@ -329,6 +316,26 @@ export class Player extends Container {
         );
         console.log(`⚡ 쿨타임 감소! ${(this.cooldownMultiplier * 100).toFixed(0)}%`);
         break;
+
+      case 'crit_rate':
+        if (this.criticalRate >= this.MAX_CRITICAL_RATE) {
+          console.log(`⚠️ 치명타 확률이 최대치입니다! (${this.MAX_CRITICAL_RATE * 100}%)`);
+          return;
+        }
+        this.criticalRate = Math.min(this.criticalRate + increment, this.MAX_CRITICAL_RATE);
+        console.log(`💥 치명타 확률 증가! ${(this.criticalRate * 100).toFixed(0)}%`);
+        break;
+
+      case 'crit_damage':
+        if (this.criticalDamage >= this.MAX_CRITICAL_DAMAGE) {
+          console.log(`⚠️ 치명타 피해량이 최대치입니다! (${this.MAX_CRITICAL_DAMAGE * 100}%)`);
+          return;
+        }
+        this.criticalDamage = Math.min(this.criticalDamage + increment, this.MAX_CRITICAL_DAMAGE);
+        console.log(`💢 치명타 피해량 증가! ${(this.criticalDamage * 100).toFixed(0)}%`);
+        break;
+
+      // 💪 방어 파워업
       case 'health': {
         if (this.maxHealth >= this.MAX_HEALTH) {
           console.log(`⚠️ 최대 체력이 한계입니다! (${this.MAX_HEALTH})`);
@@ -340,6 +347,57 @@ export class Player extends Container {
         console.log(`❤️ 최대 체력 증가! ${this.maxHealth}`);
         break;
       }
+
+      case 'damage_reduction':
+        if (this.damageReduction >= this.MAX_DAMAGE_REDUCTION) {
+          console.log(`⚠️ 피해 감소가 최대치입니다! (${this.MAX_DAMAGE_REDUCTION * 100}%)`);
+          return;
+        }
+        this.damageReduction = Math.min(
+          this.damageReduction + increment,
+          this.MAX_DAMAGE_REDUCTION
+        );
+        console.log(`🛡️ 피해 감소 증가! ${(this.damageReduction * 100).toFixed(0)}%`);
+        break;
+
+      case 'breathing': {
+        // 호흡은 특별히 interval도 있음
+        const interval = powerupMeta.interval?.[rarity];
+        if (!interval) return;
+
+        // 이미 호흡을 보유한 경우 업그레이드
+        if (this.breathingInterval > 0) {
+          // 더 나은 등급으로만 업그레이드 (interval이 짧을수록 좋음)
+          if (interval < this.breathingInterval) {
+            this.breathingInterval = interval;
+            this.breathingHealAmount = increment;
+            console.log(`🌬️ 호흡법 강화! ${interval}초마다 체력 ${increment} 회복`);
+          } else {
+            console.log(`⚠️ 이미 더 나은 호흡법을 보유하고 있습니다!`);
+          }
+        } else {
+          // 첫 획득
+          this.breathingInterval = interval;
+          this.breathingHealAmount = increment;
+          this.breathingTimer = interval; // 즉시 발동 가능
+          console.log(`🌬️ 호흡법 습득! ${interval}초마다 체력 ${increment} 회복`);
+        }
+        break;
+      }
+
+      // ⚙️ 유틸리티 파워업
+      case 'speed':
+        if (this.speedMultiplier >= this.MAX_SPEED_MULTIPLIER) {
+          console.log(`⚠️ 이동 속도가 최대치입니다! (${this.MAX_SPEED_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.speedMultiplier = Math.min(
+          this.speedMultiplier + increment,
+          this.MAX_SPEED_MULTIPLIER
+        );
+        console.log(`🏃 이동 속도 증가! ${(this.speedMultiplier * 100).toFixed(0)}%`);
+        break;
+
       case 'pickup':
         if (this.pickupRangeMultiplier >= this.MAX_PICKUP_MULTIPLIER) {
           console.log(`⚠️ 획득 범위가 최대치입니다! (${this.MAX_PICKUP_MULTIPLIER * 100}%)`);
@@ -351,109 +409,26 @@ export class Player extends Container {
         );
         console.log(`🧲 획득 범위 증가! ${(this.pickupRangeMultiplier * 100).toFixed(0)}%`);
         break;
+
+      case 'xp_gain':
+        if (this.xpMultiplier >= this.MAX_XP_MULTIPLIER) {
+          console.log(`⚠️ 경험치 배수가 최대치입니다! (${this.MAX_XP_MULTIPLIER * 100}%)`);
+          return;
+        }
+        this.xpMultiplier = Math.min(this.xpMultiplier + increment, this.MAX_XP_MULTIPLIER);
+        console.log(`📚 경험치 획득량 증가! ${(this.xpMultiplier * 100).toFixed(0)}%`);
+        break;
+
+      default:
+        console.warn(`Unhandled powerup type: ${type}`);
     }
   }
 
   /**
-   * 파워업 적용 (새로운 파워업 시스템)
+   * @deprecated 하위 호환성을 위해 유지. applyPowerup() 사용 권장
    */
-  public applyPowerup(powerupId: string): void {
-    // ID 파싱: powerup_<type>_<subtype>_<rarity> 또는 powerup_breathing_<rarity>
-    const parts = powerupId.split('_');
-    if (parts.length < 2 || parts[0] !== 'powerup') {
-      console.warn(`Invalid powerup ID: ${powerupId}`);
-      return;
-    }
-
-    const type = parts[1]; // crit, damage, breathing, xp
-    const subtype = parts[2]; // rate, damage, reduction, gain
-    const rarity = parts[3]; // common, rare, epic
-
-    // ⚔️ 공격 강화
-    if (type === 'crit') {
-      if (subtype === 'rate') {
-        // 치명타 확률
-        const increments = { common: 0.05, rare: 0.1, epic: 0.2 };
-        const increment = increments[rarity as keyof typeof increments];
-        if (!increment) return;
-
-        if (this.criticalRate >= this.MAX_CRITICAL_RATE) {
-          console.log(`⚠️ 치명타 확률이 최대치입니다! (${this.MAX_CRITICAL_RATE * 100}%)`);
-          return;
-        }
-        this.criticalRate = Math.min(this.criticalRate + increment, this.MAX_CRITICAL_RATE);
-        console.log(`💥 치명타 확률 증가! ${(this.criticalRate * 100).toFixed(0)}%`);
-      } else if (subtype === 'damage') {
-        // 치명타 피해량
-        const increments = { common: 0.2, rare: 0.5, epic: 1.0 };
-        const increment = increments[rarity as keyof typeof increments];
-        if (!increment) return;
-
-        if (this.criticalDamage >= this.MAX_CRITICAL_DAMAGE) {
-          console.log(`⚠️ 치명타 피해량이 최대치입니다! (${this.MAX_CRITICAL_DAMAGE * 100}%)`);
-          return;
-        }
-        this.criticalDamage = Math.min(this.criticalDamage + increment, this.MAX_CRITICAL_DAMAGE);
-        console.log(`💢 치명타 피해량 증가! ${(this.criticalDamage * 100).toFixed(0)}%`);
-      }
-    }
-    // 💪 생존/방어
-    else if (type === 'damage' && subtype === 'reduction') {
-      // 피해 감소
-      const increments = { common: 0.03, rare: 0.08, epic: 0.15 };
-      const increment = increments[rarity as keyof typeof increments];
-      if (!increment) return;
-
-      if (this.damageReduction >= this.MAX_DAMAGE_REDUCTION) {
-        console.log(`⚠️ 피해 감소가 최대치입니다! (${this.MAX_DAMAGE_REDUCTION * 100}%)`);
-        return;
-      }
-      this.damageReduction = Math.min(this.damageReduction + increment, this.MAX_DAMAGE_REDUCTION);
-      console.log(`🛡️ 피해 감소 증가! ${(this.damageReduction * 100).toFixed(0)}%`);
-    } else if (type === 'breathing') {
-      // 호흡 (등급별 주기와 회복량이 다름)
-      const breathingConfig = {
-        common: { interval: 8, healAmount: 5 },
-        rare: { interval: 6, healAmount: 8 },
-        epic: { interval: 4, healAmount: 12 },
-      };
-      const config = breathingConfig[rarity as keyof typeof breathingConfig];
-      if (!config) return;
-
-      // 이미 호흡을 보유한 경우 업그레이드
-      if (this.breathingInterval > 0) {
-        // 더 나은 등급으로만 업그레이드
-        if (config.interval < this.breathingInterval) {
-          this.breathingInterval = config.interval;
-          this.breathingHealAmount = config.healAmount;
-          console.log(`🌬️ 호흡법 강화! ${config.interval}초마다 체력 ${config.healAmount} 회복`);
-        } else {
-          console.log(`⚠️ 이미 더 나은 호흡법을 보유하고 있습니다!`);
-        }
-      } else {
-        // 첫 획득
-        this.breathingInterval = config.interval;
-        this.breathingHealAmount = config.healAmount;
-        this.breathingTimer = config.interval; // 즉시 발동 가능
-        console.log(`🌬️ 호흡법 습득! ${config.interval}초마다 체력 ${config.healAmount} 회복`);
-      }
-    }
-    // ⚙️ 유틸리티
-    else if (type === 'xp' && subtype === 'gain') {
-      // 경험치 획득량
-      const increments = { common: 0.05, rare: 0.12, epic: 0.25 };
-      const increment = increments[rarity as keyof typeof increments];
-      if (!increment) return;
-
-      if (this.xpMultiplier >= this.MAX_XP_MULTIPLIER) {
-        console.log(`⚠️ 경험치 배수가 최대치입니다! (${this.MAX_XP_MULTIPLIER * 100}%)`);
-        return;
-      }
-      this.xpMultiplier = Math.min(this.xpMultiplier + increment, this.MAX_XP_MULTIPLIER);
-      console.log(`📚 경험치 획득량 증가! ${(this.xpMultiplier * 100).toFixed(0)}%`);
-    } else {
-      console.warn(`Unknown powerup type: ${powerupId}`);
-    }
+  public applyStatUpgrade(statId: string): void {
+    this.applyPowerup(statId);
   }
 
   /**
