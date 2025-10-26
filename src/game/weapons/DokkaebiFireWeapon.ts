@@ -96,8 +96,8 @@ export class DokkaebiFireWeapon extends Weapon {
     this.damage = stats.damage;
 
     // 레벨업 효과
-    if (this.level % 2 === 0 && this.orbitalCount < 8) {
-      this.orbitalCount++; // 짝수 레벨마다 개수 +1 (최대 8개)
+    if (this.orbitalCount < 5) {
+      this.orbitalCount++; // 매 레벨마다 개수 +1 (최대 5개)
     }
 
     if (this.level % 3 === 0) {
