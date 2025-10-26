@@ -19,7 +19,7 @@ export class DokkaebiFireWeapon extends Weapon {
   private orbitals: OrbitalEntity[] = [];
   private orbitalCount: number = 1;
   private orbitalRadius: number = 80;
-  private angularSpeed: number = 2.0; // rad/s
+  private angularSpeed: number = 3.5; // rad/s (2.0 -> 3.5로 75% 증가)
 
   constructor() {
     const stats = calculateWeaponStats('dokkaebi_fire', 1);
@@ -86,11 +86,6 @@ export class DokkaebiFireWeapon extends Weapon {
     const stats = calculateWeaponStats('dokkaebi_fire', this.level);
     this.damage = stats.damage;
 
-    // 모든 궤도의 데미지 업데이트
-    for (const orbital of this.orbitals) {
-      orbital.damage = this.damage;
-    }
-
     // 레벨업 효과
     if (this.level % 2 === 0 && this.orbitalCount < 8) {
       this.orbitalCount++; // 짝수 레벨마다 개수 +1 (최대 8개)
@@ -100,7 +95,18 @@ export class DokkaebiFireWeapon extends Weapon {
       this.orbitalRadius += 10; // 3레벨마다 반경 +10
     }
 
-    console.log(`🔥 도깨비불 레벨 ${this.level}! (개수: ${this.orbitalCount})`);
+    // 레벨업 시 회전속도도 증가 (레벨당 +0.1, 최대 5.5)
+    this.angularSpeed = Math.min(5.5, 3.5 + (this.level - 1) * 0.1);
+
+    // 모든 궤도의 데미지 및 회전속도 업데이트
+    for (const orbital of this.orbitals) {
+      orbital.damage = this.damage;
+      orbital.angularSpeed = this.angularSpeed;
+    }
+
+    console.log(
+      `🔥 도깨비불 레벨 ${this.level}! (개수: ${this.orbitalCount}, 속도: ${this.angularSpeed.toFixed(1)})`
+    );
   }
 
   /**
