@@ -50,9 +50,6 @@ export interface PowerupMetadata {
   // 등급별 증가량
   increment: Record<PowerupRarity, number>;
 
-  // 등급별 주기 (현재는 호흡만 있음)
-  interval?: Record<PowerupRarity, number>;
-
   // 최대치 (min은 쿨타임 전용)
   max?: number;
   min?: number;
@@ -123,16 +120,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     name: 'Breathing',
     category: 'defense',
     icon: '/assets/power-up/health-generate.png',
-    increment: {
-      common: POWERUP_BALANCE.breathing.common.healAmount,
-      rare: POWERUP_BALANCE.breathing.rare.healAmount,
-      epic: POWERUP_BALANCE.breathing.epic.healAmount,
-    },
-    interval: {
-      common: POWERUP_BALANCE.breathing.common.interval,
-      rare: POWERUP_BALANCE.breathing.rare.interval,
-      epic: POWERUP_BALANCE.breathing.epic.interval,
-    },
+    increment: POWERUP_BALANCE.breathing,
   },
 
   // ⚙️ 유틸리티 스탯

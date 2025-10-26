@@ -299,9 +299,9 @@ export const POWERUP_BALANCE = {
     epic: 0.15, // -15%
   },
   breathing: {
-    common: { interval: 8, healAmount: 5 },
-    rare: { interval: 6, healAmount: 8 },
-    epic: { interval: 4, healAmount: 12 },
+    common: 0.005, // 0.5%/초
+    rare: 0.012, // 1.2%/초
+    epic: 0.025, // 2.5%/초
   },
 
   // ⚙️ 유틸리티 파워업

@@ -37,10 +37,8 @@ export class Player extends Container {
   // 새로운 파워업 스탯 (⚙️ 유틸)
   public xpMultiplier: number = PLAYER_BALANCE.initialStats.xpMultiplier;
 
-  // 호흡 파워업
-  public breathingTimer: number = 0;
-  public breathingInterval: number = 0;
-  public breathingHealAmount: number = 0;
+  // 호흡 파워업 (초당 최대 체력 % 회복)
+  public healthRegenRate: number = 0; // 초당 회복률 (0.01 = 1%)
 
   // 스탯 상한선 (balance.config.ts에서 관리)
   private readonly MAX_DAMAGE_MULTIPLIER = PLAYER_BALANCE.maxStats.damageMultiplier;
@@ -360,30 +358,12 @@ export class Player extends Container {
         console.log(`🛡️ 피해 감소 증가! ${(this.damageReduction * 100).toFixed(0)}%`);
         break;
 
-      case 'breathing': {
-        // 호흡은 특별히 interval도 있음
-        const interval = powerupMeta.interval?.[rarity];
-        if (!interval) return;
-
-        // 이미 호흡을 보유한 경우 업그레이드
-        if (this.breathingInterval > 0) {
-          // 더 나은 등급으로만 업그레이드 (interval이 짧을수록 좋음)
-          if (interval < this.breathingInterval) {
-            this.breathingInterval = interval;
-            this.breathingHealAmount = increment;
-            console.log(`🌬️ 호흡법 강화! ${interval}초마다 체력 ${increment} 회복`);
-          } else {
-            console.log(`⚠️ 이미 더 나은 호흡법을 보유하고 있습니다!`);
-          }
-        } else {
-          // 첫 획득
-          this.breathingInterval = interval;
-          this.breathingHealAmount = increment;
-          this.breathingTimer = interval; // 즉시 발동 가능
-          console.log(`🌬️ 호흡법 습득! ${interval}초마다 체력 ${increment} 회복`);
-        }
+      case 'breathing':
+        this.healthRegenRate += increment;
+        console.log(
+          `🌬️ 호흡 강화! 초당 최대 체력의 ${(this.healthRegenRate * 100).toFixed(1)}% 회복`
+        );
         break;
-      }
 
       // ⚙️ 유틸리티 파워업
       case 'speed':
@@ -603,14 +583,10 @@ export class Player extends Container {
 
     // ===== 파워업 시스템 업데이트 =====
 
-    // 호흡 시스템 (주기적 체력 회복)
-    if (this.breathingInterval > 0) {
-      this.breathingTimer += deltaTime;
-      if (this.breathingTimer >= this.breathingInterval) {
-        this.heal(this.breathingHealAmount);
-        this.breathingTimer -= this.breathingInterval; // 누적 방지
-        // console.log(`🌬️ 호흡 회복! +${this.breathingHealAmount} HP`);
-      }
+    // 호흡 시스템 (초당 % 기반 체력 재생)
+    if (this.healthRegenRate > 0) {
+      const regenAmount = this.maxHealth * this.healthRegenRate * deltaTime;
+      this.heal(regenAmount);
     }
 
     // 체력바 업데이트
