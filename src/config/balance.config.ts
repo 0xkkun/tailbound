@@ -138,7 +138,7 @@ export const WEAPON_BALANCE = {
   // 부채바람
   fan_wind: {
     name: '부채바람',
-    baseDamage: 25,
+    baseDamage: 12,
     baseCooldown: 2.0,
     projectileSpeed: 350,
     projectileRadius: 15,
