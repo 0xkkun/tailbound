@@ -154,11 +154,37 @@ export const SPAWN_BALANCE = {
 
   // 적 스폰 확률 (합계 1.0)
   enemySpawnRates: {
-    skeleton: 0.22, // 해골 22%
-    dokkaebi: 0.22, // 도깨비 22%
-    mask: 0.22, // 탈령 22%
-    maidenGhost: 0.22, // 처녀귀신 22%
-    evilSpirit: 0.12, // 악령 12%
+    skeleton: 0.26, // 해골 26%
+    dokkaebi: 0.25, // 도깨비 25%
+    mask: 0.26, // 탈령 26%
+    maidenGhost: 0.15, // 처녀귀신 15% (원거리, 감소)
+    evilSpirit: 0.08, // 악령 8% (원거리, 감소)
+  },
+} as const;
+
+/**
+ * 적 타입별 고유 밸런스 설정
+ */
+export const ENEMY_TYPE_BALANCE = {
+  // 악령 (원거리)
+  evilSpirit: {
+    healthMultiplier: 0.8, // 기본 체력의 80%
+    damageMultiplier: 0.8, // 기본 데미지의 80%
+    speed: 110, // 빠른 속도
+    radius: 28, // 작은 히트박스
+    attackCooldown: 1.5, // 공격 쿨타임
+    attackRange: 280, // 공격 사거리
+    keepDistance: 200, // 유지 거리
+  },
+  // 처녀귀신 (원거리)
+  maidenGhost: {
+    healthMultiplier: 0.9, // 기본 체력의 90%
+    damageMultiplier: 1.0, // 기본 데미지
+    speed: 85, // 느린 속도
+    radius: 30, // 기본 히트박스
+    attackCooldown: 2.0, // 공격 쿨타임
+    attackRange: 250, // 공격 사거리
+    keepDistance: 180, // 유지 거리
   },
 } as const;
 
