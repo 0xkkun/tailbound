@@ -71,7 +71,7 @@ export const WEAPON_BALANCE = {
       piercingPerLevel: 0, // 레벨 5마다 관통 +1
     },
   },
-  // 도깨비불 (추후 구현)
+  // 도깨비불
   dokkaebi_fire: {
     name: '도깨비불',
     baseDamage: 8,
@@ -81,10 +81,25 @@ export const WEAPON_BALANCE = {
     projectileLifetime: 2,
     piercing: 0,
     projectileCount: 3,
+    // 궤도 설정
+    orbitalRadius: 80, // 기본 궤도 반경
+    baseAngularSpeed: 3.5, // 기본 회전 속도 (rad/s)
+    maxAngularSpeed: 5.5, // 최대 회전 속도
+    maxOrbitalCount: 5, // 최대 궤도 개수
+    // 깜박임 설정
+    blinkOnDurationBase: 5.0, // 켜짐 시간 기본값
+    blinkOnDurationMin: 2.0, // 켜짐 시간 최소값
+    blinkOffDurationBase: 3.0, // 꺼짐 시간 기본값
+    blinkOffDurationMin: 1.2, // 꺼짐 시간 최소값
     levelScaling: {
       damage: 3,
       cooldownReduction: 0.03,
       piercingPerLevel: 0,
+      angularSpeedPerLevel: 0.1, // 레벨당 회전속도 증가
+      radiusPerLevel: 10, // 3레벨마다 반경 증가량
+      radiusIncreaseInterval: 3, // 반경 증가 주기
+      blinkOnReductionPerLevel: 1.0, // 레벨당 켜짐 시간 감소
+      blinkOffReductionPerLevel: 0.6, // 레벨당 꺼짐 시간 감소
     },
   },
   // 목탁 소리
@@ -101,7 +116,7 @@ export const WEAPON_BALANCE = {
       piercingPerLevel: 0,
     },
   },
-  // 작두날 (추후 구현)
+  // 작두날
   jakdu_blade: {
     name: '작두날',
     baseDamage: 18,
@@ -111,22 +126,26 @@ export const WEAPON_BALANCE = {
     projectileLifetime: 5,
     piercing: 5,
     projectileCount: 1,
+    attackRadius: 80, // 작두날 공격 범위 (기본 64 -> 80으로 증가)
+    offsetDistance: 60, // 플레이어로부터의 거리
     levelScaling: {
       damage: 6,
       cooldownReduction: 0.1,
       piercingPerLevel: 1,
+      radiusPerLevel: 8, // 레벨당 범위 +8
     },
   },
   // 부채바람
   fan_wind: {
     name: '부채바람',
-    baseDamage: 25,
+    baseDamage: 12,
     baseCooldown: 2.0,
     projectileSpeed: 350,
     projectileRadius: 15,
     projectileLifetime: 1.2, // 최대 사거리 420픽셀 (350 * 1.2)
     piercing: Infinity, // 무제한 관통
     projectileCount: 1,
+    damageDecayMin: 0.33, // 관통 시 최소 데미지 (33%)
     levelScaling: {
       damage: 8, // 레벨당 데미지 +8
       cooldownReduction: 0.15, // 레벨당 쿨타임 -0.15초

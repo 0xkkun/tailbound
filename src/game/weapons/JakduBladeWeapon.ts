@@ -7,6 +7,7 @@
 
 import type { Container } from 'pixi.js';
 
+import { WEAPON_BALANCE } from '@/config/balance.config';
 import { calculateWeaponStats } from '@/game/data/weapons';
 import { AttachedEntity } from '@/game/entities/AttachedEntity';
 import type { BaseEnemy } from '@/game/entities/enemies';
@@ -18,7 +19,8 @@ import { Weapon } from './Weapon';
 export class JakduBladeWeapon extends Weapon {
   private blades: AttachedEntity[] = [];
   private bladeCount: number = 1; // 처음엔 왼쪽 1개
-  private offsetDistance: number = 60; // 플레이어로부터의 거리
+  private offsetDistance: number = WEAPON_BALANCE.jakdu_blade.offsetDistance;
+  private attackRadius: number = WEAPON_BALANCE.jakdu_blade.attackRadius;
 
   constructor() {
     const stats = calculateWeaponStats('jakdu_blade', 1);
@@ -64,7 +66,7 @@ export class JakduBladeWeapon extends Weapon {
         position,
         offsetDistance: this.offsetDistance,
         damage: this.damage,
-        radius: 64,
+        radius: this.attackRadius,
         color: 0xff0000,
       });
 
@@ -85,7 +87,7 @@ export class JakduBladeWeapon extends Weapon {
       gameLayer.addChild(blade);
     }
 
-    console.log(`🔪 작두날 x${this.blades.length} 생성`);
+    console.log(`🔪 작두날 x${this.blades.length} 생성 (범위: ${this.attackRadius})`);
   }
 
   /**
@@ -107,9 +109,14 @@ export class JakduBladeWeapon extends Weapon {
     this.damage = stats.damage;
     this.cooldown = stats.cooldown;
 
-    // 모든 작두의 데미지 업데이트
+    // 범위 증가 (레벨당 +8)
+    const radiusPerLevel = WEAPON_BALANCE.jakdu_blade.levelScaling.radiusPerLevel || 8;
+    this.attackRadius = WEAPON_BALANCE.jakdu_blade.attackRadius + radiusPerLevel * (this.level - 1);
+
+    // 모든 작두의 데미지와 범위 업데이트
     for (const blade of this.blades) {
       blade.damage = this.damage;
+      blade.radius = this.attackRadius;
     }
 
     // 레벨업 효과: 레벨 2부터 오른쪽 작두 추가
@@ -117,7 +124,9 @@ export class JakduBladeWeapon extends Weapon {
       this.bladeCount = 2;
     }
 
-    console.log(`🔪 작두날 레벨 ${this.level}! (개수: ${this.bladeCount})`);
+    console.log(
+      `🔪 작두날 레벨 ${this.level}! (개수: ${this.bladeCount}, 범위: ${this.attackRadius})`
+    );
   }
 
   /**

@@ -5,6 +5,7 @@
  * 레벨업 시 투사체 수량이 증가하고 데미지가 증가
  */
 
+import { WEAPON_BALANCE } from '@/config/balance.config';
 import { calculateWeaponStats, getWeaponData } from '@/game/data/weapons';
 import type { Vector2 } from '@/types/game.types';
 
@@ -16,7 +17,6 @@ import { Weapon } from './Weapon';
 
 export class FanWindWeapon extends Weapon {
   private projectileCount: number = 1; // 투사체 개수
-  private spreadAngle: number = Math.PI / 6; // 30도 부채꼴
   private weaponData = getWeaponData('fan_wind');
 
   constructor() {
@@ -32,33 +32,19 @@ export class FanWindWeapon extends Weapon {
 
     const projectiles: Projectile[] = [];
 
-    // 가장 가까운 적 방향으로 발사 (없으면 오른쪽)
-    const target = this.findClosestEnemy(playerPos, enemies);
-    const baseDirection = target
-      ? this.getDirection(playerPos, { x: target.x, y: target.y })
-      : { x: 1, y: 0 };
+    // 여러 개일 때는 가까운 적들을 각각 타겟팅, 1개일 때는 가장 가까운 적
+    const targets =
+      this.projectileCount > 1
+        ? this.findClosestEnemies(playerPos, enemies, this.projectileCount)
+        : [this.findClosestEnemy(playerPos, enemies)];
 
-    // 중앙 각도 계산
-    const baseAngle = Math.atan2(baseDirection.y, baseDirection.x);
-
-    // 투사체 개수에 따라 부채꼴로 발사
+    // 투사체 개수에 따라 발사
     for (let i = 0; i < this.projectileCount; i++) {
-      let angle: number;
-
-      if (this.projectileCount === 1) {
-        // 1개일 때: 중앙으로
-        angle = baseAngle;
-      } else {
-        // 여러 개일 때: 부채꼴로 분산
-        const step = this.spreadAngle / (this.projectileCount - 1);
-        angle = baseAngle - this.spreadAngle / 2 + step * i;
-      }
-
-      // 방향 벡터 계산
-      const direction = {
-        x: Math.cos(angle),
-        y: Math.sin(angle),
-      };
+      // 타겟이 있으면 해당 타겟 방향, 없으면 기본 방향 (오른쪽)
+      const target = targets[i] || null;
+      const direction = target
+        ? this.getDirection(playerPos, { x: target.x, y: target.y })
+        : { x: 1, y: 0 };
 
       // 투사체 생성
       const projectile = new Projectile(
@@ -73,16 +59,21 @@ export class FanWindWeapon extends Weapon {
       if (player) {
         const critResult = player.rollCritical();
         projectile.isCritical = critResult.isCritical;
-        projectile.damage = this.damage * critResult.damageMultiplier;
+        const finalDamage = this.damage * critResult.damageMultiplier;
+        projectile.setDamage(finalDamage); // baseDamage도 함께 설정
         projectile.playerRef = player;
       } else {
-        projectile.damage = this.damage;
+        projectile.setDamage(this.damage);
       }
 
       projectile.speed = this.weaponData.projectileSpeed || 350;
       projectile.lifeTime = this.weaponData.projectileLifetime || 1.2;
       projectile.radius = this.weaponData.projectileRadius || 15;
       projectile.piercing = Infinity; // 무제한 관통
+
+      // 관통 시 데미지 감소 활성화
+      projectile.damageDecayEnabled = true;
+      projectile.damageDecayMin = WEAPON_BALANCE.fan_wind.damageDecayMin;
 
       // wind.png 스프라이트 애니메이션 로드
       projectile.loadSpriteSheet('/assets/weapon/wind.png', 96, 96, 12, 12);
@@ -142,6 +133,34 @@ export class FanWindWeapon extends Weapon {
     }
 
     return closest;
+  }
+
+  /**
+   * 가까운 적 N개 찾기 (여러 방향 타겟팅용)
+   */
+  private findClosestEnemies(
+    playerPos: Vector2,
+    enemies: BaseEnemy[],
+    count: number
+  ): (BaseEnemy | null)[] {
+    // 거리 순으로 정렬된 적 배열 생성
+    const enemiesWithDistance = enemies
+      .filter((enemy) => enemy.active && enemy.isAlive())
+      .map((enemy) => {
+        const dx = enemy.x - playerPos.x;
+        const dy = enemy.y - playerPos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return { enemy, distance };
+      })
+      .sort((a, b) => a.distance - b.distance);
+
+    // 가까운 적 N개 반환 (부족하면 null로 채움)
+    const result: (BaseEnemy | null)[] = [];
+    for (let i = 0; i < count; i++) {
+      result.push(enemiesWithDistance[i]?.enemy || null);
+    }
+
+    return result;
   }
 
   /**
