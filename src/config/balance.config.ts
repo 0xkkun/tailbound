@@ -6,6 +6,7 @@
  * 플레이어 밸런스
  */
 export const PLAYER_BALANCE = {
+  // 기본 스탯
   health: 100,
   speed: 250,
   radius: 40,
@@ -14,6 +15,34 @@ export const PLAYER_BALANCE = {
     strength: 0, // 공격력
     agility: 0, // 이동속도, 공격속도
     intelligence: 0, // 투사체 수, 범위
+  },
+
+  // 파워업 초기값
+  initialStats: {
+    criticalRate: 0.05, // 치명타 확률 기본 5%
+    criticalDamage: 1.5, // 치명타 피해 기본 150%
+    damageReduction: 0, // 피해 감소 기본 0%
+    xpMultiplier: 1.0, // 경험치 배수 기본 100%
+    damageMultiplier: 1.0, // 공격력 배수 기본 100%
+    speedMultiplier: 1.0, // 이동속도 배수 기본 100%
+    cooldownMultiplier: 1.0, // 쿨타임 배수 기본 100%
+    pickupRangeMultiplier: 1.0, // 획득 범위 배수 기본 100%
+  },
+
+  // 파워업 최대/최소치
+  maxStats: {
+    damageMultiplier: 5.0, // 500%
+    speedMultiplier: 2.0, // 200%
+    pickupRangeMultiplier: 5.0, // 500%
+    maxHealth: 500, // 최대 체력
+    criticalRate: 1.0, // 100%
+    criticalDamage: 6.5, // 650% (기본 1.5 + 최대 5.0)
+    damageReduction: 0.8, // 80%
+    xpMultiplier: 3.0, // 300%
+  },
+
+  minStats: {
+    cooldownMultiplier: 0.3, // 30% (70% 감소)
   },
 } as const;
 
@@ -72,7 +101,7 @@ export const WEAPON_BALANCE = {
       piercingPerLevel: 0, // 레벨 5마다 관통 +1
     },
   },
-  // 도깨비불 (추후 구현)
+  // 도깨비불
   dokkaebi_fire: {
     name: '도깨비불',
     baseDamage: 8,
@@ -82,10 +111,25 @@ export const WEAPON_BALANCE = {
     projectileLifetime: 2,
     piercing: 0,
     projectileCount: 3,
+    // 궤도 설정
+    orbitalRadius: 80, // 기본 궤도 반경
+    baseAngularSpeed: 3.5, // 기본 회전 속도 (rad/s)
+    maxAngularSpeed: 5.5, // 최대 회전 속도
+    maxOrbitalCount: 5, // 최대 궤도 개수
+    // 깜박임 설정
+    blinkOnDurationBase: 5.0, // 켜짐 시간 기본값
+    blinkOnDurationMin: 2.0, // 켜짐 시간 최소값
+    blinkOffDurationBase: 3.0, // 꺼짐 시간 기본값
+    blinkOffDurationMin: 1.2, // 꺼짐 시간 최소값
     levelScaling: {
       damage: 3,
       cooldownReduction: 0.03,
       piercingPerLevel: 0,
+      angularSpeedPerLevel: 0.1, // 레벨당 회전속도 증가
+      radiusPerLevel: 10, // 3레벨마다 반경 증가량
+      radiusIncreaseInterval: 3, // 반경 증가 주기
+      blinkOnReductionPerLevel: 1.0, // 레벨당 켜짐 시간 감소
+      blinkOffReductionPerLevel: 0.6, // 레벨당 꺼짐 시간 감소
     },
   },
   // 목탁 소리
@@ -102,7 +146,7 @@ export const WEAPON_BALANCE = {
       piercingPerLevel: 0,
     },
   },
-  // 작두날 (추후 구현)
+  // 작두날
   jakdu_blade: {
     name: '작두날',
     baseDamage: 18,
@@ -112,22 +156,26 @@ export const WEAPON_BALANCE = {
     projectileLifetime: 5,
     piercing: 5,
     projectileCount: 1,
+    attackRadius: 80, // 작두날 공격 범위 (기본 64 -> 80으로 증가)
+    offsetDistance: 60, // 플레이어로부터의 거리
     levelScaling: {
       damage: 6,
       cooldownReduction: 0.1,
       piercingPerLevel: 1,
+      radiusPerLevel: 8, // 레벨당 범위 +8
     },
   },
   // 부채바람
   fan_wind: {
     name: '부채바람',
-    baseDamage: 25,
+    baseDamage: 12,
     baseCooldown: 2.0,
     projectileSpeed: 350,
     projectileRadius: 15,
     projectileLifetime: 1.2, // 최대 사거리 420픽셀 (350 * 1.2)
     piercing: Infinity, // 무제한 관통
     projectileCount: 1,
+    damageDecayMin: 0.33, // 관통 시 최소 데미지 (33%)
     levelScaling: {
       damage: 8, // 레벨당 데미지 +8
       cooldownReduction: 0.15, // 레벨당 쿨타임 -0.15초
@@ -155,11 +203,37 @@ export const SPAWN_BALANCE = {
 
   // 적 스폰 확률 (합계 1.0)
   enemySpawnRates: {
-    skeleton: 0.22, // 해골 22%
-    dokkaebi: 0.22, // 도깨비 22%
-    mask: 0.22, // 탈령 22%
-    maidenGhost: 0.22, // 처녀귀신 22%
-    evilSpirit: 0.12, // 악령 12%
+    skeleton: 0.26, // 해골 26%
+    dokkaebi: 0.25, // 도깨비 25%
+    mask: 0.26, // 탈령 26%
+    maidenGhost: 0.15, // 처녀귀신 15% (원거리, 감소)
+    evilSpirit: 0.08, // 악령 8% (원거리, 감소)
+  },
+} as const;
+
+/**
+ * 적 타입별 고유 밸런스 설정
+ */
+export const ENEMY_TYPE_BALANCE = {
+  // 악령 (원거리)
+  evilSpirit: {
+    healthMultiplier: 0.8, // 기본 체력의 80%
+    damageMultiplier: 0.8, // 기본 데미지의 80%
+    speed: 110, // 빠른 속도
+    radius: 28, // 작은 히트박스
+    attackCooldown: 1.5, // 공격 쿨타임
+    attackRange: 280, // 공격 사거리
+    keepDistance: 200, // 유지 거리
+  },
+  // 처녀귀신 (원거리)
+  maidenGhost: {
+    healthMultiplier: 0.9, // 기본 체력의 90%
+    damageMultiplier: 1.0, // 기본 데미지
+    speed: 85, // 느린 속도
+    radius: 30, // 기본 히트박스
+    attackCooldown: 2.0, // 공격 쿨타임
+    attackRange: 250, // 공격 사거리
+    keepDistance: 180, // 유지 거리
   },
 } as const;
 
@@ -231,68 +305,65 @@ export const TICK_DAMAGE_BALANCE = {
 /**
  * 파워업 밸런스 설정
  *
- * 카테고리:
- * - combat: 공격 강화 (⚔️)
- * - defense: 생존/방어 (💪)
- * - utility: 유틸리티 (⚙️)
+ * 전체 10종 파워업의 등급별 증가량 정의
+ * - 공격: damage, cooldown, crit_rate, crit_damage
+ * - 방어: health, damage_reduction, breathing
+ * - 유틸: speed, pickup, xp_gain
  */
 export const POWERUP_BALANCE = {
-  // ⚔️ 공격 강화 파워업
-  combat: {
-    // 치명타 확률 (필살)
-    criticalRate: {
-      common: 0.05, // +5%
-      rare: 0.1, // +10%
-      epic: 0.2, // +20%
-      max: 1.0, // 100% (항상 치명타)
-    },
-    // 치명타 피해량 (극살)
-    criticalDamage: {
-      common: 0.2, // +20%
-      rare: 0.5, // +50%
-      epic: 1.0, // +100%
-      max: 5.0, // 기본 150% -> 최대 650% (1.5 + 5.0)
-    },
+  // ⚔️ 공격 파워업
+  damage: {
+    common: 0.02, // +2%
+    rare: 0.05, // +5%
+    epic: 0.1, // +10%
+  },
+  cooldown: {
+    common: 0.02, // -2%
+    rare: 0.05, // -5%
+    epic: 0.1, // -10%
+  },
+  crit_rate: {
+    common: 0.05, // +5%
+    rare: 0.1, // +10%
+    epic: 0.2, // +20%
+  },
+  crit_damage: {
+    common: 0.2, // +20%
+    rare: 0.5, // +50%
+    epic: 1.0, // +100%
   },
 
-  // 💪 생존/방어 파워업
-  defense: {
-    // 피해 감소 (강체)
-    damageReduction: {
-      common: 0.03, // -3% 피해
-      rare: 0.08, // -8% 피해
-      epic: 0.15, // -15% 피해
-      max: 0.8, // 최대 -80% (거의 무적 방지)
-    },
-    // 호흡 (呼吸): 주기적 체력 회복
-    breathing: {
-      common: { interval: 8, healAmount: 5 }, // 8초마다 5 회복
-      rare: { interval: 6, healAmount: 8 }, // 6초마다 8 회복
-      epic: { interval: 4, healAmount: 12 }, // 4초마다 12 회복
-    },
+  // 💪 방어 파워업
+  health: {
+    common: 5, // +5 HP
+    rare: 15, // +15 HP
+    epic: 30, // +30 HP
+  },
+  damage_reduction: {
+    common: 0.03, // -3%
+    rare: 0.08, // -8%
+    epic: 0.15, // -15%
+  },
+  breathing: {
+    common: 0.005, // 0.5%/초
+    rare: 0.012, // 1.2%/초
+    epic: 0.025, // 2.5%/초
   },
 
   // ⚙️ 유틸리티 파워업
-  utility: {
-    // 경험치 획득량 (수련)
-    xpGain: {
-      common: 0.05, // +5%
-      rare: 0.12, // +12%
-      epic: 0.25, // +25%
-      max: 2.0, // 최대 +200%
-    },
+  speed: {
+    common: 0.03, // +3%
+    rare: 0.07, // +7%
+    epic: 0.15, // +15%
   },
-
-  // 🎁 특수 드롭 아이템
-  specialDrop: {
-    // 혼백 (魂魄): 사망 시 1회 부활 (보스 드롭)
-    revive: {
-      dropRate: 0.1, // 보스 처치 시 10% 확률
-      reviveHealthPercent: 0.5, // 최대 체력의 50%로 부활
-      invincibleDuration: 2.0, // 부활 후 2초 무적
-    },
+  pickup: {
+    common: 0.05, // +5%
+    rare: 0.15, // +15%
+    epic: 0.3, // +30%
   },
-
-  // 기본 치명타 배율 (치명타 발동 시 기본 데미지)
-  baseCriticalMultiplier: 1.5, // 기본 150% 피해
+  xp_gain: {
+    common: 0.05, // +5%
+    rare: 0.12, // +12%
+    epic: 0.25, // +25%
+  },
 } as const;

@@ -27,6 +27,11 @@ export class Projectile extends Container {
   public piercing: number = 1; // 1이면 적 1마리 관통 후 소멸, Infinity면 무제한
   private hitEnemies: Set<string> = new Set(); // 이미 맞힌 적 ID 기록
 
+  // 관통 데미지 감소 시스템
+  public damageDecayEnabled: boolean = false; // 관통 시 데미지 감소 활성화 여부
+  public damageDecayMin: number = 0.33; // 최소 데미지 비율 (33%)
+  private baseDamage: number = 15; // 초기 데미지 (감쇠 계산용)
+
   // 치명타 및 흡혈 (파워업 시스템)
   public isCritical: boolean = false; // 치명타 여부
   public playerRef?: Player; // Player 참조 (흡혈용)
@@ -50,6 +55,35 @@ export class Projectile extends Container {
     this.addChild(this.visual);
 
     this.render(color);
+  }
+
+  /**
+   * 데미지 설정 (baseDamage도 함께 설정)
+   */
+  public setDamage(damage: number): void {
+    this.damage = damage;
+    this.baseDamage = damage;
+  }
+
+  /**
+   * 현재 관통 횟수에 따른 실제 데미지 계산
+   */
+  public getCurrentDamage(): number {
+    if (!this.damageDecayEnabled) {
+      return this.damage;
+    }
+
+    const hitCount = this.hitEnemies.size;
+    if (hitCount === 0) {
+      return this.baseDamage;
+    }
+
+    // 선형 감소: 관통할 때마다 일정 비율 감소
+    // 5회 관통 시 최소값(33%)에 도달하도록 설정
+    const decayRate = (1 - this.damageDecayMin) / 5; // (1 - 0.33) / 5 = 0.134
+    const damageMultiplier = Math.max(this.damageDecayMin, 1 - decayRate * hitCount);
+
+    return this.baseDamage * damageMultiplier;
   }
 
   /**

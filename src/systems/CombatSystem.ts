@@ -39,8 +39,8 @@ export class CombatSystem {
         }
 
         if (checkCircleCollision(projectile, enemy)) {
-          // 데미지 적용 (projectile.damage는 이미 치명타가 적용된 상태)
-          const finalDamage = projectile.damage;
+          // 데미지 적용 (관통 시 감소 고려)
+          const finalDamage = projectile.getCurrentDamage();
 
           enemy.takeDamage(finalDamage, projectile.isCritical);
 

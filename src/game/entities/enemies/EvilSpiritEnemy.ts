@@ -6,7 +6,7 @@
 
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
-import { ENEMY_BALANCE } from '@/config/balance.config';
+import { ENEMY_BALANCE, ENEMY_TYPE_BALANCE } from '@/config/balance.config';
 import type { EnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
@@ -28,10 +28,10 @@ export class EvilSpiritEnemy extends BaseEnemy {
   private hasProjectileFired: boolean = false; // 공격 중 발사체 발사 여부
 
   // 원거리 공격 설정
-  private attackCooldown: number = 1.5; // 1.5초마다 공격
+  private attackCooldown: number = ENEMY_TYPE_BALANCE.evilSpirit.attackCooldown;
   private attackTimer: number = 0;
-  private attackRange: number = 280; // 공격 사거리
-  private keepDistance: number = 200; // 유지 거리
+  private attackRange: number = ENEMY_TYPE_BALANCE.evilSpirit.attackRange;
+  private keepDistance: number = ENEMY_TYPE_BALANCE.evilSpirit.keepDistance;
 
   // 투사체 생성 콜백
   public onFireProjectile?: (projInfo: {
@@ -43,14 +43,14 @@ export class EvilSpiritEnemy extends BaseEnemy {
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
     super(id, x, y, tier);
 
-    // 악령 고유 스탯: 중간 체력, 빠름, 원거리 공격
-    // balance.config.ts의 티어 기본값에 타입별 배율 적용
+    // 악령 고유 스탯: 낮은 체력, 빠름, 원거리 공격
     const baseStats = ENEMY_BALANCE[tier];
-    this.health = Math.floor(baseStats.health * 1.5); // 빠른 속도와 원거리 공격을 가진 중간 체력형
+    const typeConfig = ENEMY_TYPE_BALANCE.evilSpirit;
+    this.health = Math.floor(baseStats.health * typeConfig.healthMultiplier);
     this.maxHealth = this.health;
-    this.speed = 110; // 기본보다 10% 빠름
-    this.damage = Math.floor(baseStats.damage * 0.8); // 기본보다 20% 낮음 (투사체 데미지는 별도)
-    this.radius = 28; // 작은 히트박스
+    this.speed = typeConfig.speed;
+    this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
+    this.radius = typeConfig.radius;
 
     this.loadAttackAnimation();
   }
