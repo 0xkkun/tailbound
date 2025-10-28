@@ -47,11 +47,14 @@ export class LobbyScene extends Container {
       const imgWidth = texture.width;
       const imgHeight = texture.height;
 
-      // 가로를 화면에 꽉 채움
-      const scale = width / imgWidth;
+      // 화면 전체를 덮도록 스케일 계산 (가로 또는 세로 중 큰 스케일 사용)
+      const scaleX = width / imgWidth;
+      const scaleY = height / imgHeight;
+      const scale = Math.max(scaleX, scaleY);
       this.backgroundSprite.scale.set(scale);
 
-      // 스케일 적용 후 실제 높이
+      // 스케일 적용 후 실제 크기
+      const scaledWidth = imgWidth * scale;
       const scaledHeight = imgHeight * scale;
 
       // 검은색 배경 (전체)
@@ -60,10 +63,10 @@ export class LobbyScene extends Container {
       blackBg.fill(0x000000);
       this.addChildAt(blackBg, 0);
 
-      // 배경 스프라이트를 추가
+      // 배경 스프라이트를 추가 (중앙 정렬, 화면을 완전히 덮음)
       this.addChildAt(this.backgroundSprite, 1);
-      this.backgroundSprite.x = 0;
-      this.backgroundSprite.y = (height - scaledHeight) / 2; // 세로 중앙 정렬
+      this.backgroundSprite.x = (width - scaledWidth) / 2;
+      this.backgroundSprite.y = (height - scaledHeight) / 2;
 
       // 하단 그라디언트 오버레이
       this.gradientOverlay = new Graphics();
