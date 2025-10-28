@@ -13,4 +13,11 @@ export default defineConfig({
       '@test': path.resolve(__dirname, './src/test'),
     },
   },
+  server: {
+    host: 'localhost',
+    port: 5173,
+  },
+  build: {
+    outDir: 'dist',
+  },
 });

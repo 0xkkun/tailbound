@@ -2,6 +2,7 @@
  * 게임 씬 - 메인 게임 로직
  */
 
+import { getSafeAreaInsets } from '@apps-in-toss/web-framework';
 import { Assets, Container, Graphics, Sprite, Spritesheet, Text } from 'pixi.js';
 
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@/config/balance.config';
@@ -386,6 +387,10 @@ export class OverworldGameScene extends BaseGameScene {
   private initUI(): void {
     // zIndex 정렬 활성화
     this.uiLayer.sortableChildren = true;
+
+    // Safe Area Insets 적용 - uiLayer 전체를 내림
+    const insets = getSafeAreaInsets();
+    this.uiLayer.y = insets.top;
 
     // 경험치 바 위치 계산 및 저장
     this.xpBarY = this.UI_PADDING + this.UI_SETTINGS_SIZE + this.UI_GAP_SETTINGS_TO_BAR;
