@@ -13,13 +13,29 @@ import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class MaidenGhostEnemy extends BaseEnemy {
-  // 처녀귀신 스프라이트 설정
-  private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/enemy/woman-ghost.png',
-    totalWidth: 224,
-    height: 32,
-    frameCount: 7,
-    scale: 2.5,
+  // 처녀귀신 스프라이트 설정 (티어별)
+  private static readonly SPRITE_CONFIGS: Record<EnemyTier, EnemySpriteConfig> = {
+    normal: {
+      assetPath: '/assets/enemy/woman-ghost-white-walk.png',
+      totalWidth: 224,
+      height: 32,
+      frameCount: 7,
+      scale: 2.5, // 기본 크기
+    },
+    elite: {
+      assetPath: '/assets/enemy/woman-ghost-red-walk.png',
+      totalWidth: 224,
+      height: 32,
+      frameCount: 7,
+      scale: 3.0, // 20% 크게
+    },
+    boss: {
+      assetPath: '/assets/enemy/woman-ghost-red-walk.png',
+      totalWidth: 224,
+      height: 32,
+      frameCount: 7,
+      scale: 3.5, // 40% 크게
+    },
   };
 
   // 공격 애니메이션 스프라이트
@@ -50,17 +66,20 @@ export class MaidenGhostEnemy extends BaseEnemy {
     this.maxHealth = this.health;
     this.speed = typeConfig.speed;
     this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
-    this.radius = typeConfig.radius;
+
+    // 티어에 따라 히트박스도 증가
+    const radiusMultiplier = tier === 'elite' ? 1.2 : tier === 'boss' ? 1.4 : 1;
+    this.radius = typeConfig.radius * radiusMultiplier;
 
     this.loadAttackAnimation();
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return MaidenGhostEnemy.SPRITE_CONFIG;
+    return MaidenGhostEnemy.SPRITE_CONFIGS[this.tier];
   }
 
   protected getEnemyType(): string {
-    return 'maiden_ghost';
+    return `maiden_ghost_${this.tier}`;
   }
 
   /**
@@ -73,17 +92,25 @@ export class MaidenGhostEnemy extends BaseEnemy {
   }
 
   /**
-   * 처녀귀신 스프라이트 preload
+   * 처녀귀신 스프라이트 preload (모든 티어)
    */
   public static async preloadSprites(): Promise<void> {
-    return BaseEnemy.preloadSpriteType('maiden_ghost', MaidenGhostEnemy.SPRITE_CONFIG);
+    await Promise.all([
+      BaseEnemy.preloadSpriteType('maiden_ghost_normal', MaidenGhostEnemy.SPRITE_CONFIGS.normal),
+      BaseEnemy.preloadSpriteType('maiden_ghost_elite', MaidenGhostEnemy.SPRITE_CONFIGS.elite),
+      BaseEnemy.preloadSpriteType('maiden_ghost_boss', MaidenGhostEnemy.SPRITE_CONFIGS.boss),
+    ]);
   }
 
   /**
-   * 공격 애니메이션 로드
+   * 공격 애니메이션 로드 (티어에 맞는 색상)
    */
   private async loadAttackAnimation(): Promise<void> {
-    const assetPath = '/assets/enemy/woman-ghost-attack.png';
+    // 티어에 따라 공격 애니메이션 색상 선택
+    const assetPath =
+      this.tier === 'normal'
+        ? '/assets/enemy/woman-ghost-white-attack.png'
+        : '/assets/enemy/woman-ghost-red-attack.png';
 
     // 텍스처 로드
     const texture = await Assets.load(assetPath);
@@ -100,10 +127,13 @@ export class MaidenGhostEnemy extends BaseEnemy {
       frames.push(new Texture({ source: texture.source, frame: rect }));
     }
 
+    // 티어에 따른 스케일 설정
+    const spriteScale = this.tier === 'normal' ? 2.5 : this.tier === 'elite' ? 3.0 : 3.5;
+
     // AnimatedSprite 생성
     this.attackSprite = new AnimatedSprite(frames);
     this.attackSprite.anchor.set(0.5);
-    this.attackSprite.scale.set(2.5); // 처녀귀신 기본 스케일과 동일
+    this.attackSprite.scale.set(spriteScale);
     this.attackSprite.animationSpeed = 0.4; // 애니메이션 속도
     this.attackSprite.loop = false; // 한 번만 재생
     this.attackSprite.visible = false;
