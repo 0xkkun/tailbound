@@ -11,7 +11,7 @@ import type { WhiteTigerBoss } from './enemies/WhiteTigerBoss';
 export class SpiralChargeEffect extends Container {
   private sprite: AnimatedSprite | null = null;
   private timer: number = 0;
-  private duration: number = 2.0;
+  private duration: number = 15.0; // 나선형 패턴 전체 시간 동안 유지 (2초 → 15초)
   private boss: WhiteTigerBoss;
 
   // 스프라이트 설정
@@ -62,6 +62,9 @@ export class SpiralChargeEffect extends Container {
     this.sprite.play();
 
     this.addChild(this.sprite);
+
+    // z-index를 높여서 보스 위에 표시
+    this.zIndex = 1000;
 
     // 보스 스프라이트 색상 변경
     boss.setSpriteTint(0xff0000); // 빨간색
@@ -115,18 +118,20 @@ export class SpiralChargeEffect extends Container {
   public update(deltaTime: number): boolean {
     this.timer += deltaTime;
 
-    // 보스 위치 추적 (넉백되어도 따라감)
-    this.x = this.boss.x;
-    this.y = this.boss.y;
-
-    // 2초 후 완료
-    if (this.timer >= this.duration) {
-      // 보스 스프라이트 색상 복구
-      this.boss.setSpriteTint(0xffffff);
-      return true; // 완료
+    // 보스가 존재하고 파괴되지 않은 경우에만 위치 추적
+    if (this.boss && !this.boss.destroyed) {
+      // 보스 위치 추적 (넉백되어도 따라감)
+      this.x = this.boss.x;
+      this.y = this.boss.y;
+    } else {
+      // 보스가 없으면 이펙트 종료
+      return true; // 제거 필요
     }
 
-    return false; // 진행 중
+    // duration 체크 제거 - 외부에서 제거할 때까지 계속 유지
+    // 이제 WhiteTigerBoss에서 onRemoveChargeEffect를 호출할 때까지 계속 표시됨
+
+    return false; // 항상 진행 중
   }
 
   /**
