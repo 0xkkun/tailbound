@@ -11,9 +11,13 @@ import {
   BaseEnemy,
   DokkaebiEnemy,
   EvilSpiritEnemy,
+  FoxEnemy,
+  GrimReaperEnemy,
   MaidenGhostEnemy,
   MaskEnemy,
   SkeletonEnemy,
+  TotemEnemy,
+  WaterGhostEnemy,
   WhiteTigerBoss,
 } from '@/game/entities/enemies';
 import { EnemyProjectile } from '@/game/entities/EnemyProjectile';
@@ -163,6 +167,10 @@ export class OverworldGameScene extends BaseGameScene {
       FireballProjectile.preloadSprites(), // 보스 불꽃 투사체
       SpiralChargeEffect.preloadSprites(), // 보스 나선형 차징 이펙트
       FireAOE.preloadSprites(), // 보스 불 장판
+      FoxEnemy.preloadSprites(),
+      GrimReaperEnemy.preloadSprites(),
+      TotemEnemy.preloadSprites(),
+      WaterGhostEnemy.preloadSprites(),
       Assets.load('/assets/tile/tile1.png'), // 바닥 타일 1 (32x48)
       Assets.load('/assets/tile/tile2.png'), // 바닥 타일 2 (32x48)
       Assets.load('/assets/tile/tile3.png'), // 바닥 타일 3 (32x32)

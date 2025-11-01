@@ -203,11 +203,15 @@ export const SPAWN_BALANCE = {
 
   // 적 스폰 확률 (합계 1.0)
   enemySpawnRates: {
-    skeleton: 0.26, // 해골 26%
-    dokkaebi: 0.25, // 도깨비 25%
-    mask: 0.26, // 탈령 26%
-    maidenGhost: 0.15, // 처녀귀신 15% (원거리, 감소)
-    evilSpirit: 0.08, // 악령 8% (원거리, 감소)
+    skeleton: 0.15, // 해골 15%
+    dokkaebi: 0.14, // 도깨비 14%
+    mask: 0.15, // 탈령 15%
+    maidenGhost: 0.1, // 처녀귀신 10% (원거리)
+    evilSpirit: 0.06, // 악령 6% (원거리)
+    fox: 0.14, // 여우 14%
+    grimReaper: 0.05, // 저승사자 5% (암살자)
+    totem: 0.13, // 토템 13% (느린 탱커)
+    waterGhost: 0.08, // 수귀 8% (빠른 약체)
   },
 } as const;
 

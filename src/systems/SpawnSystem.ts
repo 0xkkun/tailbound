@@ -8,9 +8,13 @@ import type { BaseEnemy } from '@/game/entities/enemies';
 import {
   DokkaebiEnemy,
   EvilSpiritEnemy,
+  FoxEnemy,
+  GrimReaperEnemy,
   MaidenGhostEnemy,
   MaskEnemy,
   SkeletonEnemy,
+  TotemEnemy,
+  WaterGhostEnemy,
 } from '@/game/entities/enemies';
 import type { Vector2 } from '@/types/game.types';
 
@@ -115,17 +119,27 @@ export class SpawnSystem {
         const rand = Math.random();
         const rates = SPAWN_BALANCE.enemySpawnRates;
         let enemy: BaseEnemy;
+        let cumulative = 0;
 
-        if (rand < rates.skeleton) {
+        cumulative += rates.skeleton;
+        if (rand < cumulative) {
           enemy = new SkeletonEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < rates.skeleton + rates.dokkaebi) {
+        } else if (rand < (cumulative += rates.dokkaebi)) {
           enemy = new DokkaebiEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < rates.skeleton + rates.dokkaebi + rates.mask) {
+        } else if (rand < (cumulative += rates.mask)) {
           enemy = new MaskEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < rates.skeleton + rates.dokkaebi + rates.mask + rates.maidenGhost) {
+        } else if (rand < (cumulative += rates.maidenGhost)) {
           enemy = new MaidenGhostEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else {
+        } else if (rand < (cumulative += rates.evilSpirit)) {
           enemy = new EvilSpiritEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        } else if (rand < (cumulative += rates.fox)) {
+          enemy = new FoxEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        } else if (rand < (cumulative += rates.grimReaper)) {
+          enemy = new GrimReaperEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        } else if (rand < (cumulative += rates.totem)) {
+          enemy = new TotemEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        } else {
+          enemy = new WaterGhostEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
         }
 
         enemies.push(enemy);
