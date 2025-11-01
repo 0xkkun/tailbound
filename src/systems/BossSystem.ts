@@ -83,7 +83,8 @@ export class BossSystem {
   /**
    * 보스 스폰
    */
-  public async spawnBoss(x: number, y: number): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async spawnBoss(_x: number, _y: number): Promise<void> {
     // 보스를 플레이어 위 화면 밖에서 스폰
     const spawnX = this.player.x;
     const spawnY = this.player.y - this.screenHeight; // 화면 높이만큼 위에서 시작
@@ -302,7 +303,9 @@ export class BossSystem {
 
       // 보스 체력 0 이하 시 처리
       if (this.boss.health <= 0) {
-        console.log(`[BossSystem] Boss health: ${this.boss.health}, isBossDefeated: ${this.isBossDefeated}`);
+        console.log(
+          `[BossSystem] Boss health: ${this.boss.health}, isBossDefeated: ${this.isBossDefeated}`
+        );
         if (!this.isBossDefeated) {
           console.log('[BossSystem] Calling handleBossDefeat()');
           this.handleBossDefeat();

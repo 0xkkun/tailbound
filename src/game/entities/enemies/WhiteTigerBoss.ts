@@ -111,10 +111,16 @@ export class WhiteTigerBoss extends BaseEnemy {
       baseTexture.source.scaleMode = 'nearest';
 
       const frames: Texture[] = [];
-      const frameWidth = WhiteTigerBoss.IDLE_SPRITE_CONFIG.totalWidth / WhiteTigerBoss.IDLE_SPRITE_CONFIG.frameCount;
+      const frameWidth =
+        WhiteTigerBoss.IDLE_SPRITE_CONFIG.totalWidth / WhiteTigerBoss.IDLE_SPRITE_CONFIG.frameCount;
 
       for (let i = 0; i < WhiteTigerBoss.IDLE_SPRITE_CONFIG.frameCount; i++) {
-        const rect = new Rectangle(i * frameWidth, 0, frameWidth, WhiteTigerBoss.IDLE_SPRITE_CONFIG.height);
+        const rect = new Rectangle(
+          i * frameWidth,
+          0,
+          frameWidth,
+          WhiteTigerBoss.IDLE_SPRITE_CONFIG.height
+        );
         frames.push(new Texture({ source: baseTexture.source, frame: rect }));
       }
 
@@ -296,7 +302,10 @@ export class WhiteTigerBoss extends BaseEnemy {
       this.y += directionY * this.speed * deltaTime;
 
       // 스프라이트 좌우 반전 (idle과 walk 모두)
-      const scaleX = directionX < 0 ? -Math.abs(WhiteTigerBoss.IDLE_SPRITE_CONFIG.scale) : Math.abs(WhiteTigerBoss.IDLE_SPRITE_CONFIG.scale);
+      const scaleX =
+        directionX < 0
+          ? -Math.abs(WhiteTigerBoss.IDLE_SPRITE_CONFIG.scale)
+          : Math.abs(WhiteTigerBoss.IDLE_SPRITE_CONFIG.scale);
 
       if (this.sprite) {
         this.sprite.scale.x = scaleX;
