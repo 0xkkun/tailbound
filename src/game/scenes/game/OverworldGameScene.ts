@@ -95,6 +95,11 @@ export class OverworldGameScene extends BaseGameScene {
   private readonly UI_KILL_ICON_GAP = 6;
   private readonly UI_KILL_ICON_OFFSET_Y = -4; // 텍스트와 수직 정렬 조정
 
+  // 테두리 크기 상수
+  private readonly BORDER_LEFT_WIDTH = 24 * 2; // 48px
+  private readonly BORDER_RIGHT_WIDTH = 24 * 2; // 48px
+  private readonly BORDER_BOTTOM_HEIGHT = 48 * 2; // 96px
+
   // UI 요소
   private scoreText!: Text;
   private killIcon!: Sprite;
@@ -133,6 +138,12 @@ export class OverworldGameScene extends BaseGameScene {
       screenWidth,
       screenHeight
     );
+    // 테두리 크기 설정 (스폰 제한)
+    this.spawnSystem.setBorderSizes(
+      this.BORDER_LEFT_WIDTH,
+      this.BORDER_RIGHT_WIDTH,
+      this.BORDER_BOTTOM_HEIGHT
+    );
     this.portalSpawner = new PortalSpawner();
   }
 
@@ -155,6 +166,9 @@ export class OverworldGameScene extends BaseGameScene {
       Assets.load('/assets/tile/tile1.png'), // 바닥 타일 1 (32x48)
       Assets.load('/assets/tile/tile2.png'), // 바닥 타일 2 (32x48)
       Assets.load('/assets/tile/tile3.png'), // 바닥 타일 3 (32x32)
+      Assets.load('/assets/tile/outline-left.png'), // 테두리 왼쪽 (24x48)
+      Assets.load('/assets/tile/outline-right.png'), // 테두리 오른쪽 (24x48)
+      Assets.load('/assets/tile/outline-bottom.png'), // 테두리 하단 (64x48)
     ]);
 
     // Spirit Energy 스프라이트시트 로드 (1, 2, 3)
@@ -296,7 +310,87 @@ export class OverworldGameScene extends BaseGameScene {
       }
     }
 
+    // 테두리 추가
+    this.createTileBorders();
+
     console.log('무작위 타일 배경 생성 완료');
+  }
+
+  /**
+   * 타일 테두리 생성
+   * 월드의 좌/우/하단에 테두리 배치
+   */
+  private createTileBorders(): void {
+    const leftTexture = Assets.get('/assets/tile/outline-left.png');
+    const rightTexture = Assets.get('/assets/tile/outline-right.png');
+    const bottomTexture = Assets.get('/assets/tile/outline-bottom.png');
+
+    // 픽셀 아트 렌더링 설정
+    leftTexture.source.scaleMode = 'nearest';
+    rightTexture.source.scaleMode = 'nearest';
+    bottomTexture.source.scaleMode = 'nearest';
+
+    const worldWidth = GAME_CONFIG.world.overworld.width;
+    const worldHeight = GAME_CONFIG.world.overworld.height;
+
+    const leftBorderHeight = 48 * 2; // 96px
+    const rightBorderHeight = 48 * 2; // 96px
+    const bottomTileWidth = 64 * 2; // 128px
+
+    // 좌측 테두리 (24x48 에셋을 2배 확대 = 48x96)
+    // 하단 테두리 높이만큼 위까지만 배치
+    for (let y = 0; y < worldHeight - this.BORDER_BOTTOM_HEIGHT; y += leftBorderHeight) {
+      const border = new Sprite(leftTexture);
+      border.scale.set(2);
+      border.x = 0;
+      border.y = y;
+      border.anchor.set(0, 0);
+      this.gameLayer.addChild(border);
+    }
+
+    // 우측 테두리 (24x48 에셋을 2배 확대 = 48x96)
+    // 하단 테두리 높이만큼 위까지만 배치
+    for (let y = 0; y < worldHeight - this.BORDER_BOTTOM_HEIGHT; y += rightBorderHeight) {
+      const border = new Sprite(rightTexture);
+      border.scale.set(2);
+      border.x = worldWidth - this.BORDER_RIGHT_WIDTH;
+      border.y = y;
+      border.anchor.set(0, 0);
+      this.gameLayer.addChild(border);
+    }
+
+    // 하단 좌측 코너 (왼쪽 테두리 사용)
+    const bottomLeftCorner = new Sprite(leftTexture);
+    bottomLeftCorner.scale.set(2);
+    bottomLeftCorner.x = 0;
+    bottomLeftCorner.y = worldHeight - this.BORDER_BOTTOM_HEIGHT;
+    bottomLeftCorner.anchor.set(0, 0);
+    this.gameLayer.addChild(bottomLeftCorner);
+
+    // 하단 중앙 테두리 (64x48 에셋을 2배 확대 = 128x96)
+    // 좌우 테두리 너비를 제외한 영역에만 배치
+    for (
+      let x = this.BORDER_LEFT_WIDTH;
+      x < worldWidth - this.BORDER_RIGHT_WIDTH;
+      x += bottomTileWidth
+    ) {
+      const border = new Sprite(bottomTexture);
+      border.scale.set(2);
+      border.x = x;
+      border.y = worldHeight - this.BORDER_BOTTOM_HEIGHT;
+      border.anchor.set(0, 0);
+      this.gameLayer.addChild(border);
+    }
+
+    // 하단 우측 코너 (오른쪽 테두리 사용)
+    const bottomRightCorner = new Sprite(rightTexture);
+    bottomRightCorner.scale.set(2);
+    bottomRightCorner.x = worldWidth - this.BORDER_RIGHT_WIDTH;
+    bottomRightCorner.y = worldHeight - this.BORDER_BOTTOM_HEIGHT;
+    bottomRightCorner.anchor.set(0, 0);
+    this.gameLayer.addChild(bottomRightCorner);
+
+    console.log('타일 테두리 생성 완료');
   }
 
   /**
@@ -552,6 +646,24 @@ export class OverworldGameScene extends BaseGameScene {
   }
 
   /**
+   * 플레이어 업데이트 오버라이드 (테두리 충돌 처리)
+   */
+  protected override updatePlayer(deltaTime: number): void {
+    // 기본 플레이어 업데이트 (부모 메서드 호출)
+    super.updatePlayer(deltaTime);
+
+    // 테두리 충돌 제한 (좌/우/하단)
+    this.player.x = Math.max(
+      this.BORDER_LEFT_WIDTH + this.player.radius,
+      Math.min(this.worldWidth - this.BORDER_RIGHT_WIDTH - this.player.radius, this.player.x)
+    );
+    this.player.y = Math.max(
+      this.player.radius,
+      Math.min(this.worldHeight - this.BORDER_BOTTOM_HEIGHT - this.player.radius, this.player.y)
+    );
+  }
+
+  /**
    * 씬 업데이트 (BaseGameScene abstract 메서드 구현)
    */
   protected async updateScene(deltaTime: number): Promise<void> {
@@ -579,7 +691,7 @@ export class OverworldGameScene extends BaseGameScene {
     // 게임 시간 증가
     this.gameTime += deltaTime;
 
-    // 1. 플레이어 업데이트 (BaseGameScene의 메서드 사용)
+    // 1. 플레이어 업데이트 (오버라이드된 메서드 사용)
     this.updatePlayer(deltaTime);
 
     // 4. 무기 업데이트 및 발사

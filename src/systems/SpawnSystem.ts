@@ -28,11 +28,28 @@ export class SpawnSystem {
   private screenWidth: number;
   private screenHeight: number;
 
+  // 테두리 크기 (스폰 제한용)
+  private borderLeft: number = 0;
+  private borderRight: number = 0;
+  private borderBottom: number = 0;
+
+  // 스폰 마진 상수
+  private readonly SPAWN_MARGIN_FROM_BORDER = 50;
+
   constructor(worldWidth: number, worldHeight: number, screenWidth: number, screenHeight: number) {
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
     this.screenWidth = screenWidth;
     this.screenHeight = screenHeight;
+  }
+
+  /**
+   * 테두리 크기 설정 (스폰 제한용)
+   */
+  public setBorderSizes(left: number, right: number, bottom: number): void {
+    this.borderLeft = Math.max(0, left);
+    this.borderRight = Math.max(0, right);
+    this.borderBottom = Math.max(0, bottom);
   }
 
   /**
@@ -126,6 +143,12 @@ export class SpawnSystem {
     const halfScreenWidth = this.screenWidth / 2;
     const halfScreenHeight = this.screenHeight / 2;
 
+    // 스폰 가능한 유효 영역 (테두리 제외)
+    const minX = this.borderLeft + this.SPAWN_MARGIN_FROM_BORDER;
+    const maxX = this.worldWidth - this.borderRight - this.SPAWN_MARGIN_FROM_BORDER;
+    const minY = this.SPAWN_MARGIN_FROM_BORDER;
+    const maxY = this.worldHeight - this.borderBottom - this.SPAWN_MARGIN_FROM_BORDER;
+
     let x = 0;
     let y = 0;
 
@@ -133,24 +156,60 @@ export class SpawnSystem {
       case 0: // 위쪽 화면 밖
         x = playerPos.x + (Math.random() - 0.5) * this.screenWidth;
         y = playerPos.y - halfScreenHeight - SPAWN_BALANCE.spawnMargin;
+        // X 좌표를 유효 영역 내로 제한
+        x = Math.max(minX, Math.min(maxX, x));
+        // Y 좌표: 위쪽 경계를 넘지 않으면서 화면 밖에 유지
+        if (y < minY) {
+          y = minY;
+          // 위쪽 경계에 막혔으면 X를 화면 밖으로 조정
+          if (Math.abs(x - playerPos.x) < halfScreenWidth) {
+            x = Math.random() < 0.5 ? minX : maxX;
+          }
+        }
         break;
       case 1: // 오른쪽 화면 밖
         x = playerPos.x + halfScreenWidth + SPAWN_BALANCE.spawnMargin;
         y = playerPos.y + (Math.random() - 0.5) * this.screenHeight;
+        // Y 좌표를 유효 영역 내로 제한
+        y = Math.max(minY, Math.min(maxY, y));
+        // X 좌표: 오른쪽 경계를 넘지 않으면서 화면 밖에 유지
+        if (x > maxX) {
+          x = maxX;
+          // 오른쪽 경계에 막혔으면 Y를 화면 밖으로 조정
+          if (Math.abs(y - playerPos.y) < halfScreenHeight) {
+            y = Math.random() < 0.5 ? minY : maxY;
+          }
+        }
         break;
       case 2: // 아래쪽 화면 밖
         x = playerPos.x + (Math.random() - 0.5) * this.screenWidth;
         y = playerPos.y + halfScreenHeight + SPAWN_BALANCE.spawnMargin;
+        // X 좌표를 유효 영역 내로 제한
+        x = Math.max(minX, Math.min(maxX, x));
+        // Y 좌표: 아래쪽 경계를 넘지 않으면서 화면 밖에 유지
+        if (y > maxY) {
+          y = maxY;
+          // 아래쪽 경계에 막혔으면 X를 화면 밖으로 조정
+          if (Math.abs(x - playerPos.x) < halfScreenWidth) {
+            x = Math.random() < 0.5 ? minX : maxX;
+          }
+        }
         break;
       case 3: // 왼쪽 화면 밖
         x = playerPos.x - halfScreenWidth - SPAWN_BALANCE.spawnMargin;
         y = playerPos.y + (Math.random() - 0.5) * this.screenHeight;
+        // Y 좌표를 유효 영역 내로 제한
+        y = Math.max(minY, Math.min(maxY, y));
+        // X 좌표: 왼쪽 경계를 넘지 않으면서 화면 밖에 유지
+        if (x < minX) {
+          x = minX;
+          // 왼쪽 경계에 막혔으면 Y를 화면 밖으로 조정
+          if (Math.abs(y - playerPos.y) < halfScreenHeight) {
+            y = Math.random() < 0.5 ? minY : maxY;
+          }
+        }
         break;
     }
-
-    // 월드 경계 내로 제한
-    x = Math.max(50, Math.min(this.worldWidth - 50, x));
-    y = Math.max(50, Math.min(this.worldHeight - 50, y));
 
     return { x, y };
   }
@@ -163,8 +222,17 @@ export class SpawnSystem {
     const angle = Math.random() * Math.PI * 2;
     const distance = Math.random() * SPAWN_BALANCE.clusterRadius;
 
-    const x = center.x + Math.cos(angle) * distance;
-    const y = center.y + Math.sin(angle) * distance;
+    let x = center.x + Math.cos(angle) * distance;
+    let y = center.y + Math.sin(angle) * distance;
+
+    // 테두리 영역 제외하고 재제한 (클러스터링 후에도 안전)
+    const minX = this.borderLeft + this.SPAWN_MARGIN_FROM_BORDER;
+    const maxX = this.worldWidth - this.borderRight - this.SPAWN_MARGIN_FROM_BORDER;
+    const minY = this.SPAWN_MARGIN_FROM_BORDER;
+    const maxY = this.worldHeight - this.borderBottom - this.SPAWN_MARGIN_FROM_BORDER;
+
+    x = Math.max(minX, Math.min(maxX, x));
+    y = Math.max(minY, Math.min(maxY, y));
 
     return { x, y };
   }
