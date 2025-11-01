@@ -9,13 +9,29 @@ import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class SkeletonEnemy extends BaseEnemy {
-  // 스켈레톤 스프라이트 설정
-  private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/enemy/skeleton-walk.png',
-    totalWidth: 286,
-    height: 33,
-    frameCount: 13,
-    scale: 3,
+  // 스켈레톤 스프라이트 설정 (티어별 - 크기만 변경)
+  private static readonly SPRITE_CONFIGS: Record<EnemyTier, EnemySpriteConfig> = {
+    normal: {
+      assetPath: '/assets/enemy/skeleton-walk.png',
+      totalWidth: 286, // 22 * 13 frames
+      height: 33,
+      frameCount: 13,
+      scale: 2.5, // 기본 크기
+    },
+    elite: {
+      assetPath: '/assets/enemy/skeleton-walk.png',
+      totalWidth: 286, // 22 * 13 frames
+      height: 33,
+      frameCount: 13,
+      scale: 3.0, // 20% 크게
+    },
+    boss: {
+      assetPath: '/assets/enemy/skeleton-walk.png',
+      totalWidth: 286, // 22 * 13 frames
+      height: 33,
+      frameCount: 13,
+      scale: 3.5, // 40% 크게
+    },
   };
 
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
@@ -28,15 +44,18 @@ export class SkeletonEnemy extends BaseEnemy {
     this.maxHealth = this.health;
     this.speed = 130; // 기본보다 30% 빠름
     this.damage = Math.floor(baseStats.damage * 0.8); // 기본보다 20% 낮음
-    this.radius = 25; // 작은 히트박스
+
+    // 티어에 따라 히트박스도 증가
+    const radiusMultiplier = tier === 'elite' ? 1.2 : tier === 'boss' ? 1.4 : 1;
+    this.radius = 25 * radiusMultiplier;
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return SkeletonEnemy.SPRITE_CONFIG;
+    return SkeletonEnemy.SPRITE_CONFIGS[this.tier];
   }
 
   protected getEnemyType(): string {
-    return 'skeleton';
+    return `skeleton_${this.tier}`;
   }
 
   /**
@@ -49,9 +68,13 @@ export class SkeletonEnemy extends BaseEnemy {
   }
 
   /**
-   * 스켈레톤 스프라이트 preload
+   * 스켈레톤 스프라이트 preload (모든 티어)
    */
   public static async preloadSprites(): Promise<void> {
-    return BaseEnemy.preloadSpriteType('skeleton', SkeletonEnemy.SPRITE_CONFIG);
+    await Promise.all([
+      BaseEnemy.preloadSpriteType('skeleton_normal', SkeletonEnemy.SPRITE_CONFIGS.normal),
+      BaseEnemy.preloadSpriteType('skeleton_elite', SkeletonEnemy.SPRITE_CONFIGS.elite),
+      BaseEnemy.preloadSpriteType('skeleton_boss', SkeletonEnemy.SPRITE_CONFIGS.boss),
+    ]);
   }
 }
