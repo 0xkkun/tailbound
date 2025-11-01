@@ -6,23 +6,7 @@
  * - 죽음: error (오류 패턴)
  */
 
-import { generateHapticFeedback } from '@apps-in-toss/web-framework';
-
-/**
- * 토스 SDK 햅틱 피드백 타입
- * @see https://developers-apps-in-toss.toss.im/bedrock/reference/framework/인터렉션/HapticFeedbackOptions.html
- */
-type HapticFeedbackType =
-  | 'tickWeak'
-  | 'tap'
-  | 'tickMedium'
-  | 'softMedium'
-  | 'basicWeak'
-  | 'basicMedium'
-  | 'success'
-  | 'error'
-  | 'wiggle'
-  | 'confetti';
+import { type HapticFeedbackType, safeGenerateHapticFeedback } from '@/utils/tossAppBridge';
 
 export class HapticManager {
   private static instance: HapticManager;
@@ -70,22 +54,14 @@ export class HapticManager {
   private async trigger(type: HapticFeedbackType): Promise<void> {
     if (!this.enabled) return;
 
-    try {
-      await generateHapticFeedback({ type });
-    } catch (error) {
-      console.error('Haptic feedback failed:', error);
-    }
+    await safeGenerateHapticFeedback({ type });
   }
 
   /**
    * 설정 무시하고 즉시 트리거 (설정 화면용)
    */
   private async triggerImmediate(type: HapticFeedbackType): Promise<void> {
-    try {
-      await generateHapticFeedback({ type });
-    } catch (error) {
-      console.error('Haptic feedback failed:', error);
-    }
+    await safeGenerateHapticFeedback({ type });
   }
 
   // === 게임 이벤트별 햅틱 메서드 ===

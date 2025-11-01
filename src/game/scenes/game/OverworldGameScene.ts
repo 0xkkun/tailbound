@@ -2,7 +2,6 @@
  * 게임 씬 - 메인 게임 로직
  */
 
-import { getSafeAreaInsets } from '@apps-in-toss/web-framework';
 import { Assets, Container, Graphics, Sprite, Spritesheet, Text } from 'pixi.js';
 
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@/config/balance.config';
@@ -40,6 +39,7 @@ import { CombatSystem } from '@/systems/CombatSystem';
 import { PortalSpawner } from '@/systems/PortalSpawner';
 import { SpawnSystem } from '@/systems/SpawnSystem';
 import type { GameResult } from '@/types/game.types';
+import { safeGetSafeAreaInsets } from '@/utils/tossAppBridge';
 
 import { BaseGameScene } from './BaseGameScene';
 
@@ -394,7 +394,7 @@ export class OverworldGameScene extends BaseGameScene {
     this.uiLayer.sortableChildren = true;
 
     // Safe Area Insets 적용 - uiLayer 전체를 내림
-    const insets = getSafeAreaInsets();
+    const insets = safeGetSafeAreaInsets();
     this.uiLayer.y = insets.top;
 
     // 경험치 바 위치 계산 및 저장
