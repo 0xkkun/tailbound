@@ -8,7 +8,6 @@ interface PressToStartProps {
 
 export const PressToStart = ({ assetsLoaded }: PressToStartProps) => {
   const [showPressStart, setShowPressStart] = useState(false);
-  const [pressStartClicked, setPressStartClicked] = useState(false);
 
   // 에셋 로딩 완료 후 PRESS TO START 표시
   useEffect(() => {
@@ -27,9 +26,6 @@ export const PressToStart = ({ assetsLoaded }: PressToStartProps) => {
     audioManager.playBGMByTrack('main');
     console.log('[Loading] BGM started on press start interaction');
 
-    // 클릭 애니메이션 시작
-    setPressStartClicked(true);
-
     // 로딩 화면 페이드아웃 (텍스트보다 약간 늦게)
     setTimeout(() => {
       const loadingScreen = document.getElementById('loading-screen');
@@ -39,16 +35,16 @@ export const PressToStart = ({ assetsLoaded }: PressToStartProps) => {
         // 페이드아웃 완료 후 제거
         setTimeout(() => {
           loadingScreen.classList.add('removed');
-          setShowPressStart(false);
         }, 300);
       }
     }, 200);
+    setShowPressStart(false);
   };
 
   if (!showPressStart) return null;
   return (
     <div
-      className={`press-start-overlay ${pressStartClicked ? 'clicked' : ''}`}
+      className="press-start-overlay"
       onClick={handlePressStart}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
