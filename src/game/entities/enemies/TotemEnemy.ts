@@ -2,29 +2,30 @@
  * 토템 적 - 느리지만 강인한 마법형
  */
 
-import type { EnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
+import type { FieldEnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class TotemEnemy extends BaseEnemy {
   // 토템 스프라이트 설정 (티어별 - 크기만 변경)
-  private static readonly SPRITE_CONFIGS: Record<EnemyTier, EnemySpriteConfig> = {
-    normal: {
+  private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
+    low: {
       assetPath: '/assets/enemy/totem-walk.png',
       totalWidth: 416, // 32 * 13 frames
       height: 32,
       frameCount: 13,
       scale: 2.5, // 기본 크기
     },
-    elite: {
+    medium: {
       assetPath: '/assets/enemy/totem-walk.png',
       totalWidth: 416, // 32 * 13 frames
       height: 32,
       frameCount: 13,
       scale: 3.0, // 20% 크게
     },
-    boss: {
+    high: {
       assetPath: '/assets/enemy/totem-walk.png',
       totalWidth: 416, // 32 * 13 frames
       height: 32,
@@ -33,27 +34,29 @@ export class TotemEnemy extends BaseEnemy {
     },
   };
 
-  constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
-    super(id, x, y, tier);
+  constructor(id: string, x: number, y: number, tier: FieldEnemyTier = 'medium') {
+    super(id, x, y, 'field', tier);
 
     // 토템 고유 스탯: 높은 체력, 매우 느림, 중간 데미지
-    const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
-    this.health = 60 * tierMultiplier; // 높은 체력
+    const baseStats = FIELD_ENEMY_BALANCE[tier];
+    const typeConfig = ENEMY_TYPE_BALANCE.totem;
+
+    this.health = Math.floor(baseStats.health * typeConfig.healthMultiplier);
     this.maxHealth = this.health;
-    this.speed = 50; // 매우 느림
-    this.damage = 11 * tierMultiplier; // 중간 데미지
+    this.speed = typeConfig.speed;
+    this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
 
     // 티어에 따라 히트박스도 증가
-    const radiusMultiplier = tier === 'elite' ? 1.2 : tier === 'boss' ? 1.4 : 1;
-    this.radius = 32 * radiusMultiplier;
+    const radiusMultiplier = tier === 'medium' ? 1.2 : tier === 'high' ? 1.4 : 1;
+    this.radius = typeConfig.radius * radiusMultiplier;
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return TotemEnemy.SPRITE_CONFIGS[this.tier];
+    return TotemEnemy.SPRITE_CONFIGS[this.getFieldTier()];
   }
 
   protected getEnemyType(): string {
-    return `totem_${this.tier}`;
+    return `totem_${this.getFieldTier()}`;
   }
 
   /**
@@ -70,9 +73,9 @@ export class TotemEnemy extends BaseEnemy {
    */
   public static async preloadSprites(): Promise<void> {
     await Promise.all([
-      BaseEnemy.preloadSpriteType('totem_normal', TotemEnemy.SPRITE_CONFIGS.normal),
-      BaseEnemy.preloadSpriteType('totem_elite', TotemEnemy.SPRITE_CONFIGS.elite),
-      BaseEnemy.preloadSpriteType('totem_boss', TotemEnemy.SPRITE_CONFIGS.boss),
+      BaseEnemy.preloadSpriteType('totem_low', TotemEnemy.SPRITE_CONFIGS.low),
+      BaseEnemy.preloadSpriteType('totem_medium', TotemEnemy.SPRITE_CONFIGS.medium),
+      BaseEnemy.preloadSpriteType('totem_high', TotemEnemy.SPRITE_CONFIGS.high),
     ]);
   }
 }

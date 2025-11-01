@@ -47,11 +47,11 @@ export const PLAYER_BALANCE = {
 } as const;
 
 /**
- * 적 밸런스 (티어별)
+ * 필드몹 밸런스 (low/medium/high)
+ * 티어별 기본 배율: 1.0 / 3.5 / 15.0
  */
-export const ENEMY_BALANCE = {
-  // 일반 적
-  normal: {
+export const FIELD_ENEMY_BALANCE = {
+  low: {
     health: 30,
     speed: 100,
     damage: 10,
@@ -59,22 +59,76 @@ export const ENEMY_BALANCE = {
     xpDrop: 5,
     animationSpeed: 0.15,
   },
-  // 정예 적 (추후 구현)
-  elite: {
-    health: 100,
-    speed: 80,
-    damage: 20,
-    radius: 40,
+  medium: {
+    health: 105, // 30 * 3.5
+    speed: 100,
+    damage: 35, // 10 * 3.5
+    radius: 30,
     xpDrop: 25,
+    animationSpeed: 0.15,
+  },
+  high: {
+    health: 450, // 30 * 15
+    speed: 100,
+    damage: 150, // 10 * 15
+    radius: 30,
+    xpDrop: 100,
     animationSpeed: 0.2,
   },
-  // 보스 적 (백호)
-  boss: {
+} as const;
+
+/**
+ * 네임드 밸런스 (향후 구현)
+ */
+export const NAMED_ENEMY_BALANCE = {
+  dokkaebi_captain: {
+    health: 500,
+    speed: 95,
+    damage: 35,
+    radius: 50,
+    xpDrop: 200,
+    animationSpeed: 0.18,
+    knockbackResistance: 0.5,
+  },
+  ghost_general: {
+    health: 600,
+    speed: 80,
+    damage: 40,
+    radius: 48,
+    xpDrop: 250,
+    animationSpeed: 0.15,
+    knockbackResistance: 0.6,
+  },
+  fox_elder: {
+    health: 550,
+    speed: 90,
+    damage: 38,
+    radius: 46,
+    xpDrop: 220,
+    animationSpeed: 0.17,
+    knockbackResistance: 0.55,
+  },
+  reaper_commander: {
+    health: 700,
+    speed: 120,
+    damage: 45,
+    radius: 52,
+    xpDrop: 300,
+    animationSpeed: 0.2,
+    knockbackResistance: 0.7,
+  },
+} as const;
+
+/**
+ * 보스 밸런스
+ */
+export const BOSS_BALANCE = {
+  white_tiger: {
     health: 75000, // 2.5분 전투 목표 (평균 DPS 500 기준, 150초)
     speed: 90, // 플레이어보다 느리지만 위협적
     damage: 60, // 접촉 데미지 (플레이어 체력의 1/3~1/2)
     radius: 110, // 보스 히트박스 (스프라이트 288px의 약 40% 크기)
-    xpDrop: 1000, // 보스 처치 시 경험치 (2-3레벨업)
+    xpDrop: 0, // 보스는 경험치를 주지 않음 (특별 보상 제공)
     animationSpeed: 0.15,
     knockbackResistance: 0.2, // 넉백 80% 저항
   },
@@ -219,6 +273,55 @@ export const SPAWN_BALANCE = {
  * 적 타입별 고유 밸런스 설정
  */
 export const ENEMY_TYPE_BALANCE = {
+  // 스켈레톤 (근접 - 유리대포)
+  skeleton: {
+    healthMultiplier: 0.67, // 기본 체력의 67%
+    damageMultiplier: 0.8, // 기본 데미지의 80%
+    speed: 130, // 빠른 속도
+    radius: 25, // 작은 히트박스
+  },
+  // 도깨비 (근접 - 탱커)
+  dokkaebi: {
+    healthMultiplier: 1.67, // 기본 체력의 167%
+    damageMultiplier: 1.2, // 기본 데미지의 120%
+    speed: 75, // 느린 속도
+    radius: 35, // 큰 히트박스
+  },
+  // 탈령 (근접 - 암살자)
+  mask: {
+    healthMultiplier: 0.6, // 기본 체력의 60%
+    damageMultiplier: 1.5, // 기본 데미지의 150%
+    speed: 150, // 매우 빠른 속도
+    radius: 28, // 작은 히트박스
+  },
+  // 여우 (근접 - 균형형)
+  fox: {
+    healthMultiplier: 1.17, // 기본 체력의 117% (35 / 30 * 1.0)
+    damageMultiplier: 1.0, // 기본 데미지
+    speed: 120, // 빠른 속도
+    radius: 30, // 기본 히트박스
+  },
+  // 저승사자 (근접 - 암살자)
+  grimReaper: {
+    healthMultiplier: 0.73, // 기본 체력의 73% (22 / 30 * 1.0)
+    damageMultiplier: 1.6, // 기본 데미지의 160%
+    speed: 140, // 매우 빠른 속도
+    radius: 28, // 작은 히트박스
+  },
+  // 토템 (근접 - 탱커)
+  totem: {
+    healthMultiplier: 2.0, // 기본 체력의 200%
+    damageMultiplier: 1.1, // 기본 데미지의 110%
+    speed: 50, // 매우 느린 속도
+    radius: 32, // 큰 히트박스
+  },
+  // 수귀 (근접 - 균형형)
+  waterGhost: {
+    healthMultiplier: 0.83, // 기본 체력의 83% (25 / 30 * 1.0)
+    damageMultiplier: 0.9, // 기본 데미지의 90%
+    speed: 110, // 빠른 속도
+    radius: 27, // 작은 히트박스
+  },
   // 악령 (원거리)
   evilSpirit: {
     healthMultiplier: 0.8, // 기본 체력의 80%

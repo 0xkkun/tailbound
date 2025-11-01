@@ -2,30 +2,30 @@
  * 도깨비 적 - 높은 체력의 탱커형
  */
 
-import { ENEMY_BALANCE } from '@/config/balance.config';
-import type { EnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
+import type { FieldEnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class DokkaebiEnemy extends BaseEnemy {
   // 도깨비 스프라이트 설정 (티어별)
-  private static readonly SPRITE_CONFIGS: Record<EnemyTier, EnemySpriteConfig> = {
-    normal: {
+  private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
+    low: {
       assetPath: '/assets/enemy/dokkaebi-green-walk.png',
       totalWidth: 352, // 32 * 11 frames
       height: 32,
       frameCount: 11,
       scale: 2.5, // 기본 크기
     },
-    elite: {
+    medium: {
       assetPath: '/assets/enemy/dokkaebi-blue-walk.png',
       totalWidth: 352, // 32 * 11 frames
       height: 32,
       frameCount: 11,
       scale: 3.0, // 20% 크게
     },
-    boss: {
+    high: {
       assetPath: '/assets/enemy/dokkaebi-red-walk.png',
       totalWidth: 352, // 32 * 11 frames
       height: 32,
@@ -34,28 +34,29 @@ export class DokkaebiEnemy extends BaseEnemy {
     },
   };
 
-  constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
-    super(id, x, y, tier);
+  constructor(id: string, x: number, y: number, tier: FieldEnemyTier = 'medium') {
+    super(id, x, y, 'field', tier);
 
     // 도깨비 고유 스탯: 높은 체력, 느린 이동
-    // balance.config.ts의 티어 기본값에 타입별 배율 적용
-    const baseStats = ENEMY_BALANCE[tier];
-    this.health = Math.floor(baseStats.health * 1.67); // 기본보다 67% 높음
+    const baseStats = FIELD_ENEMY_BALANCE[tier];
+    const typeConfig = ENEMY_TYPE_BALANCE.dokkaebi;
+
+    this.health = Math.floor(baseStats.health * typeConfig.healthMultiplier);
     this.maxHealth = this.health;
-    this.speed = 75; // 기본보다 25% 느림
-    this.damage = Math.floor(baseStats.damage * 1.2); // 기본보다 20% 높음
+    this.speed = typeConfig.speed;
+    this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
 
     // 티어에 따라 히트박스도 증가
-    const radiusMultiplier = tier === 'elite' ? 1.2 : tier === 'boss' ? 1.4 : 1;
-    this.radius = 35 * radiusMultiplier;
+    const radiusMultiplier = tier === 'medium' ? 1.2 : tier === 'high' ? 1.4 : 1;
+    this.radius = typeConfig.radius * radiusMultiplier;
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return DokkaebiEnemy.SPRITE_CONFIGS[this.tier];
+    return DokkaebiEnemy.SPRITE_CONFIGS[this.getFieldTier()];
   }
 
   protected getEnemyType(): string {
-    return `dokkaebi_${this.tier}`;
+    return `dokkaebi_${this.getFieldTier()}`;
   }
 
   /**
@@ -72,9 +73,9 @@ export class DokkaebiEnemy extends BaseEnemy {
    */
   public static async preloadSprites(): Promise<void> {
     await Promise.all([
-      BaseEnemy.preloadSpriteType('dokkaebi_normal', DokkaebiEnemy.SPRITE_CONFIGS.normal),
-      BaseEnemy.preloadSpriteType('dokkaebi_elite', DokkaebiEnemy.SPRITE_CONFIGS.elite),
-      BaseEnemy.preloadSpriteType('dokkaebi_boss', DokkaebiEnemy.SPRITE_CONFIGS.boss),
+      BaseEnemy.preloadSpriteType('dokkaebi_low', DokkaebiEnemy.SPRITE_CONFIGS.low),
+      BaseEnemy.preloadSpriteType('dokkaebi_medium', DokkaebiEnemy.SPRITE_CONFIGS.medium),
+      BaseEnemy.preloadSpriteType('dokkaebi_high', DokkaebiEnemy.SPRITE_CONFIGS.high),
     ]);
   }
 }

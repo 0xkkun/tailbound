@@ -2,29 +2,30 @@
  * 저승사자 적 - 강력한 탱커형
  */
 
-import type { EnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
+import type { FieldEnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class GrimReaperEnemy extends BaseEnemy {
   // 저승사자 스프라이트 설정 (티어별 - 크기만 변경)
-  private static readonly SPRITE_CONFIGS: Record<EnemyTier, EnemySpriteConfig> = {
-    normal: {
+  private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
+    low: {
       assetPath: '/assets/enemy/grim-reaper-walk.png',
       totalWidth: 384, // 32 * 12 frames
       height: 32,
       frameCount: 12,
       scale: 2.5, // 기본 크기
     },
-    elite: {
+    medium: {
       assetPath: '/assets/enemy/grim-reaper-walk.png',
       totalWidth: 384, // 32 * 12 frames
       height: 32,
       frameCount: 12,
       scale: 3.0, // 20% 크게
     },
-    boss: {
+    high: {
       assetPath: '/assets/enemy/grim-reaper-walk.png',
       totalWidth: 384, // 32 * 12 frames
       height: 32,
@@ -33,27 +34,29 @@ export class GrimReaperEnemy extends BaseEnemy {
     },
   };
 
-  constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
-    super(id, x, y, tier);
+  constructor(id: string, x: number, y: number, tier: FieldEnemyTier = 'medium') {
+    super(id, x, y, 'field', tier);
 
     // 저승사자 고유 스탯: 빠른 암살자형 - 낮은 체력, 매우 빠름, 강한 공격
-    const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
-    this.health = 22 * tierMultiplier; // 낮은 체력 (유리몸)
+    const baseStats = FIELD_ENEMY_BALANCE[tier];
+    const typeConfig = ENEMY_TYPE_BALANCE.grimReaper;
+
+    this.health = Math.floor(baseStats.health * typeConfig.healthMultiplier);
     this.maxHealth = this.health;
-    this.speed = 140; // 매우 빠름
-    this.damage = 16 * tierMultiplier; // 강한 공격
+    this.speed = typeConfig.speed;
+    this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
 
     // 티어에 따라 히트박스도 증가
-    const radiusMultiplier = tier === 'elite' ? 1.2 : tier === 'boss' ? 1.4 : 1;
-    this.radius = 28 * radiusMultiplier;
+    const radiusMultiplier = tier === 'medium' ? 1.2 : tier === 'high' ? 1.4 : 1;
+    this.radius = typeConfig.radius * radiusMultiplier;
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return GrimReaperEnemy.SPRITE_CONFIGS[this.tier];
+    return GrimReaperEnemy.SPRITE_CONFIGS[this.getFieldTier()];
   }
 
   protected getEnemyType(): string {
-    return `grim_reaper_${this.tier}`;
+    return `grim_reaper_${this.getFieldTier()}`;
   }
 
   /**
@@ -70,9 +73,9 @@ export class GrimReaperEnemy extends BaseEnemy {
    */
   public static async preloadSprites(): Promise<void> {
     await Promise.all([
-      BaseEnemy.preloadSpriteType('grim_reaper_normal', GrimReaperEnemy.SPRITE_CONFIGS.normal),
-      BaseEnemy.preloadSpriteType('grim_reaper_elite', GrimReaperEnemy.SPRITE_CONFIGS.elite),
-      BaseEnemy.preloadSpriteType('grim_reaper_boss', GrimReaperEnemy.SPRITE_CONFIGS.boss),
+      BaseEnemy.preloadSpriteType('grim_reaper_low', GrimReaperEnemy.SPRITE_CONFIGS.low),
+      BaseEnemy.preloadSpriteType('grim_reaper_medium', GrimReaperEnemy.SPRITE_CONFIGS.medium),
+      BaseEnemy.preloadSpriteType('grim_reaper_high', GrimReaperEnemy.SPRITE_CONFIGS.high),
     ]);
   }
 }

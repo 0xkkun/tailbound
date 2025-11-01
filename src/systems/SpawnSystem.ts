@@ -3,7 +3,7 @@
  */
 
 import { SPAWN_BALANCE } from '@/config/balance.config';
-import { selectEnemyTier } from '@/game/data/enemies';
+import { selectFieldEnemyTier } from '@/game/data/enemies';
 import type { BaseEnemy } from '@/game/entities/enemies';
 import {
   DokkaebiEnemy,
@@ -112,8 +112,8 @@ export class SpawnSystem {
       for (let j = 0; j < groupSize; j++) {
         const spawnPos = this.getClusteredPosition(spawnCenter);
 
-        // 게임 시간에 따라 적 티어 선택
-        const tier = selectEnemyTier(this.gameTime);
+        // 게임 시간에 따라 필드몹 티어 선택
+        const tier = selectFieldEnemyTier(this.gameTime);
 
         // 밸런스 설정에 따라 랜덤하게 적 타입 선택
         const rand = Math.random();
