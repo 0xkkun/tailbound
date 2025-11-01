@@ -1,5 +1,8 @@
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
+import { audioManager } from '@/services/audioManager';
+
+import { DevSettingsButton } from '../ui/DevSettingsButton';
 import { PixelButton } from '../ui/PixelButton';
 
 export class LobbyScene extends Container {
@@ -10,6 +13,7 @@ export class LobbyScene extends Container {
   private characterSelectButton!: PixelButton;
   private comingSoonText!: Text;
   private copyrightText!: Text;
+  private devSettingsButton?: DevSettingsButton;
   private isMobile: boolean;
   private scaleFactor: number;
   private screenWidth: number;
@@ -33,6 +37,16 @@ export class LobbyScene extends Container {
     this.loadAndCreateTitleImage();
     this.createButtons(screenWidth, screenHeight);
     this.createCopyright(screenWidth, screenHeight);
+
+    // DEV 전용: 설정 버튼
+    if (import.meta.env.DEV) {
+      this.devSettingsButton = new DevSettingsButton(screenWidth, screenHeight);
+      this.addChild(this.devSettingsButton);
+    }
+
+    // 로비 BGM 시작
+    audioManager.playBGMByTrack('main');
+    console.log('[Audio] Lobby BGM started');
   }
 
   private async loadAndCreateBackground(width: number, height: number): Promise<void> {
@@ -148,6 +162,8 @@ export class LobbyScene extends Container {
       startButtonY,
       () => {
         console.log('게임 시작!');
+        // 로비 BGM 페이드 아웃 후 중지 (게임 시작 전)
+        audioManager.stopBGM(true);
         this.onStartGame?.();
       },
       false,
@@ -219,6 +235,7 @@ export class LobbyScene extends Container {
   public destroy(): void {
     this.startButton.destroy();
     this.characterSelectButton.destroy();
+    this.devSettingsButton?.destroy();
     super.destroy({ children: true });
   }
 }
