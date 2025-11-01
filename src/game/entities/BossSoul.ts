@@ -19,7 +19,7 @@ export class BossSoul extends Container {
 
   // 스프라이트 설정
   private static readonly SPRITE_CONFIG = {
-    assetPath: '/assets/boss/Soul.png',
+    assetPath: '/assets/drop/soul.png',
     totalWidth: 320, // 10프레임 × 32px
     height: 32,
     frameCount: 10,
