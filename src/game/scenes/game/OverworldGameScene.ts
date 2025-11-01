@@ -1611,13 +1611,14 @@ export class OverworldGameScene extends BaseGameScene {
 
     console.log('보스 스폰! 10분 경과');
 
-    // BossSystem 생성
+    // BossSystem 생성 (보스 경험치용으로 spiritEnergySpritesheet3 전달)
     this.bossSystem = new BossSystem(
       this.gameLayer,
       this.uiLayer,
       this.player,
       this.screenWidth,
-      this.screenHeight
+      this.screenHeight,
+      this.spiritEnergySpritesheet3 // 보스 경험치는 가장 큰 사이즈 사용
     );
 
     // 보스 스폰 (화면 중앙에 스폰)
