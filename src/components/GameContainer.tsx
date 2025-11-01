@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useApplication } from '@pixi/react';
 import { Assets } from 'pixi.js';
 
@@ -7,7 +7,11 @@ import { OverworldGameScene } from '../game/scenes/game/OverworldGameScene';
 import { LobbyScene } from '../game/scenes/LobbyScene';
 import { useGameState } from '../hooks/useGameState';
 
-export const GameContainer = () => {
+interface GameContainerProps {
+  onAssetsLoaded?: () => void;
+}
+
+export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
   const { app } = useApplication();
   const {
     gamePhase,
@@ -22,7 +26,6 @@ export const GameContainer = () => {
   const lobbySceneRef = useRef<LobbyScene | null>(null);
   const overworldSceneRef = useRef<OverworldGameScene | null>(null);
   const boundarySceneRef = useRef<BoundaryGameScene | null>(null);
-  const [assetsLoaded, setAssetsLoaded] = useState(false);
 
   // iOS 웹뷰: Canvas 터치 이벤트 완전 차단
   useEffect(() => {
@@ -103,36 +106,16 @@ export const GameContainer = () => {
           '/assets/weapon/jakdu.png',
         ]);
 
-        setAssetsLoaded(true);
+        onAssetsLoaded?.();
       } catch (error) {
         console.error('에셋 로딩 실패:', error);
         // 에러가 발생해도 게임은 시작
-        setAssetsLoaded(true);
+        onAssetsLoaded?.();
       }
     };
 
     preloadAssets();
-  }, []);
-
-  // 로딩 화면 숨기기 (에셋 로딩 완료 후)
-  useEffect(() => {
-    if (!assetsLoaded) return;
-
-    // 게임이 로드되면 로딩 화면 페이드아웃
-    const timer = setTimeout(() => {
-      document.body.classList.add('loaded');
-
-      // 페이드아웃 완료 후 제거
-      setTimeout(() => {
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-          loadingScreen.classList.add('hidden');
-        }
-      }, 500);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [assetsLoaded]);
+  }, [onAssetsLoaded]);
 
   useEffect(() => {
     if (!app) return;

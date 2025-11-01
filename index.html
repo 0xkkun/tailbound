@@ -76,6 +76,10 @@
         height: 100%;
         z-index: 9999;
         pointer-events: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
       }
 
       .loading-background {
@@ -86,7 +90,7 @@
         height: 100%;
         background-color: #000000;
         background-image: url('/assets/gui/main-bg.png');
-        background-size: 100% auto;
+        background-size: cover;
         background-position: center center;
         background-repeat: no-repeat;
       }
@@ -114,13 +118,13 @@
         z-index: 10;
       }
 
-      /* 게임이 로드되면 로딩 화면 숨김 */
-      body.loaded #loading-screen {
+      /* 게임이 시작되면 로딩 화면 숨김 */
+      #loading-screen.hidden {
         opacity: 0;
-        transition: opacity 0.5s ease-out;
+        transition: opacity 0.3s ease-out;
       }
 
-      body.loaded #loading-screen.hidden {
+      #loading-screen.removed {
         display: none;
       }
     </style>
