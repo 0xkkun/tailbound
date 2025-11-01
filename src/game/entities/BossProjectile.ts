@@ -96,14 +96,22 @@ export class BossProjectile extends Container {
   }
 
   /**
-   * 화면 밖 체크
+   * 화면 밖 체크 (월드 좌표 기준으로 넓은 범위 체크)
    */
-  public isOutOfBounds(width: number, height: number): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public isOutOfBounds(_width: number, _height: number): boolean {
     if (!this.active || this.destroyed) {
       return true;
     }
 
-    return this.x < -100 || this.x > width + 100 || this.y < -100 || this.y > height + 100;
+    // 월드 좌표에서 더 넓은 범위 허용 (카메라가 움직이므로)
+    const worldBoundary = 3000; // 월드 경계를 3000으로 설정
+    return (
+      this.x < -worldBoundary ||
+      this.x > worldBoundary ||
+      this.y < -worldBoundary ||
+      this.y > worldBoundary
+    );
   }
 
   /**
