@@ -105,16 +105,16 @@ export class WhiteTigerBoss extends BaseEnemy {
   public takeDamage(amount: number, isCritical: boolean = false): void {
     super.takeDamage(amount, isCritical);
 
-    // 나선형 공격 카운터 (50회로 증가)
+    // 나선형 공격 카운터 (10회 - 테스트용)
     this.hitCount++;
-    if (this.hitCount >= 50 && !this.isChargingSpiral && !this.isFiringSpiral && !this.isDashing) {
+    if (this.hitCount >= 10 && !this.isChargingSpiral && !this.isFiringSpiral && !this.isDashing) {
       this.startSpiralAttack();
       this.hitCount = 0;
     }
 
-    // 장판 공격 카운터 (100회로 증가)
+    // 장판 공격 카운터 (30회 - 테스트용)
     this.hitCountForAOE++;
-    if (this.hitCountForAOE >= 100 && !this.isDashing) {
+    if (this.hitCountForAOE >= 30 && !this.isDashing) {
       this.startAOEAttack();
       this.hitCountForAOE = 0;
     }
@@ -213,7 +213,6 @@ export class WhiteTigerBoss extends BaseEnemy {
    */
   private fireBasicFireball(): void {
     if (!this.onFireFireball || !this.targetPosition) {
-      console.log('[Boss] Cannot fire fireball - callback or target missing');
       return;
     }
 
@@ -231,8 +230,6 @@ export class WhiteTigerBoss extends BaseEnemy {
       y: dy / distance,
     };
 
-    console.log(`[Boss] Firing basic fireball! Distance to player: ${distance.toFixed(0)}`);
-
     // FireballProjectile 직접 생성 (크기 증가)
     const projectile = new FireballProjectile(
       `boss_fireball_${Date.now()}`,
@@ -249,10 +246,10 @@ export class WhiteTigerBoss extends BaseEnemy {
   }
 
   /**
-   * 패턴 1: 번개 탄막 발사
+   * 패턴 1: 번개 탄막 발사 (불꽃으로 변경)
    */
   private fireLightningBullets(): void {
-    if (!this.onFireProjectile) {
+    if (!this.onFireFireball) {
       return;
     }
 
@@ -261,28 +258,28 @@ export class WhiteTigerBoss extends BaseEnemy {
     const angleStep = (Math.PI * 2) / bulletCount;
     const speed = this.health / this.maxHealth > 0.5 ? 250 : 300;
 
-    // BossProjectile을 동적으로 import하여 생성
-    import('../BossProjectile').then(({ BossProjectile }) => {
-      for (let i = 0; i < bulletCount; i++) {
-        const angle = angleStep * i;
-        const direction = {
-          x: Math.cos(angle),
-          y: Math.sin(angle),
-        };
+    for (let i = 0; i < bulletCount; i++) {
+      const angle = angleStep * i;
+      const direction = {
+        x: Math.cos(angle),
+        y: Math.sin(angle),
+      };
 
-        const projectile = new BossProjectile(
-          `boss_bullet_${Date.now()}_${i}`,
-          this.x,
-          this.y,
-          direction,
-          40, // damage
-          speed
-        );
+      // FireballProjectile로 변경
+      const projectile = new FireballProjectile(
+        `boss_bullet_${Date.now()}_${i}`,
+        this.x,
+        this.y,
+        direction,
+        40, // damage
+        speed,
+        25, // radius
+        4 // lifetime
+      );
 
-        // GameScene에 추가
-        this.onFireProjectile?.(projectile);
-      }
-    });
+      // GameScene에 추가
+      this.onFireFireball(projectile);
+    }
   }
 
   /**
@@ -374,7 +371,7 @@ export class WhiteTigerBoss extends BaseEnemy {
   }
 
   /**
-   * 나선형 공격 시작
+   * 원형 불꽃 공격 시작 (50회 피격 시)
    */
   private startSpiralAttack(): void {
     this.isChargingSpiral = true;
@@ -387,7 +384,7 @@ export class WhiteTigerBoss extends BaseEnemy {
   }
 
   /**
-   * 나선형 공격 차징 업데이트
+   * 원형 불꽃 공격 차징 업데이트
    */
   private updateSpiralCharge(deltaTime: number): void {
     this.spiralChargeTimer += deltaTime;
@@ -419,8 +416,6 @@ export class WhiteTigerBoss extends BaseEnemy {
     if (!this.onFireFireball) {
       return;
     }
-
-    console.log('[Boss] Firing circular burst attack!');
 
     const totalShots = 48; // 총 48발
     const angleStep = (Math.PI * 2) / totalShots; // 360도를 48개로 나눔
