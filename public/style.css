@@ -57,3 +57,79 @@ canvas {
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* PRESS TO START 오버레이 */
+.press-start-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000; /* 로딩 스크린(9999)보다 위 */
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+  background: transparent;
+}
+
+.press-start-text {
+  position: absolute;
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  font-family: 'NeoDunggeunmo', monospace;
+  font-size: 20px;
+  color: #ffffff;
+  text-align: center;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+  .press-start-text {
+    font-size: 16px;
+    bottom: 100px;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 클릭 시 텍스트 즉시 페이드아웃 */
+.press-start-overlay.clicked .press-start-text {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+/* 포커스 스타일 (접근성) */
+.press-start-overlay:focus {
+  outline: none;
+}
+
+.press-start-overlay:focus .press-start-text {
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  animation: blink-focus 1s ease-in-out infinite;
+}
+
+@keyframes blink-focus {
+  0%,
+  100% {
+    opacity: 0.3;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 1);
+  }
+}

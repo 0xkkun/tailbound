@@ -5,18 +5,22 @@
   "type": "module",
   "scripts": {
     "start": "npm run dev",
-    "dev": "vite --host",
-    "build": "npm run lint && tsc -b && vite build",
+    "dev": "granite dev",
+    "dev:vite": "vite --host",
+    "build": "granite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "deploy": "ait deploy"
   },
   "dependencies": {
+    "@apps-in-toss/web-framework": "^1.4.2",
     "@pixi/react": "^8.0.0",
+    "howler": "^2.2.4",
     "i18next": "^25.6.0",
     "pixi.js": "^8.8.1",
     "react": "^19.0.0",
@@ -28,6 +32,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/howler": "^2.2.12",
     "@types/node": "^24.7.2",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

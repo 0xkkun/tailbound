@@ -1,5 +1,7 @@
 import { Assets, Container, Graphics, NineSliceSprite, Text, Texture } from 'pixi.js';
 
+import { audioManager } from '@/services/audioManager';
+
 export class PixelButton extends Container {
   private background!: NineSliceSprite | Graphics;
   private labelText!: Text;
@@ -155,6 +157,8 @@ export class PixelButton extends Container {
 
     this.on('pointerup', () => {
       this.scale.set(1.05);
+      // 버튼 클릭 효과음 재생
+      audioManager.playButtonClickSound();
       this.onClick?.();
     });
   }

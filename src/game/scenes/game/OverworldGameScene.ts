@@ -38,11 +38,13 @@ import { TalismanWeapon } from '@/game/weapons/TalismanWeapon';
 import type { Weapon } from '@/game/weapons/Weapon';
 import type { PlayerSnapshot } from '@/hooks/useGameState';
 import i18n from '@/i18n/config';
+import { audioManager } from '@/services/audioManager';
 import { BossSystem } from '@/systems/BossSystem';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { PortalSpawner } from '@/systems/PortalSpawner';
 import { SpawnSystem } from '@/systems/SpawnSystem';
 import type { GameResult } from '@/types/game.types';
+import { safeGetSafeAreaInsets } from '@/utils/tossAppBridge';
 
 import { BaseGameScene } from './BaseGameScene';
 
@@ -81,6 +83,7 @@ export class OverworldGameScene extends BaseGameScene {
   private bossDefeated: boolean = false; // 보스 처치 여부
   private bossSpawned: boolean = false; // 보스 스폰 여부
   private readonly BOSS_SPAWN_TIME: number = 600; // 10분 (600초)
+  private bgmStarted: boolean = false; // BGM 시작 여부
 
   // UI 레이아웃 상수
   private readonly UI_PADDING = 16;
@@ -381,6 +384,9 @@ export class OverworldGameScene extends BaseGameScene {
     // UI 초기화
     this.initUI();
 
+    // BGM은 첫 입력 후 시작 (브라우저 autoplay 정책 대응)
+    // updateScene()에서 첫 입력 감지 시 시작됨
+
     // 개발 환경: 5초 후 자동으로 보스 처치 이벤트 발생
     if (import.meta.env.DEV) {
       setTimeout(() => {
@@ -398,6 +404,10 @@ export class OverworldGameScene extends BaseGameScene {
   private initUI(): void {
     // zIndex 정렬 활성화
     this.uiLayer.sortableChildren = true;
+
+    // Safe Area Insets 적용 - uiLayer 전체를 내림
+    const insets = safeGetSafeAreaInsets();
+    this.uiLayer.y = insets.top;
 
     // 경험치 바 위치 계산 및 저장
     this.xpBarY = this.UI_PADDING + this.UI_SETTINGS_SIZE + this.UI_GAP_SETTINGS_TO_BAR;
@@ -557,6 +567,13 @@ export class OverworldGameScene extends BaseGameScene {
     // 설정 메뉴가 열려있으면 게임 일시정지
     if (this.settingsMenu) {
       return;
+    }
+
+    // BGM 시작 (첫 프레임에서 시작 - 씬이 완전히 로드된 후)
+    if (!this.bgmStarted) {
+      this.bgmStarted = true;
+      audioManager.playAlternatingBGMByTracks(['game-01', 'game-02']);
+      console.log('[Audio] In-game BGM started');
     }
 
     // 게임 시간 증가
@@ -1740,6 +1757,9 @@ export class OverworldGameScene extends BaseGameScene {
       // Static 캐시 정리 (게임 종료 시)
       BaseEnemy.clearAllCaches();
     }
+
+    // BGM 중지
+    audioManager.stopBGM();
 
     // 부모 destroy 호출
     super.destroy();

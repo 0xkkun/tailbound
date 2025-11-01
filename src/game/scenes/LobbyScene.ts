@@ -1,5 +1,8 @@
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
+import { audioManager } from '@/services/audioManager';
+
+import { DevSettingsButton } from '../ui/DevSettingsButton';
 import { PixelButton } from '../ui/PixelButton';
 
 export class LobbyScene extends Container {
@@ -11,6 +14,7 @@ export class LobbyScene extends Container {
   private testButton?: PixelButton; // 개발 환경 전용
   private comingSoonText!: Text;
   private copyrightText!: Text;
+  private devSettingsButton?: DevSettingsButton;
   private isMobile: boolean;
   private scaleFactor: number;
   private screenWidth: number;
@@ -35,6 +39,12 @@ export class LobbyScene extends Container {
     this.loadAndCreateTitleImage();
     this.createButtons(screenWidth, screenHeight);
     this.createCopyright(screenWidth, screenHeight);
+
+    // DEV 전용: 설정 버튼
+    if (import.meta.env.DEV) {
+      this.devSettingsButton = new DevSettingsButton(screenWidth, screenHeight);
+      this.addChild(this.devSettingsButton);
+    }
   }
 
   private async loadAndCreateBackground(width: number, height: number): Promise<void> {
@@ -150,6 +160,8 @@ export class LobbyScene extends Container {
       startButtonY,
       () => {
         console.log('게임 시작!');
+        // 로비 BGM 즉시 중지
+        audioManager.stopBGM(false);
         this.onStartGame?.();
       },
       false,
@@ -243,6 +255,7 @@ export class LobbyScene extends Container {
     if (this.testButton) {
       this.testButton.destroy();
     }
+    this.devSettingsButton?.destroy();
     super.destroy({ children: true });
   }
 }
