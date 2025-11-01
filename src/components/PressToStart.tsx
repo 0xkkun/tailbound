@@ -22,9 +22,7 @@ export const PressToStart = ({ assetsLoaded }: PressToStartProps) => {
   }, [assetsLoaded]);
 
   // PRESS TO START 클릭 핸들러
-  const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-
+  const handlePressStart = () => {
     // 로비 BGM 즉시 시작 (사용자 인터랙션 발생!)
     audioManager.playBGMByTrack('main');
     console.log('[Loading] BGM started on press start interaction');
@@ -52,12 +50,9 @@ export const PressToStart = ({ assetsLoaded }: PressToStartProps) => {
     <div
       className={`press-start-overlay ${pressStartClicked ? 'clicked' : ''}`}
       onClick={handlePressStart}
-      onTouchStart={handlePressStart}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          handlePressStart(
-            e as unknown as React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
-          );
+          handlePressStart();
         }
       }}
       role="button"

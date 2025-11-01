@@ -43,10 +43,6 @@ export class LobbyScene extends Container {
       this.devSettingsButton = new DevSettingsButton(screenWidth, screenHeight);
       this.addChild(this.devSettingsButton);
     }
-
-    // 로비 BGM 시작
-    audioManager.playBGMByTrack('main');
-    console.log('[Audio] Lobby BGM started');
   }
 
   private async loadAndCreateBackground(width: number, height: number): Promise<void> {
