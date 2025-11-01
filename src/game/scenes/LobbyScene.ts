@@ -158,8 +158,8 @@ export class LobbyScene extends Container {
       startButtonY,
       () => {
         console.log('게임 시작!');
-        // 로비 BGM 페이드 아웃 후 중지 (게임 시작 전)
-        audioManager.stopBGM(true);
+        // 로비 BGM 즉시 중지
+        audioManager.stopBGM(false);
         this.onStartGame?.();
       },
       false,
