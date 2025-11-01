@@ -22,6 +22,7 @@
 **설화(Talebound)**는 React + PixiJS 기반의 2D 웹 로그라이트 게임으로, **레이어 기반 아키텍처**를 채택했습니다.
 
 ### 게임 특징 (아키텍처 관점)
+
 - **스텟 기반 시스템**: 힘/민첩/지능 3가지 주요 스텟
 - **장비 랜덤 생성**: 접두사/접미사 조합 시스템
 - **사신기(四神器)**: 4가지 장비 슬롯 (주작/현무/청룡/백호)
@@ -41,20 +42,24 @@
 ## 기술 스택
 
 ### 코어 기술
+
 - **React 19** - UI 관리 및 상태 관리
 - **PixiJS 8** - 2D 렌더링 엔진
 - **TypeScript 5.7** - 타입 안전성
 
 ### 개발 도구
+
 - **Vite 6** - 빌드 도구 및 개발 서버 (HMR)
 - **ESLint + Prettier** - 코드 품질 및 포맷팅
 - **pnpm** - 패키지 매니저 (빠른 의존성 설치)
 
 ### 향후 추가 예정
+
 - **Howler.js** - 오디오 관리 (배경 음악, 효과음)
 - **matter.js** 또는 **box2d** - 물리 엔진 (필요시)
 
 ### 의도적으로 제거된 기술
+
 - ❌ **bitECS** - 프로토타입 단계에서 개발 속도 우선
   - 제거 사유: 학습 곡선, 디버깅 난이도, 엔티티 규모(<1000개)
 
@@ -200,11 +205,13 @@ src/
 ```
 
 #### 의존성 방향 (단방향)
+
 ```
 UI → Hooks → Game Logic → Render/Storage
 ```
 
 **핵심 규칙**:
+
 - 하위 레이어는 상위 레이어를 알지 못함
 - 콜백/인터페이스를 통한 역방향 통신
 
@@ -212,17 +219,17 @@ UI → Hooks → Game Logic → Render/Storage
 
 ### 2. 디렉토리별 책임
 
-| 디렉토리 | 책임 | 의존 대상 | 예시 |
-|---------|------|----------|------|
-| `ui/` | 화면 렌더링, 이벤트 처리 | `components/`, `hooks/` | 메인 메뉴, HUD |
-| `components/` | 재사용 UI 컴포넌트 | `types/` | 버튼, 모달 |
-| `hooks/` | 상태 관리, UI-게임 연결 | `game/`, `meta/` | useGameState |
-| `game/` | 게임 로직, 엔티티 | `systems/`, `render/` | Player, Enemy |
-| `systems/` | 시스템 로직 | `config/`, `types/` | CombatSystem |
-| `meta/` | 메타 진행 관리 | `types/` | 업그레이드 |
-| `render/` | PixiJS 렌더링 | `types/` | PixiApp, Camera |
-| `config/` | 설정 데이터 | 없음 | 밸런스 수치 |
-| `types/` | 타입 정의 | 없음 | 인터페이스 |
+| 디렉토리      | 책임                     | 의존 대상               | 예시            |
+| ------------- | ------------------------ | ----------------------- | --------------- |
+| `ui/`         | 화면 렌더링, 이벤트 처리 | `components/`, `hooks/` | 메인 메뉴, HUD  |
+| `components/` | 재사용 UI 컴포넌트       | `types/`                | 버튼, 모달      |
+| `hooks/`      | 상태 관리, UI-게임 연결  | `game/`, `meta/`        | useGameState    |
+| `game/`       | 게임 로직, 엔티티        | `systems/`, `render/`   | Player, Enemy   |
+| `systems/`    | 시스템 로직              | `config/`, `types/`     | CombatSystem    |
+| `meta/`       | 메타 진행 관리           | `types/`                | 업그레이드      |
+| `render/`     | PixiJS 렌더링            | `types/`                | PixiApp, Camera |
+| `config/`     | 설정 데이터              | 없음                    | 밸런스 수치     |
+| `types/`      | 타입 정의                | 없음                    | 인터페이스      |
 
 ---
 
@@ -256,16 +263,16 @@ export const BALANCE = {
   // 스텟 효과
   stats: {
     strength: {
-      healthPerPoint: 10,        // 힘 1당 체력 +10
-      healthRegenPerPoint: 0.1,  // 힘 1당 재생 +0.1/s
+      healthPerPoint: 10, // 힘 1당 체력 +10
+      healthRegenPerPoint: 0.1, // 힘 1당 재생 +0.1/s
     },
     agility: {
       attackSpeedPerPoint: 0.02, // 민첩 1당 공속 +2%
-      defensePerPoint: 1,        // 민첩 1당 방어력 +1
+      defensePerPoint: 1, // 민첩 1당 방어력 +1
     },
     intelligence: {
       cooldownReductionPerPoint: 0.01, // 지능 1당 쿨감 +1%
-      skillEfficiencyPerPoint: 0.02,   // 지능 1당 스킬 효율 +2%
+      skillEfficiencyPerPoint: 0.02, // 지능 1당 스킬 효율 +2%
     },
   },
 
@@ -298,6 +305,7 @@ export const BALANCE = {
 ```
 
 **장점**:
+
 - 밸런스 조정 시 한 곳만 수정
 - 타입 안전성 (`as const` 활용)
 - 환경별 설정 분리 가능
@@ -381,7 +389,8 @@ export class StatSystem {
     // 2. 주요 스텟 효과 적용 (힘 → 체력, 민첩 → 공속 등)
     stats.maxHealth += stats.strength * BALANCE.stats.strength.healthPerPoint;
     stats.attackSpeed += stats.agility * BALANCE.stats.agility.attackSpeedPerPoint;
-    stats.cooldownReduction += stats.intelligence * BALANCE.stats.intelligence.cooldownReductionPerPoint;
+    stats.cooldownReduction +=
+      stats.intelligence * BALANCE.stats.intelligence.cooldownReductionPerPoint;
 
     // 3. 장비 효과 적용
     equipment.forEach((eq) => {
@@ -439,7 +448,7 @@ export class CombatSystem {
     const dx = obj1.position.x - obj2.position.x;
     const dy = obj1.position.y - obj2.position.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < (obj1.radius + obj2.radius);
+    return distance < obj1.radius + obj2.radius;
   }
 }
 
@@ -714,6 +723,7 @@ export class Player implements GameObject {
 ## 데이터 흐름
 
 ### 게임 시작 플로우
+
 ```
 1. MainMenu (UI) → "게임 시작" 버튼 클릭
    ↓
@@ -731,6 +741,7 @@ export class Player implements GameObject {
 ```
 
 ### 레벨업 플로우
+
 ```
 1. LevelSystem.update(player)
    ↓
@@ -752,6 +763,7 @@ export class Player implements GameObject {
 ```
 
 ### 장비 착용 플로우
+
 ```
 1. 적 처치 → EquipmentGenerator.generate()
    ↓
@@ -850,7 +862,7 @@ export const AFFIXES: AffixData[] = [
 
 ## 변경 이력
 
-| 날짜 | 변경 사항 | 작성자 |
-|------|----------|--------|
+| 날짜       | 변경 사항                                 | 작성자 |
+| ---------- | ----------------------------------------- | ------ |
 | 2025-10-14 | 초기 문서 작성, 레이어 기반 아키텍처 설계 | 개발팀 |
-| 2025-10-14 | Kepler Wars 코드 참고, ECS 제거 결정 | 개발팀 |
+| 2025-10-14 | Kepler Wars 코드 참고, ECS 제거 결정      | 개발팀 |

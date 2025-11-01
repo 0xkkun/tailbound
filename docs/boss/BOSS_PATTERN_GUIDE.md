@@ -1,6 +1,7 @@
 # 보스 패턴 가이드
 
 ## 개요
+
 백호 보스에 3가지 불꽃 기반 패턴을 추가합니다.
 
 ---
@@ -8,9 +9,11 @@
 ## 1. 기본 공격 (원거리 불꽃)
 
 ### 설명
+
 보스가 플레이어에게 다가가는 동안 일정 간격으로 불꽃을 발사하는 기본 공격입니다.
 
 ### 스프라이트 정보
+
 - **파일**: `public/assets/boss/boss-fireball.png`
 - **크기**: 64x64px
 - **프레임 수**: 10프레임
@@ -19,10 +22,12 @@
 ### 구현 상세
 
 #### 발사 타이밍
+
 - 쿨다운: 2초마다 발사
 - 보스가 이동 중일 때도 발사 가능
 
 #### 투사체 속성
+
 - **속도**: 200px/s
 - **데미지**: 30
 - **크기**: 원본 64x64 (스케일 1.0)
@@ -30,10 +35,12 @@
 - **범위**: 반지름 20px (충돌 판정)
 
 #### 발사 패턴
+
 - 플레이어 방향으로 단일 투사체 발사
 - 정확도: 100% (플레이어 위치 조준)
 
 ### 필요한 클래스
+
 ```typescript
 // FireballProjectile.ts
 class FireballProjectile extends Container {
@@ -48,16 +55,19 @@ class FireballProjectile extends Container {
 ## 2. 나선형 불꽃 공격
 
 ### 설명
+
 보스가 10회 피격당하면 발동하는 특수 패턴입니다. 보스를 중심으로 시계방향 나선형으로 불꽃을 발사합니다.
 
 ### 스프라이트 정보
 
 #### 불꽃 투사체
+
 - **파일**: `public/assets/boss/boss-fireball.png`
 - **크기**: 64x64px
 - **프레임 수**: 10프레임
 
 #### 스킬 차징 이펙트
+
 - **파일**: `public/assets/boss/boss-skill-effect.png`
 - **크기**: 59x49px
 - **프레임 수**: 15프레임
@@ -66,10 +76,12 @@ class FireballProjectile extends Container {
 ### 구현 상세
 
 #### 발동 조건
+
 - 보스가 10회 피격을 받을 때 (누적 피격 횟수 추적 필요)
 - 한 번 발동 후 카운터 리셋
 
 #### 예고 단계 (2초)
+
 ```typescript
 // SpiralChargeEffect.ts
 class SpiralChargeEffect extends Container {
@@ -141,33 +153,37 @@ private updateSpiralCharge(deltaTime: number): void {
 ```
 
 #### 나선형 발사 패턴
+
 - **총 발사 개수**: 48발 (나선형 4바퀴)
 - **발사 간격**: 0.05초 (총 2.4초 동안 발사)
 - **각도 증가량**: 30도씩 회전
 - **속도 증가**: 발사마다 5px/s씩 증가 (150 → 385px/s)
 
 #### 나선형 계산 공식
+
 ```typescript
 // i번째 발사 (0~47)
 const baseAngle = 0; // 시작 각도 (오른쪽)
-const angleIncrement = (Math.PI / 6); // 30도 (PI/6 라디안)
-const angle = baseAngle + (angleIncrement * i);
+const angleIncrement = Math.PI / 6; // 30도 (PI/6 라디안)
+const angle = baseAngle + angleIncrement * i;
 
 const direction = {
   x: Math.cos(angle),
-  y: Math.sin(angle)
+  y: Math.sin(angle),
 };
 
-const speed = 150 + (i * 5); // 속도 증가
+const speed = 150 + i * 5; // 속도 증가
 ```
 
 #### 투사체 속성
+
 - **데미지**: 40
 - **크기**: 64x64 (스케일 1.0)
 - **생명 시간**: 4초
 - **범위**: 반지름 20px
 
 ### 상태 관리
+
 ```typescript
 // WhiteTigerBoss.ts
 private hitCount: number = 0;
@@ -191,9 +207,11 @@ public takeDamage(damage: number): void {
 ## 3. 장판기 (AOE)
 
 ### 설명
+
 보스가 30회 피격당하면 발동하는 광역 공격입니다. 랜덤 위치에 불 장판을 생성하며, 경고 후 실제 데미지를 줍니다.
 
 ### 스프라이트 정보
+
 - **파일**: `public/assets/boss/boss-AOE.png`
 - **크기**: 100x100px
 - **프레임 수**: 61프레임
@@ -203,14 +221,17 @@ public takeDamage(damage: number): void {
 ### 구현 상세
 
 #### 발동 조건
+
 - 보스가 30회 피격을 받을 때
 - 한 번 발동 후 카운터 리셋
 
 #### 장판 크기
+
 - **표시 크기**: 플레이어 캐릭터 반지름 × 6 (지름 기준 3배)
 - **충돌 범위**: 표시 크기와 동일
 
 #### 생성 위치 (총 5개)
+
 1. 보스 주변: 랜덤 2개
    - 보스로부터 반지름 100~300px 범위
    - 랜덤 각도
@@ -240,6 +261,7 @@ for (let i = 0; i < 3; i++) {
 ```
 
 #### 경고 단계 (3초)
+
 ```typescript
 // AOEWarning.ts
 class AOEWarning extends Graphics {
@@ -260,7 +282,7 @@ class AOEWarning extends Graphics {
     this.stroke({
       width: 3,
       color: 0xff0000,
-      alpha: 0.8
+      alpha: 0.8,
     });
 
     // 3초 후 장판 생성
@@ -273,6 +295,7 @@ class AOEWarning extends Graphics {
 ```
 
 #### 장판 단계 (2초)
+
 ```typescript
 // FireAOE.ts
 class FireAOE extends Container {
@@ -318,11 +341,13 @@ class FireAOE extends Container {
 ```
 
 #### 투사체 속성
+
 - **데미지**: 50 (진입 시 1회만)
 - **지속 시간**: 2초
 - **틱 데미지 방지**: 플레이어가 장판 안에 있어도 1회만 피해
 
 ### 상태 관리
+
 ```typescript
 // WhiteTigerBoss.ts
 private hitCountForAOE: number = 0;
@@ -381,6 +406,7 @@ src/systems/
 ## 구현 순서
 
 ### Phase 1: 기본 불꽃 공격
+
 1. `FireballProjectile.ts` 클래스 생성
    - 스프라이트 애니메이션 (10프레임)
    - 직선 이동 로직
@@ -395,6 +421,7 @@ src/systems/
    - 업데이트 및 충돌 처리
 
 ### Phase 2: 나선형 공격
+
 1. `SpiralChargeEffect.ts` 클래스 생성
    - 스프라이트 애니메이션 (15프레임)
    - 보스 위치 추적
@@ -418,6 +445,7 @@ src/systems/
    - 차징 이펙트 업데이트
 
 ### Phase 3: 장판 공격
+
 1. `AOEWarning.ts` 클래스 생성
    - 빨간색 원 경고 (3초)
    - 크기 증가 애니메이션
@@ -444,20 +472,25 @@ src/systems/
 ## 스프라이트 프레임 배치 참고
 
 ### boss-fireball.png (640x64)
+
 ```
 [0][1][2][3][4][5][6][7][8][9]
 ```
+
 - 프레임당 64x64px
 - 가로로 10개 배치
 
 ### boss-skill-effect.png (885x49)
+
 ```
 [0][1][2][3][4][5][6][7][8][9][10][11][12][13][14]
 ```
+
 - 프레임당 59x49px
 - 가로로 15개 배치
 
 ### boss-AOE.png (800x800)
+
 ```
 [0][1][2][3][4][5][6][7]
 [8][9][10][11][12][13][14][15]
@@ -468,6 +501,7 @@ src/systems/
 [48][49][50][51][52][53][54][55]
 [56][57][58][59][60]
 ```
+
 - 프레임당 100x100px
 - 8x8 그리드 (마지막 행 5개)
 
@@ -476,6 +510,7 @@ src/systems/
 ## 테스트 체크리스트
 
 ### 기본 불꽃 공격
+
 - [ ] 보스가 2초마다 불꽃을 발사하는가?
 - [ ] 불꽃이 플레이어를 정확히 조준하는가?
 - [ ] 불꽃 애니메이션이 정상 재생되는가?
@@ -483,6 +518,7 @@ src/systems/
 - [ ] 불꽃이 3초 후 또는 화면 밖에서 제거되는가?
 
 ### 나선형 공격
+
 - [ ] 10회 피격 시 정확히 발동하는가?
 - [ ] 차징 이펙트(boss-skill-effect.png)가 보스를 감싸는가?
 - [ ] 보스가 2초간 빨갛게 변하는가?
@@ -494,6 +530,7 @@ src/systems/
 - [ ] 발동 후 카운터가 리셋되는가?
 
 ### 장판 공격
+
 - [ ] 30회 피격 시 정확히 발동하는가?
 - [ ] 경고 원이 5개 생성되는가?
 - [ ] 경고 원이 3초 동안 점점 커지는가?

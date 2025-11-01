@@ -56,18 +56,19 @@ export const GAME_CONFIG = {
     height: 720,
   },
   time: {
-    victoryTime: 600,              // 10분 생존 = 승리
+    victoryTime: 600, // 10분 생존 = 승리
     difficultyIncreaseInterval: 10, // 10초마다 난이도 증가
   },
   levelUp: {
-    baseXpRequired: 100,           // 첫 레벨업 필요 경험치
-    xpScaling: 1.2,                // 레벨당 1.2배 증가
+    baseXpRequired: 100, // 첫 레벨업 필요 경험치
+    xpScaling: 1.2, // 레벨당 1.2배 증가
   },
   // ...
 };
 ```
 
 **사용 예시:**
+
 ```typescript
 import { GAME_CONFIG } from '@/config/game.config';
 
@@ -81,6 +82,7 @@ if (gameTime >= GAME_CONFIG.time.victoryTime) {
 게임 밸런스 수치 (자주 조정됨)
 
 #### 플레이어 밸런스
+
 ```typescript
 export const PLAYER_BALANCE = {
   health: 100,
@@ -96,6 +98,7 @@ export const PLAYER_BALANCE = {
 ```
 
 #### 적 밸런스 (티어별)
+
 ```typescript
 export const ENEMY_BALANCE = {
   normal: {
@@ -123,6 +126,7 @@ export const ENEMY_BALANCE = {
 ```
 
 #### 무기 밸런스
+
 ```typescript
 export const WEAPON_BALANCE = {
   talisman: {
@@ -132,9 +136,9 @@ export const WEAPON_BALANCE = {
     projectileSpeed: 500,
     // ...
     levelScaling: {
-      damage: 5,              // 레벨당 +5 데미지
+      damage: 5, // 레벨당 +5 데미지
       cooldownReduction: 0.05, // 레벨당 -0.05초
-      piercingPerLevel: 0,    // 5레벨마다 +1 관통
+      piercingPerLevel: 0, // 5레벨마다 +1 관통
     },
   },
   // dokkaebi_fire, moktak_sound, jakdu_blade...
@@ -142,18 +146,19 @@ export const WEAPON_BALANCE = {
 ```
 
 #### 스탯 효과
+
 ```typescript
 export const STAT_EFFECTS = {
   strength: {
-    damagePerPoint: 0.05,  // 힘 1당 데미지 +5%
+    damagePerPoint: 0.05, // 힘 1당 데미지 +5%
   },
   agility: {
-    moveSpeedPerPoint: 0.02,    // 민첩 1당 이속 +2%
-    attackSpeedPerPoint: 0.03,  // 민첩 1당 공속 +3%
+    moveSpeedPerPoint: 0.02, // 민첩 1당 이속 +2%
+    attackSpeedPerPoint: 0.03, // 민첩 1당 공속 +3%
   },
   intelligence: {
     projectileCountThreshold: 10, // 지능 10당 투사체 +1
-    areaPerPoint: 0.02,           // 지능 1당 범위 +2%
+    areaPerPoint: 0.02, // 지능 1당 범위 +2%
   },
 };
 ```
@@ -167,6 +172,7 @@ export const STAT_EFFECTS = {
 무기 콘텐츠 데이터베이스
 
 #### 타입 정의
+
 ```typescript
 export type WeaponType = 'talisman' | 'dokkaebi_fire' | 'moktak_sound' | 'jakdu_blade';
 
@@ -179,7 +185,7 @@ export interface WeaponData {
   projectileSpeed?: number;
   projectileCount: number;
   piercing: number;
-  aoeRadius?: number;  // 범위 공격용
+  aoeRadius?: number; // 범위 공격용
   levelScaling: {
     damage: number;
     cooldownReduction: number;
@@ -189,6 +195,7 @@ export interface WeaponData {
 ```
 
 #### 데이터베이스
+
 ```typescript
 export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
   talisman: {
@@ -203,6 +210,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
 ```
 
 #### 유틸리티 함수
+
 ```typescript
 // 무기 데이터 가져오기
 export function getWeaponData(weaponType: WeaponType): WeaponData;
@@ -215,6 +223,7 @@ export function calculateWeaponStats(
 ```
 
 **사용 예시:**
+
 ```typescript
 import { calculateWeaponStats } from '@/game/data/weapons';
 
@@ -227,6 +236,7 @@ const level5Stats = calculateWeaponStats('talisman', 5);
 적 콘텐츠 데이터베이스
 
 #### 타입 정의
+
 ```typescript
 export type EnemyTier = 'normal' | 'elite' | 'boss';
 
@@ -245,6 +255,7 @@ export interface EnemyData {
 ```
 
 #### 유틸리티 함수
+
 ```typescript
 // 티어로 적 데이터 가져오기
 export function getEnemyDataByTier(tier: EnemyTier): EnemyData;
@@ -267,6 +278,7 @@ export function selectEnemyTier(gameTime: number): EnemyTier;
 ```
 
 **사용 예시:**
+
 ```typescript
 import { selectEnemyTier, scaleEnemyStats, getEnemyDataByTier } from '@/game/data/enemies';
 
@@ -375,6 +387,7 @@ export class SpawnSystem {
 ### 새 무기 추가 체크리스트
 
 #### 1. `balance.config.ts`에 밸런스 추가
+
 ```typescript
 export const WEAPON_BALANCE = {
   // 기존 무기들...
@@ -398,9 +411,15 @@ export const WEAPON_BALANCE = {
 ```
 
 #### 2. `game/data/weapons.ts`에 타입 및 데이터 추가
+
 ```typescript
 // 타입에 추가
-export type WeaponType = 'talisman' | 'dokkaebi_fire' | 'moktak_sound' | 'jakdu_blade' | 'my_new_weapon';
+export type WeaponType =
+  | 'talisman'
+  | 'dokkaebi_fire'
+  | 'moktak_sound'
+  | 'jakdu_blade'
+  | 'my_new_weapon';
 
 // 데이터베이스에 추가
 export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
@@ -419,6 +438,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
 ```
 
 #### 3. `game/weapons/MyNewWeapon.ts` 구현 파일 생성
+
 ```typescript
 import { calculateWeaponStats } from '@/game/data/weapons';
 import { Weapon } from './Weapon';
@@ -451,22 +471,31 @@ export class MyNewWeapon extends Weapon {
 ### 새 적 타입 추가 (예: 중간 티어)
 
 #### 1. `balance.config.ts`에 밸런스 추가
+
 ```typescript
 export const ENEMY_BALANCE = {
-  normal: { /* ... */ },
-  champion: {  // 새 티어
+  normal: {
+    /* ... */
+  },
+  champion: {
+    // 새 티어
     health: 60,
     speed: 90,
     damage: 15,
     radius: 35,
     xpDrop: 15,
   },
-  elite: { /* ... */ },
-  boss: { /* ... */ },
+  elite: {
+    /* ... */
+  },
+  boss: {
+    /* ... */
+  },
 };
 ```
 
 #### 2. `game/data/enemies.ts` 업데이트
+
 ```typescript
 export type EnemyTier = 'normal' | 'champion' | 'elite' | 'boss';
 
@@ -493,6 +522,7 @@ export function getEnemyTierProbability(gameTime: number) {
 ```
 
 #### 3. Enemy.ts의 색상 매핑 업데이트
+
 ```typescript
 switch (tier) {
   case 'champion':
@@ -516,8 +546,8 @@ switch (tier) {
 ```typescript
 // config/balance.config.ts
 export const PLAYER_BALANCE = {
-  health: 100,  // 100 → 150으로 변경
-  speed: 250,   // 250 → 300으로 변경
+  health: 100, // 100 → 150으로 변경
+  speed: 250, // 250 → 300으로 변경
   // ...
 };
 ```
@@ -534,10 +564,10 @@ export const PLAYER_BALANCE = {
 // config/balance.config.ts
 export const WEAPON_BALANCE = {
   talisman: {
-    baseDamage: 15,  // 15 → 20으로 증가
+    baseDamage: 15, // 15 → 20으로 증가
     baseCooldown: 1.0, // 1.0 → 0.8로 감소 (더 빠르게)
     levelScaling: {
-      damage: 5,  // 5 → 7로 증가 (레벨업 효과 증가)
+      damage: 5, // 5 → 7로 증가 (레벨업 효과 증가)
       // ...
     },
   },
@@ -572,15 +602,15 @@ export function scaleEnemyStats(baseData: EnemyData, gameTime: number) {
 ```typescript
 // config/balance.config.ts (개발 모드)
 export const PLAYER_BALANCE = {
-  health: 9999,    // 무적 모드
-  speed: 1000,     // 고속 이동
+  health: 9999, // 무적 모드
+  speed: 1000, // 고속 이동
   // ...
 };
 
 export const ENEMY_BALANCE = {
   normal: {
-    health: 1,     // 원샷 원킬
-    damage: 0,     // 데미지 없음
+    health: 1, // 원샷 원킬
+    damage: 0, // 데미지 없음
     // ...
   },
 };
@@ -595,16 +625,19 @@ export const ENEMY_BALANCE = {
 ### ✅ DO
 
 - **설정 파일에서 값 가져오기**
+
   ```typescript
   const health = PLAYER_BALANCE.health;
   ```
 
 - **유틸리티 함수 사용**
+
   ```typescript
   const stats = calculateWeaponStats('talisman', level);
   ```
 
 - **타입 안정성 활용**
+
   ```typescript
   const weaponType: WeaponType = 'talisman'; // 자동완성 지원
   ```
@@ -618,6 +651,7 @@ export const ENEMY_BALANCE = {
 ### ❌ DON'T
 
 - **하드코딩하지 않기**
+
   ```typescript
   // ❌ 나쁜 예
   this.health = 100;
@@ -627,6 +661,7 @@ export const ENEMY_BALANCE = {
   ```
 
 - **매직 넘버 사용하지 않기**
+
   ```typescript
   // ❌ 나쁜 예
   if (level % 5 === 0) damage += 10;
@@ -636,6 +671,7 @@ export const ENEMY_BALANCE = {
   ```
 
 - **로직에 밸런스 값 섞지 않기**
+
   ```typescript
   // ❌ 나쁜 예
   class Player {

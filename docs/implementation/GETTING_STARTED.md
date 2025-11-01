@@ -140,6 +140,7 @@ pnpm dev
 ### 2. 로비 화면
 
 처음 실행하면 로비 화면이 보입니다:
+
 - "게임 시작" 버튼 클릭
 
 ### 3. 인게임
@@ -151,6 +152,7 @@ pnpm dev
 ### 4. 현재 구현 상태
 
 ✅ **구현 완료**:
+
 - 플레이어 이동 및 체력 시스템
 - 적 AI (플레이어 추적)
 - 부적 무기 (자동 공격)
@@ -159,6 +161,7 @@ pnpm dev
 - 난이도 증가 (시간 기반)
 
 ⏳ **구현 예정**:
+
 - 레벨업 시스템
 - 스탯 시스템
 - 장비 시스템
@@ -175,8 +178,8 @@ pnpm dev
 
 ```typescript
 export const PLAYER_BALANCE = {
-  health: 100,    // 여기서 플레이어 체력 조정
-  speed: 250,     // 여기서 이동 속도 조정
+  health: 100, // 여기서 플레이어 체력 조정
+  speed: 250, // 여기서 이동 속도 조정
   // ...
 };
 ```
@@ -216,16 +219,19 @@ main              # 안정 버전
 
 1. **이슈 생성** (선택사항)
 2. **브랜치 생성**
+
    ```bash
    git checkout -b feat/#10-add-new-weapon
    ```
 
 3. **개발**
+
    ```bash
    pnpm dev  # 개발 서버 실행하며 개발
    ```
 
 4. **테스트**
+
    ```bash
    pnpm lint      # 코드 스타일 검사
    pnpm test      # 단위 테스트
@@ -233,6 +239,7 @@ main              # 안정 버전
    ```
 
 5. **커밋**
+
    ```bash
    git add .
    git commit -m "feat: Add new weapon system"
@@ -266,8 +273,8 @@ main              # 안정 버전
 ```typescript
 // src/config/balance.config.ts
 export const PLAYER_BALANCE = {
-  health: 100,  // 150으로 변경해보기
-  speed: 250,   // 300으로 변경해보기
+  health: 100, // 150으로 변경해보기
+  speed: 250, // 300으로 변경해보기
 };
 ```
 
@@ -353,16 +360,16 @@ npx tsc --noEmit
 import { Container, Graphics } from 'pixi.js';
 
 // PixiJS의 x, y를 직접 사용
-this.x = 100;  // ✅ 올바름
-this.position = { x: 100, y: 100 };  // ❌ 안됨
+this.x = 100; // ✅ 올바름
+this.position = { x: 100, y: 100 }; // ❌ 안됨
 ```
 
 #### 5. 경로 alias 에러
 
 ```typescript
 // tsconfig.json에 정의된 alias 사용
-import { PLAYER_BALANCE } from '@/config/balance.config';  // ✅
-import { PLAYER_BALANCE } from '../../config/balance.config';  // ❌ 비추천
+import { PLAYER_BALANCE } from '@/config/balance.config'; // ✅
+import { PLAYER_BALANCE } from '../../config/balance.config'; // ❌ 비추천
 ```
 
 ---

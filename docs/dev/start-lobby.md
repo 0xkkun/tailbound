@@ -18,9 +18,11 @@
 ## 개요
 
 ### 목적
+
 이번 단계에서는 **로비 화면 진입 → 게임 시작 버튼 클릭 → 게임 화면 진입**까지의 기본 플로우만 구현합니다.
 
 ### 구현 범위
+
 - ✅ 로비 화면 표시
 - ✅ 타이틀 표시
 - ✅ 기본 캐릭터 표시
@@ -30,16 +32,19 @@
 - ✅ **모바일 반응형 디자인 (최소 330px 지원)**
 
 ### 미구현 (추후 작업)
+
 - ❌ 캐릭터 선택 기능
 - ❌ 옵션 화면
 - ❌ 복잡한 애니메이션
 
 ### 기술 스택
+
 - **PixiJS 8**: 로비 화면 렌더링
 - **@pixi/react**: React와 PixiJS 통합
 - **React 19**: 상태 관리
 
 ### 지원 디바이스
+
 - **데스크톱**: 768px 이상
 - **태블릿**: 768px ~ 480px
 - **모바일**: 480px ~ 330px (최소 지원)
@@ -49,23 +54,25 @@
 ## 비주얼 디자인 컨셉
 
 ### 전체 스타일
+
 - **16-bit 픽셀 아트**
 - **한국 전통 설화 테마**
 - **어둡고 신비로운 밤 분위기**
 
 ### 컬러 팔레트 (오방색 기반)
 
-| 색상 | 용도 | RGB |
-|------|------|-----|
-| 흑(黑) | 배경 | #1a1a2e |
-| 백(白) | 텍스트 | #eaeaea |
+| 색상   | 용도             | RGB     |
+| ------ | ---------------- | ------- |
+| 흑(黑) | 배경             | #1a1a2e |
+| 백(白) | 텍스트           | #eaeaea |
 | 황(黃) | 강조 (게임 시작) | #d4af37 |
-| 청(靑) | 버튼 테두리 | #0e4c92 |
-| 회색 | 비활성화 | #666666 |
+| 청(靑) | 버튼 테두리      | #0e4c92 |
+| 회색   | 비활성화         | #666666 |
 
 ### AI 프롬프트 템플릿 (에셋 제작용)
 
 **공통 베이스**:
+
 ```
 16-bit pixel art, cute chibi style, top-down view,
 clean lines, high resolution, minimal shading, dark fantasy tone,
@@ -75,6 +82,7 @@ supernatural atmosphere, transparent background
 ```
 
 **타이틀 로고**:
+
 ```
 Pixel art title logo "설화" in Korean calligraphy style,
 16-bit, glowing gold effect, traditional Korean cloud patterns,
@@ -82,6 +90,7 @@ dark blue background, mystical atmosphere
 ```
 
 **캐릭터 (호랑이)**:
+
 ```
 Pixel art tiger character, Korean folklore style,
 16-bit, cute chibi, idle pose, white and orange fur,
@@ -90,6 +99,7 @@ sprite sheet with 4 frames for idle animation
 ```
 
 **UI 버튼**:
+
 ```
 Pixel art UI button frames, Korean traditional ornament border,
 16-bit, gold and blue colors, ornate decorative corners,
@@ -101,6 +111,7 @@ Pixel art UI button frames, Korean traditional ornament border,
 ## 기능 범위
 
 ### 현재 구현
+
 1. **로비 화면 표시**
    - 타이틀 (임시 텍스트, 추후 이미지로 교체)
    - 기본 캐릭터 표시 (임시 placeholder)
@@ -141,6 +152,7 @@ export const DEFAULT_CHARACTER: Character = {
 ### 화면 레이아웃
 
 #### 데스크톱 (768px 이상)
+
 ```
 ┌─────────────────────────────────────────┐
 │                                         │
@@ -159,6 +171,7 @@ export const DEFAULT_CHARACTER: Character = {
 ```
 
 #### 모바일 (330px ~ 767px)
+
 ```
 ┌─────────────────┐
 │                 │
@@ -177,20 +190,22 @@ export const DEFAULT_CHARACTER: Character = {
 
 ### 버튼 상태
 
-| 버튼 | 상태 | 색상 | 클릭 |
-|------|------|------|------|
-| 게임 시작 | 활성화 | 금색 (#d4af37) | ✅ 게임 화면 이동 |
-| 캐릭터 선택 | 비활성화 | 회색 (#666666) | ❌ 반응 없음 |
-| 옵션 | 비활성화 | 회색 (#666666) | ❌ 반응 없음 |
+| 버튼        | 상태     | 색상           | 클릭              |
+| ----------- | -------- | -------------- | ----------------- |
+| 게임 시작   | 활성화   | 금색 (#d4af37) | ✅ 게임 화면 이동 |
+| 캐릭터 선택 | 비활성화 | 회색 (#666666) | ❌ 반응 없음      |
+| 옵션        | 비활성화 | 회색 (#666666) | ❌ 반응 없음      |
 
 ### 인터랙션
 
 **게임 시작 버튼**:
+
 - Normal: 금색 테두리, 반투명 배경
 - Hover: 더 밝은 금색, scale 1.05
 - Click: scale 0.95, 게임 화면으로 전환
 
 **비활성화 버튼**:
+
 - 회색, 불투명도 50%
 - Hover 효과 없음
 - 클릭 불가 (cursor: not-allowed)
@@ -200,25 +215,28 @@ export const DEFAULT_CHARACTER: Character = {
 ## 반응형 디자인
 
 ### 브레이크포인트
-| 디바이스 | 최소 너비 | 최대 너비 | 스케일 팩터 |
-|---------|----------|----------|------------|
-| 극소형 모바일 | 330px | 374px | 0.88 |
-| 모바일 | 375px | 479px | 1.0 |
-| 태블릿 | 480px | 767px | 1.2 |
-| 데스크톱 | 768px | - | 1.5 (최대) |
+
+| 디바이스      | 최소 너비 | 최대 너비 | 스케일 팩터 |
+| ------------- | --------- | --------- | ----------- |
+| 극소형 모바일 | 330px     | 374px     | 0.88        |
+| 모바일        | 375px     | 479px     | 1.0         |
+| 태블릿        | 480px     | 767px     | 1.2         |
+| 데스크톱      | 768px     | -         | 1.5 (최대)  |
 
 ### 반응형 요소 크기
-| 요소 | 데스크톱 | 모바일 |
-|------|---------|--------|
-| 타이틀 폰트 | 64px | 48px × scaleFactor |
-| 부제 폰트 | 20px | 16px × scaleFactor |
-| 캐릭터 크기 | 160px | 120px × scaleFactor |
-| 버튼 너비 | 300px | 화면 너비 80% (최소 260px) |
-| 게임시작 버튼 높이 | 70px | 60px × scaleFactor |
-| 기타 버튼 높이 | 60px | 50px × scaleFactor |
-| 버튼 간격 | 75px | 55px × scaleFactor |
+
+| 요소               | 데스크톱 | 모바일                     |
+| ------------------ | -------- | -------------------------- |
+| 타이틀 폰트        | 64px     | 48px × scaleFactor         |
+| 부제 폰트          | 20px     | 16px × scaleFactor         |
+| 캐릭터 크기        | 160px    | 120px × scaleFactor        |
+| 버튼 너비          | 300px    | 화면 너비 80% (최소 260px) |
+| 게임시작 버튼 높이 | 70px     | 60px × scaleFactor         |
+| 기타 버튼 높이     | 60px     | 50px × scaleFactor         |
+| 버튼 간격          | 75px     | 55px × scaleFactor         |
 
 ### 반응형 구현 전략
+
 1. **화면 크기 감지**
    - window.innerWidth 기준
    - 768px 미만을 모바일로 판단
@@ -342,12 +360,7 @@ export class PixelButton extends Container {
     // 픽셀 스타일 사각형 버튼
     this.background.lineStyle(3, this.color, borderAlpha);
     this.background.beginFill(0x000000, alpha);
-    this.background.drawRect(
-      -this.width / 2,
-      -this.height / 2,
-      this.width,
-      this.height
-    );
+    this.background.drawRect(-this.width / 2, -this.height / 2, this.width, this.height);
     this.background.endFill();
 
     // 코너 강조 (hover 시)
@@ -357,9 +370,24 @@ export class PixelButton extends Container {
 
       // 4개 코너
       this.background.drawRect(-this.width / 2, -this.height / 2, cornerSize, cornerSize);
-      this.background.drawRect(this.width / 2 - cornerSize, -this.height / 2, cornerSize, cornerSize);
-      this.background.drawRect(-this.width / 2, this.height / 2 - cornerSize, cornerSize, cornerSize);
-      this.background.drawRect(this.width / 2 - cornerSize, this.height / 2 - cornerSize, cornerSize, cornerSize);
+      this.background.drawRect(
+        this.width / 2 - cornerSize,
+        -this.height / 2,
+        cornerSize,
+        cornerSize
+      );
+      this.background.drawRect(
+        -this.width / 2,
+        this.height / 2 - cornerSize,
+        cornerSize,
+        cornerSize
+      );
+      this.background.drawRect(
+        this.width / 2 - cornerSize,
+        this.height / 2 - cornerSize,
+        cornerSize,
+        cornerSize
+      );
 
       this.background.endFill();
     }
@@ -664,6 +692,7 @@ export const DEFAULT_CHARACTER: Character = {
 ## 개발 체크리스트
 
 ### Phase 1: 기본 구조 (1-2일)
+
 - [x] `useGameState` 훅 구현
 - [x] 캐릭터 타입 및 데이터 정의
 - [x] `PixelButton` 클래스 구현
@@ -672,12 +701,14 @@ export const DEFAULT_CHARACTER: Character = {
 - [x] `App.tsx` 통합
 
 ### Phase 2: 모바일 대응 (1일)
+
 - [x] 반응형 스케일 팩터 적용
 - [x] 모바일 레이아웃 최적화
 - [x] 330px 최소 화면 지원
 - [x] 터치 인터랙션 최적화
 
 ### Phase 3: 테스트 (1일)
+
 - [ ] 로비 화면 표시 확인
 - [ ] 게임 시작 버튼 클릭 → 페이즈 전환 확인
 - [ ] 비활성화 버튼 클릭 불가 확인
@@ -685,6 +716,7 @@ export const DEFAULT_CHARACTER: Character = {
 - [ ] 다양한 화면 크기 테스트 (330px ~ 1920px)
 
 ### Phase 4: 스타일링 (선택적)
+
 - [ ] 픽셀 아트 에셋 교체
 - [ ] 폰트 교체
 - [ ] 배경 그라데이션 추가
@@ -702,6 +734,7 @@ export const DEFAULT_CHARACTER: Character = {
 ## 주의사항
 
 ### 1. PixiJS 설정
+
 ```typescript
 // 픽셀 아트 렌더링 설정
 import { settings, SCALE_MODES } from 'pixi.js';
@@ -709,10 +742,12 @@ settings.SCALE_MODE = SCALE_MODES.NEAREST;
 ```
 
 ### 2. 리소스 정리
+
 - 씬 전환 시 반드시 `destroy()` 호출
 - 메모리 누수 방지
 
 ### 3. 비활성화 버튼
+
 - `disabled: true` 파라미터로 생성
 - 회색 + 반투명 처리
 - 인터랙션 없음
@@ -728,7 +763,7 @@ settings.SCALE_MODE = SCALE_MODES.NEAREST;
 
 ## 변경 이력
 
-| 날짜 | 변경 사항 | 작성자 |
-|------|----------|--------|
-| 2025-10-15 | 초기 문서 작성 | 개발팀 |
+| 날짜       | 변경 사항                                   | 작성자 |
+| ---------- | ------------------------------------------- | ------ |
+| 2025-10-15 | 초기 문서 작성                              | 개발팀 |
 | 2025-10-15 | 모바일 반응형 디자인 추가 (최소 330px 지원) | 개발팀 |

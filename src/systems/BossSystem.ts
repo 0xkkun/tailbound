@@ -7,6 +7,10 @@
 import { Container } from 'pixi.js';
 
 import { BossProjectile } from '@/game/entities/BossProjectile';
+import { FireAOE } from '@/game/entities/FireAOE';
+import { FireballProjectile } from '@/game/entities/FireballProjectile';
+import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
+import { AOEWarning } from '@/game/entities/warnings/AOEWarning';
 import { WhiteTigerBoss } from '@/game/entities/enemies/WhiteTigerBoss';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { LightningEffect } from '@/game/entities/LightningEffect';
@@ -22,6 +26,10 @@ export class BossSystem {
   // 엔티티
   private boss: WhiteTigerBoss | null = null;
   private bossProjectiles: BossProjectile[] = [];
+  private fireballProjectiles: FireballProjectile[] = [];
+  private spiralChargeEffect: SpiralChargeEffect | null = null;
+  private aoeWarnings: AOEWarning[] = [];
+  private fireAOEs: FireAOE[] = [];
   private warningLines: WarningLine[] = [];
   private lightningEffects: LightningEffect[] = [];
   private rewardChest: RewardChest | null = null;
@@ -72,16 +80,56 @@ export class BossSystem {
    * 보스 스폰
    */
   public async spawnBoss(x: number, y: number): Promise<void> {
+    console.log('[BossSystem] Spawning boss at', { x, y });
     this.isActive = true;
 
     // 보스 생성
     this.boss = new WhiteTigerBoss(`boss_white_tiger`, x, y);
     this.boss.setTarget({ x: this.player.x, y: this.player.y });
+    console.log('[BossSystem] Boss created:', this.boss);
 
     // 보스 투사체 발사 콜백
     this.boss.onFireProjectile = (projectile: BossProjectile) => {
+      console.log('[BossSystem] Adding boss projectile (lightning):', projectile);
       this.bossProjectiles.push(projectile);
       this.gameLayer.addChild(projectile);
+    };
+
+    // 보스 불꽃 발사 콜백
+    this.boss.onFireFireball = (projectile: FireballProjectile) => {
+      console.log('[BossSystem] Adding fireball projectile:', projectile);
+      this.fireballProjectiles.push(projectile);
+      this.gameLayer.addChild(projectile);
+      // z-index를 위해 최상단으로 이동
+      projectile.zIndex = 1000;
+    };
+    console.log('[BossSystem] Fireball callback set:', !!this.boss.onFireFireball);
+
+    // 보스 나선형 차징 이펙트 생성 콜백
+    this.boss.onCreateChargeEffect = (boss: WhiteTigerBoss) => {
+      // 기존 이펙트 제거 (안전장치)
+      if (this.spiralChargeEffect) {
+        this.gameLayer.removeChild(this.spiralChargeEffect);
+        this.spiralChargeEffect.destroy();
+      }
+
+      this.spiralChargeEffect = new SpiralChargeEffect(boss);
+      this.gameLayer.addChild(this.spiralChargeEffect);
+    };
+
+    // 보스 AOE 경고 생성 콜백
+    this.boss.onCreateAOEWarning = (x: number, y: number, radius: number) => {
+      const warning = new AOEWarning(x, y, radius);
+
+      // 경고 완료 시 장판 생성
+      warning.onSpawnAOE = () => {
+        const aoe = new FireAOE(`fire_aoe_${Date.now()}_${Math.random()}`, x, y, radius);
+        this.fireAOEs.push(aoe);
+        this.gameLayer.addChild(aoe);
+      };
+
+      this.aoeWarnings.push(warning);
+      this.gameLayer.addChild(warning);
     };
 
     // 보스 경고선 생성 콜백
@@ -266,6 +314,41 @@ export class BossSystem {
       }
     }
 
+    // 불꽃 투사체 업데이트
+    for (let i = this.fireballProjectiles.length - 1; i >= 0; i--) {
+      const projectile = this.fireballProjectiles[i];
+
+      // 디버깅: 투사체 상태 확인 (처음 3개만)
+      if (i < 3) {
+        // 처음 3개 투사체 상태 출력
+        console.log('[BossSystem] Fireball state:', {
+          id: projectile.id,
+          active: projectile.active,
+          x: Math.round(projectile.x),
+          y: Math.round(projectile.y),
+          radius: projectile.radius,
+          children: projectile.children.length,
+          visible: projectile.visible,
+          alpha: projectile.alpha,
+        });
+      }
+
+      projectile.update(deltaTime);
+
+      // 플레이어 충돌
+      if (projectile.checkPlayerCollision(this.player)) {
+        this.player.takeDamage(projectile.damage);
+        projectile.active = false;
+      }
+
+      // 비활성화 또는 화면 밖
+      if (!projectile.active || projectile.isOutOfBounds(this.screenWidth, this.screenHeight)) {
+        this.gameLayer.removeChild(projectile);
+        projectile.destroy();
+        this.fireballProjectiles.splice(i, 1);
+      }
+    }
+
     // 경고선 업데이트
     for (let i = this.warningLines.length - 1; i >= 0; i--) {
       const line = this.warningLines[i];
@@ -285,6 +368,47 @@ export class BossSystem {
       if (effect.destroyed) {
         this.gameLayer.removeChild(effect);
         this.lightningEffects.splice(i, 1);
+      }
+    }
+
+    // 나선형 차징 이펙트 업데이트
+    if (this.spiralChargeEffect) {
+      const isComplete = this.spiralChargeEffect.update(deltaTime);
+
+      if (isComplete) {
+        this.gameLayer.removeChild(this.spiralChargeEffect);
+        this.spiralChargeEffect.destroy();
+        this.spiralChargeEffect = null;
+      }
+    }
+
+    // AOE 경고 업데이트
+    for (let i = this.aoeWarnings.length - 1; i >= 0; i--) {
+      const warning = this.aoeWarnings[i];
+      warning.update(deltaTime);
+
+      if (warning.destroyed) {
+        this.gameLayer.removeChild(warning);
+        warning.destroy();
+        this.aoeWarnings.splice(i, 1);
+      }
+    }
+
+    // 불 장판 업데이트
+    for (let i = this.fireAOEs.length - 1; i >= 0; i--) {
+      const aoe = this.fireAOEs[i];
+      aoe.update(deltaTime);
+
+      // 플레이어 충돌 (1회만 데미지)
+      if (aoe.checkPlayerCollision(this.player)) {
+        this.player.takeDamage(aoe.damage);
+      }
+
+      // 비활성화 시 제거
+      if (!aoe.active) {
+        this.gameLayer.removeChild(aoe);
+        aoe.destroy();
+        this.fireAOEs.splice(i, 1);
       }
     }
 
@@ -461,6 +585,13 @@ export class BossSystem {
     }
     this.bossProjectiles = [];
 
+    // 불꽃 투사체
+    for (const projectile of this.fireballProjectiles) {
+      this.gameLayer.removeChild(projectile);
+      projectile.destroy();
+    }
+    this.fireballProjectiles = [];
+
     // 경고선
     for (const line of this.warningLines) {
       this.gameLayer.removeChild(line);
@@ -474,6 +605,27 @@ export class BossSystem {
       effect.destroy();
     }
     this.lightningEffects = [];
+
+    // 나선형 차징 이펙트
+    if (this.spiralChargeEffect) {
+      this.gameLayer.removeChild(this.spiralChargeEffect);
+      this.spiralChargeEffect.destroy();
+      this.spiralChargeEffect = null;
+    }
+
+    // AOE 경고
+    for (const warning of this.aoeWarnings) {
+      this.gameLayer.removeChild(warning);
+      warning.destroy();
+    }
+    this.aoeWarnings = [];
+
+    // 불 장판
+    for (const aoe of this.fireAOEs) {
+      this.gameLayer.removeChild(aoe);
+      aoe.destroy();
+    }
+    this.fireAOEs = [];
 
     // 보상 상자
     if (this.rewardChest) {

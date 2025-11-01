@@ -7,6 +7,7 @@
  */
 
 import type { BossProjectile } from '../BossProjectile';
+import { FireballProjectile } from '../FireballProjectile';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -25,6 +26,23 @@ export class WhiteTigerBoss extends BaseEnemy {
   private bulletCooldown: number = 3.0; // 3초마다
   private bulletTimer: number = 0;
   public onFireProjectile?: (projectile: BossProjectile) => void;
+
+  // 패턴 추가: 기본 불꽃 공격
+  private fireballCooldown: number = 2.0; // 2초마다
+  private fireballTimer: number = 0;
+  public onFireFireball?: (projectile: FireballProjectile) => void;
+
+  // 패턴 추가: 원형 불꽃 공격
+  private hitCount: number = 0; // 피격 횟수 카운터
+  private isChargingSpiral: boolean = false; // 차징 중 여부
+  private spiralChargeTimer: number = 0; // 차징 타이머
+  private spiralFireTimer: number = 0; // 발사 타이머
+  private isFiringSpiral: boolean = false; // 발사 중 여부
+  public onCreateChargeEffect?: (boss: WhiteTigerBoss) => void;
+
+  // 패턴 추가: 장판 공격
+  private hitCountForAOE: number = 0; // 장판 공격용 피격 카운터
+  public onCreateAOEWarning?: (x: number, y: number, radius: number) => void;
 
   // 패턴 2: 번개 돌진
   private dashCooldown: number = 6.0; // 6초마다
@@ -73,6 +91,36 @@ export class WhiteTigerBoss extends BaseEnemy {
   }
 
   /**
+   * 스프라이트 tint 설정 (차징 효과용)
+   */
+  public setSpriteTint(color: number): void {
+    if (this.sprite) {
+      this.sprite.tint = color;
+    }
+  }
+
+  /**
+   * 데미지 받기 오버라이드 (피격 카운터)
+   */
+  public takeDamage(amount: number, isCritical: boolean = false): void {
+    super.takeDamage(amount, isCritical);
+
+    // 나선형 공격 카운터 (50회로 증가)
+    this.hitCount++;
+    if (this.hitCount >= 50 && !this.isChargingSpiral && !this.isFiringSpiral && !this.isDashing) {
+      this.startSpiralAttack();
+      this.hitCount = 0;
+    }
+
+    // 장판 공격 카운터 (100회로 증가)
+    this.hitCountForAOE++;
+    if (this.hitCountForAOE >= 100 && !this.isDashing) {
+      this.startAOEAttack();
+      this.hitCountForAOE = 0;
+    }
+  }
+
+  /**
    * 업데이트 (패턴 실행)
    */
   public update(deltaTime: number): void {
@@ -86,12 +134,33 @@ export class WhiteTigerBoss extends BaseEnemy {
       return;
     }
 
+    // 패턴 타이머는 항상 업데이트 (특수 패턴 중에도 계속 카운트)
+    this.fireballTimer += deltaTime;
+    this.bulletTimer += deltaTime;
+    this.dashTimer += deltaTime;
+
+    // 나선형 공격 차징 중
+    if (this.isChargingSpiral) {
+      this.updateSpiralCharge(deltaTime);
+      this.render();
+      return;
+    }
+
+    // 나선형 공격 발사 중
+    if (this.isFiringSpiral) {
+      this.updateSpiralFire(deltaTime);
+      this.render();
+      return;
+    }
+
     // 돌진 중이면 돌진 로직 처리
     if (this.isDashing) {
       this.updateDash(deltaTime);
       this.render();
       return;
     }
+
+    // === 일반 상태 (특수 패턴이 아닐 때) ===
 
     // 기본 추적 AI
     const currentPos = { x: this.x, y: this.y };
@@ -117,15 +186,19 @@ export class WhiteTigerBoss extends BaseEnemy {
       }
     }
 
+    // 패턴 추가: 기본 불꽃 공격 (일반 이동 중에만)
+    if (this.fireballTimer >= this.fireballCooldown) {
+      this.fireBasicFireball();
+      this.fireballTimer = 0;
+    }
+
     // 패턴 1: 탄막 발사
-    this.bulletTimer += deltaTime;
     if (this.bulletTimer >= this.bulletCooldown) {
       this.fireLightningBullets();
       this.bulletTimer = 0;
     }
 
     // 패턴 2: 돌진
-    this.dashTimer += deltaTime;
     const currentDashCooldown = this.health / this.maxHealth > 0.5 ? 6.0 : 4.0;
     if (this.dashTimer >= currentDashCooldown) {
       this.startDash();
@@ -133,6 +206,46 @@ export class WhiteTigerBoss extends BaseEnemy {
     }
 
     this.render();
+  }
+
+  /**
+   * 패턴 추가: 기본 불꽃 공격
+   */
+  private fireBasicFireball(): void {
+    if (!this.onFireFireball || !this.targetPosition) {
+      console.log('[Boss] Cannot fire fireball - callback or target missing');
+      return;
+    }
+
+    // 플레이어 방향 계산
+    const dx = this.targetPosition.x - this.x;
+    const dy = this.targetPosition.y - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance === 0) {
+      return;
+    }
+
+    const direction = {
+      x: dx / distance,
+      y: dy / distance,
+    };
+
+    console.log(`[Boss] Firing basic fireball! Distance to player: ${distance.toFixed(0)}`);
+
+    // FireballProjectile 직접 생성 (크기 증가)
+    const projectile = new FireballProjectile(
+      `boss_fireball_${Date.now()}`,
+      this.x,
+      this.y,
+      direction,
+      30, // damage
+      200, // speed
+      30 // radius (20 → 30으로 증가)
+    );
+
+    // GameScene에 추가
+    this.onFireFireball(projectile);
   }
 
   /**
@@ -258,5 +371,118 @@ export class WhiteTigerBoss extends BaseEnemy {
    */
   public isDashingState(): boolean {
     return this.isDashing && this.dashState === 'dashing';
+  }
+
+  /**
+   * 나선형 공격 시작
+   */
+  private startSpiralAttack(): void {
+    this.isChargingSpiral = true;
+    this.spiralChargeTimer = 0;
+
+    // 차징 이펙트 생성 콜백
+    if (this.onCreateChargeEffect) {
+      this.onCreateChargeEffect(this);
+    }
+  }
+
+  /**
+   * 나선형 공격 차징 업데이트
+   */
+  private updateSpiralCharge(deltaTime: number): void {
+    this.spiralChargeTimer += deltaTime;
+
+    // 2초 차징 완료 후 발사 시작
+    if (this.spiralChargeTimer >= 2.0) {
+      this.isChargingSpiral = false;
+      this.isFiringSpiral = true;
+      this.spiralFireTimer = 0;
+    }
+  }
+
+  /**
+   * 원형 공격 발사 (나선형 대신 원형으로 한번에 발사)
+   */
+  private updateSpiralFire(deltaTime: number): void {
+    // 처음 실행시 한번에 모든 불꽃 발사
+    if (this.spiralFireTimer === 0) {
+      this.fireCircularBurst();
+      this.isFiringSpiral = false;
+    }
+    this.spiralFireTimer += deltaTime;
+  }
+
+  /**
+   * 원형 불꽃 공격 (48발 한번에 발사)
+   */
+  private fireCircularBurst(): void {
+    if (!this.onFireFireball) {
+      return;
+    }
+
+    console.log('[Boss] Firing circular burst attack!');
+
+    const totalShots = 48; // 총 48발
+    const angleStep = (Math.PI * 2) / totalShots; // 360도를 48개로 나눔
+
+    for (let i = 0; i < totalShots; i++) {
+      const angle = angleStep * i;
+
+      const direction = {
+        x: Math.cos(angle),
+        y: Math.sin(angle),
+      };
+
+      // 모든 불꽃이 같은 속도로 발사
+      const speed = 250; // 고정 속도
+
+      // FireballProjectile 생성
+      const projectile = new FireballProjectile(
+        `boss_circular_${Date.now()}_${i}`,
+        this.x,
+        this.y,
+        direction,
+        40, // damage
+        speed,
+        30, // radius
+        4 // lifeTime (4초)
+      );
+
+      // GameScene에 추가
+      this.onFireFireball(projectile);
+    }
+  }
+
+  /**
+   * 장판 공격 시작
+   */
+  private startAOEAttack(): void {
+    if (!this.onCreateAOEWarning || !this.targetPosition) {
+      return;
+    }
+
+    // 플레이어 반지름을 모르므로 고정값 사용 (일반적으로 24)
+    const playerRadius = 24;
+    const aoeRadius = playerRadius * 3; // 플레이어 지름 기준 3배
+
+    // 보스 주변 2개
+    for (let i = 0; i < 2; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 100 + Math.random() * 200; // 100~300px
+      const x = this.x + Math.cos(angle) * distance;
+      const y = this.y + Math.sin(angle) * distance;
+
+      this.onCreateAOEWarning(x, y, aoeRadius);
+    }
+
+    // 플레이어 주변 3개
+    for (let i = 0; i < 3; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 50 + Math.random() * 150; // 50~200px
+      const x = this.targetPosition.x + Math.cos(angle) * distance;
+      const y = this.targetPosition.y + Math.sin(angle) * distance;
+
+      this.onCreateAOEWarning(x, y, aoeRadius);
+    }
   }
 }

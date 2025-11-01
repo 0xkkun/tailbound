@@ -18,7 +18,10 @@ import {
 } from '@/game/entities/enemies';
 import { EnemyProjectile } from '@/game/entities/EnemyProjectile';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
+import { FireAOE } from '@/game/entities/FireAOE';
+import { FireballProjectile } from '@/game/entities/FireballProjectile';
 import { HealthPotion } from '@/game/entities/HealthPotion';
+import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
 import { MeleeSwing } from '@/game/entities/MeleeSwing';
 import { Player } from '@/game/entities/Player';
 import { Portal } from '@/game/entities/Portal';
@@ -143,6 +146,9 @@ export class OverworldGameScene extends BaseGameScene {
       MaidenGhostEnemy.preloadSprites(),
       EvilSpiritEnemy.preloadSprites(),
       WhiteTigerBoss.preloadSprites(), // 보스
+      FireballProjectile.preloadSprites(), // 보스 불꽃 투사체
+      SpiralChargeEffect.preloadSprites(), // 보스 나선형 차징 이펙트
+      FireAOE.preloadSprites(), // 보스 불 장판
       Assets.load('/assets/tile/tile1.png'), // 바닥 타일 1 (32x48)
       Assets.load('/assets/tile/tile2.png'), // 바닥 타일 2 (32x48)
       Assets.load('/assets/tile/tile3.png'), // 바닥 타일 3 (32x32)
