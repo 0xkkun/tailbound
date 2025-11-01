@@ -22,11 +22,40 @@ pnpm install
 
 ### 개발 서버 실행
 
+#### 웹 브라우저에서 개발
+
 ```bash
 pnpm dev
 ```
 
 http://localhost:5173에서 확인 가능합니다.
+
+#### 인앱 토스 환경에서 개발
+
+- [원본 문서](https://developers-apps-in-toss.toss.im/development/test/sandbox.html)
+
+인앱 토스 환경 전용 기능(햅틱 피드백, Safe Area Insets 등)을 테스트하려면:
+
+1. **디바이스 준비**
+   - 모바일 디바이스(iOS/Android) USB 디버깅 활성화
+   - 토스 샌드박스 앱 설치
+
+2. **로컬 개발 서버 연결**
+
+   ```bash
+   # 디바이스를 USB로 연결 후
+   adb reverse tcp:8081 tcp:8081  # Metro dev server
+   adb reverse tcp:5173 tcp:5173  # Vite dev server
+   ```
+
+   > 💡 Granite가 로컬 개발 서버를 디바이스로 포워딩해줍니다.
+
+3. **토스 샌드박스 앱에서 실행**
+   - 토스 샌드박스 앱 실행
+   - URL 스킴에 `intoss://tailbound` 입력
+   - 앱이 로드되면 인앱 토스 환경 기능 테스트 가능
+
+> 📝 인앱 토스가 아닌 환경에서도 앱은 정상 동작합니다. 인앱 토스 전용 기능은 자동으로 스킵됩니다. ([tossAppBridge.ts](src/utils/tossAppBridge.ts) 참고)
 
 ### 빌드
 
