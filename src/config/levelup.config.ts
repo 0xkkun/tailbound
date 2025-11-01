@@ -91,15 +91,15 @@ export const STAT_ICON_MAP = {
 // 파워업 아이콘 매핑
 export const POWERUP_ICON_MAP = {
   // 공격 파워업
-  [POWERUP_ID_PREFIXES.CRIT_RATE]: '/assets/power-up/kill.png',
-  [POWERUP_ID_PREFIXES.CRIT_DAMAGE]: '/assets/power-up/kill.png',
+  [POWERUP_ID_PREFIXES.CRIT_RATE]: '/assets/power-up/critical-chance.png',
+  [POWERUP_ID_PREFIXES.CRIT_DAMAGE]: '/assets/power-up/critical-damage.png',
 
   // 방어 파워업
-  [POWERUP_ID_PREFIXES.DAMAGE_REDUCTION]: '/assets/power-up/health-plus.png',
+  [POWERUP_ID_PREFIXES.DAMAGE_REDUCTION]: '/assets/power-up/damage-reduction.png',
   [POWERUP_ID_PREFIXES.BREATHING]: '/assets/power-up/health-generate.png',
 
   // 유틸리티 파워업
-  [POWERUP_ID_PREFIXES.XP_GAIN]: '/assets/power-up/attack-speed.png',
+  [POWERUP_ID_PREFIXES.XP_GAIN]: '/assets/power-up/experience-boost.png',
 
   // 특수 드롭 아이템
   [SPECIAL_DROP_IDS.REVIVE]: '/assets/power-up/health-plus.png',
