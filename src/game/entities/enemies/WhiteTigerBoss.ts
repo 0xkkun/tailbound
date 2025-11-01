@@ -6,6 +6,8 @@
  * 2. 번개 돌진 (경고선 → 돌진)
  */
 
+import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
+
 import type { BossProjectile } from '../BossProjectile';
 import { FireballProjectile } from '../FireballProjectile';
 
@@ -19,8 +21,25 @@ export class WhiteTigerBoss extends BaseEnemy {
     totalWidth: 768, // 16프레임 × 48px
     height: 48,
     frameCount: 16,
-    scale: 3.0, // 보스는 크게
+    scale: 6.0, // 보스 크기 2배로 증가 (3.0 → 6.0)
   };
+
+  // Idle 스프라이트 설정
+  private static readonly IDLE_SPRITE_CONFIG = {
+    assetPath: '/assets/boss/wt-idle.png',
+    totalWidth: 336, // 7프레임 × 48px
+    height: 48,
+    frameCount: 7,
+    scale: 6.0,
+    animationSpeed: 0.1,
+  };
+
+  // 애니메이션 상태
+  private isMoving: boolean = false;
+  private idleSprite?: AnimatedSprite;
+  private walkSprite?: AnimatedSprite;
+  private static idleFrames: Texture[] | null = null;
+  private static walkFrames: Texture[] | null = null;
 
   // 패턴 1: 번개 탄막 발사
   private bulletCooldown: number = 3.0; // 3초마다
@@ -32,13 +51,15 @@ export class WhiteTigerBoss extends BaseEnemy {
   private fireballTimer: number = 0;
   public onFireFireball?: (projectile: FireballProjectile) => void;
 
-  // 패턴 추가: 원형 불꽃 공격
+  // 패턴 추가: 나선형 불꽃 공격
   private hitCount: number = 0; // 피격 횟수 카운터
   private isChargingSpiral: boolean = false; // 차징 중 여부
   private spiralChargeTimer: number = 0; // 차징 타이머
   private spiralFireTimer: number = 0; // 발사 타이머
+  private spiralFireIndex: number = 0; // 나선형 발사 인덱스
   private isFiringSpiral: boolean = false; // 발사 중 여부
   public onCreateChargeEffect?: (boss: WhiteTigerBoss) => void;
+  public onRemoveChargeEffect?: () => void;
 
   // 패턴 추가: 장판 공격
   private hitCountForAOE: number = 0; // 장판 공격용 피격 카운터
@@ -64,6 +85,9 @@ export class WhiteTigerBoss extends BaseEnemy {
     // 보스 고유 스탯은 ENEMY_BALANCE.boss에서 자동으로 적용됨
     // 넉백 저항 설정
     this.knockbackResistance = 0.2; // 80% 저항
+
+    // idle과 walk 스프라이트 로드
+    this.loadBothSprites();
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
@@ -78,7 +102,79 @@ export class WhiteTigerBoss extends BaseEnemy {
    * 백호 스프라이트 preload
    */
   public static async preloadSprites(): Promise<void> {
-    return BaseEnemy.preloadSpriteType('white_tiger_boss', WhiteTigerBoss.SPRITE_CONFIG);
+    // Walk 스프라이트 로드
+    await BaseEnemy.preloadSpriteType('white_tiger_boss', WhiteTigerBoss.SPRITE_CONFIG);
+
+    // Idle 스프라이트도 로드
+    try {
+      const baseTexture = await Assets.load(WhiteTigerBoss.IDLE_SPRITE_CONFIG.assetPath);
+      baseTexture.source.scaleMode = 'nearest';
+
+      const frames: Texture[] = [];
+      const frameWidth = WhiteTigerBoss.IDLE_SPRITE_CONFIG.totalWidth / WhiteTigerBoss.IDLE_SPRITE_CONFIG.frameCount;
+
+      for (let i = 0; i < WhiteTigerBoss.IDLE_SPRITE_CONFIG.frameCount; i++) {
+        const rect = new Rectangle(i * frameWidth, 0, frameWidth, WhiteTigerBoss.IDLE_SPRITE_CONFIG.height);
+        frames.push(new Texture({ source: baseTexture.source, frame: rect }));
+      }
+
+      WhiteTigerBoss.idleFrames = frames;
+      console.log('[WhiteTigerBoss] Idle sprites preloaded');
+    } catch (error) {
+      console.error('[WhiteTigerBoss] Failed to preload idle sprites:', error);
+    }
+  }
+
+  /**
+   * 두 스프라이트 모두 로드
+   */
+  private async loadBothSprites(): Promise<void> {
+    // Walk 스프라이트 로드 (BaseEnemy의 sprite 사용)
+    // 이미 부모 클래스에서 로드됨
+
+    // Idle 스프라이트 로드
+    if (WhiteTigerBoss.idleFrames) {
+      this.idleSprite = new AnimatedSprite(WhiteTigerBoss.idleFrames);
+      this.idleSprite.anchor.set(0.5);
+      this.idleSprite.scale.set(WhiteTigerBoss.IDLE_SPRITE_CONFIG.scale);
+      this.idleSprite.animationSpeed = WhiteTigerBoss.IDLE_SPRITE_CONFIG.animationSpeed;
+      this.idleSprite.loop = true;
+      this.idleSprite.play();
+      this.idleSprite.visible = true; // 처음에는 idle 표시
+
+      // 기존 sprite를 walkSprite로 참조
+      this.walkSprite = this.sprite;
+      if (this.walkSprite) {
+        this.walkSprite.visible = false; // 처음에는 walk 숨김
+      }
+
+      // idle 스프라이트 추가
+      const graphicsIndex = this.getChildIndex(this.graphics);
+      this.addChildAt(this.idleSprite, Math.max(0, graphicsIndex));
+    }
+  }
+
+  /**
+   * 애니메이션 상태 전환
+   */
+  private switchAnimation(moving: boolean): void {
+    if (this.isMoving === moving) return; // 이미 같은 상태면 무시
+
+    this.isMoving = moving;
+
+    if (this.idleSprite && this.walkSprite) {
+      if (moving) {
+        // Walk 애니메이션으로 전환
+        this.idleSprite.visible = false;
+        this.walkSprite.visible = true;
+        this.walkSprite.play();
+      } else {
+        // Idle 애니메이션으로 전환
+        this.walkSprite.visible = false;
+        this.idleSprite.visible = true;
+        this.idleSprite.play();
+      }
+    }
   }
 
   /**
@@ -97,6 +193,12 @@ export class WhiteTigerBoss extends BaseEnemy {
     if (this.sprite) {
       this.sprite.tint = color;
     }
+    if (this.idleSprite) {
+      this.idleSprite.tint = color;
+    }
+    if (this.walkSprite) {
+      this.walkSprite.tint = color;
+    }
   }
 
   /**
@@ -105,9 +207,17 @@ export class WhiteTigerBoss extends BaseEnemy {
   public takeDamage(amount: number, isCritical: boolean = false): void {
     super.takeDamage(amount, isCritical);
 
-    // 나선형 공격 카운터 (10회 - 테스트용)
+    console.log(`[Boss] Taking damage: ${amount}, Health: ${this.health}/${this.maxHealth}`);
+
+    // 보스가 죽은 경우 패턴을 실행하지 않음
+    if (this.health <= 0) {
+      console.log('[Boss] Health is 0 or below, skipping patterns');
+      return;
+    }
+
+    // 나선형 공격 카운터 (5회 - 테스트용으로 더 줄임)
     this.hitCount++;
-    if (this.hitCount >= 10 && !this.isChargingSpiral && !this.isFiringSpiral && !this.isDashing) {
+    if (this.hitCount >= 5 && !this.isChargingSpiral && !this.isFiringSpiral && !this.isDashing) {
       this.startSpiralAttack();
       this.hitCount = 0;
     }
@@ -125,6 +235,11 @@ export class WhiteTigerBoss extends BaseEnemy {
    */
   public update(deltaTime: number): void {
     if (!this.active || !this.targetPosition) {
+      return;
+    }
+
+    // 체력이 0 이하면 업데이트 중지
+    if (this.health <= 0) {
       return;
     }
 
@@ -168,23 +283,34 @@ export class WhiteTigerBoss extends BaseEnemy {
     const dy = this.targetPosition.y - currentPos.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
+    // 이동 거리 임계값 (이 거리 이상일 때만 이동)
+    const moveThreshold = 50;
+    const isMoving = distance > moveThreshold;
+
     // 플레이어에게 이동
-    if (distance > 0) {
+    if (isMoving) {
       const directionX = dx / distance;
       const directionY = dy / distance;
 
       this.x += directionX * this.speed * deltaTime;
       this.y += directionY * this.speed * deltaTime;
 
-      // 스프라이트 좌우 반전
-      if (this.sprite && directionX !== 0) {
-        if (directionX < 0) {
-          this.sprite.scale.x = -Math.abs(this.sprite.scale.x);
-        } else {
-          this.sprite.scale.x = Math.abs(this.sprite.scale.x);
-        }
+      // 스프라이트 좌우 반전 (idle과 walk 모두)
+      const scaleX = directionX < 0 ? -Math.abs(WhiteTigerBoss.IDLE_SPRITE_CONFIG.scale) : Math.abs(WhiteTigerBoss.IDLE_SPRITE_CONFIG.scale);
+
+      if (this.sprite) {
+        this.sprite.scale.x = scaleX;
+      }
+      if (this.idleSprite) {
+        this.idleSprite.scale.x = scaleX;
+      }
+      if (this.walkSprite) {
+        this.walkSprite.scale.x = scaleX;
       }
     }
+
+    // 애니메이션 상태 전환
+    this.switchAnimation(isMoving);
 
     // 패턴 추가: 기본 불꽃 공격 (일반 이동 중에만)
     if (this.fireballTimer >= this.fireballCooldown) {
@@ -236,9 +362,9 @@ export class WhiteTigerBoss extends BaseEnemy {
       this.x,
       this.y,
       direction,
-      30, // damage
+      25, // damage (30 → 25로 조정)
       200, // speed
-      30 // radius (20 → 30으로 증가)
+      60 // radius (30 → 60으로 2배 증가)
     );
 
     // GameScene에 추가
@@ -271,9 +397,9 @@ export class WhiteTigerBoss extends BaseEnemy {
         this.x,
         this.y,
         direction,
-        40, // damage
+        35, // damage (40 → 35로 조정)
         speed,
-        25, // radius
+        50, // radius (25 → 50으로 2배 증가)
         4 // lifetime
       );
 
@@ -308,6 +434,9 @@ export class WhiteTigerBoss extends BaseEnemy {
     if (this.onCreateWarningLine) {
       this.onCreateWarningLine(this.x, this.y, this.dashDirection);
     }
+
+    // 돌진 준비 중에는 idle 애니메이션
+    this.switchAnimation(false);
   }
 
   /**
@@ -335,6 +464,9 @@ export class WhiteTigerBoss extends BaseEnemy {
         this.x += this.dashVelocity.x * deltaTime;
         this.y += this.dashVelocity.y * deltaTime;
 
+        // 돌진 중에는 walk 애니메이션
+        this.switchAnimation(true);
+
         // 번개 잔상 생성 (0.1초마다)
         this.lightningTrailTimer += deltaTime;
         if (this.lightningTrailTimer >= 0.1) {
@@ -350,6 +482,8 @@ export class WhiteTigerBoss extends BaseEnemy {
           this.dashState = 'recovery';
           this.dashStateTimer = 0;
           this.dashVelocity = { x: 0, y: 0 };
+          // 돌진 끝나면 idle로 전환
+          this.switchAnimation(false);
         }
         break;
 
@@ -377,9 +511,16 @@ export class WhiteTigerBoss extends BaseEnemy {
     this.isChargingSpiral = true;
     this.spiralChargeTimer = 0;
 
+    console.log('[Boss] Starting spiral attack - Creating charge effect');
+
+    // 차징 중에는 idle 애니메이션
+    this.switchAnimation(false);
+
     // 차징 이펙트 생성 콜백
     if (this.onCreateChargeEffect) {
       this.onCreateChargeEffect(this);
+    } else {
+      console.error('[Boss] onCreateChargeEffect callback not set!');
     }
   }
 
@@ -389,28 +530,100 @@ export class WhiteTigerBoss extends BaseEnemy {
   private updateSpiralCharge(deltaTime: number): void {
     this.spiralChargeTimer += deltaTime;
 
+    // 차징 중에는 계속 idle 유지
+    this.switchAnimation(false);
+
     // 2초 차징 완료 후 발사 시작
     if (this.spiralChargeTimer >= 2.0) {
       this.isChargingSpiral = false;
       this.isFiringSpiral = true;
       this.spiralFireTimer = 0;
+      this.spiralFireIndex = 0;
+      // 차징 이펙트는 발사가 끝날 때까지 유지
     }
   }
 
   /**
-   * 원형 공격 발사 (나선형 대신 원형으로 한번에 발사)
+   * 나선형 공격 발사 업데이트
    */
   private updateSpiralFire(deltaTime: number): void {
-    // 처음 실행시 한번에 모든 불꽃 발사
-    if (this.spiralFireTimer === 0) {
-      this.fireCircularBurst();
-      this.isFiringSpiral = false;
-    }
     this.spiralFireTimer += deltaTime;
+
+    // 발사 중에도 idle 애니메이션 유지
+    this.switchAnimation(false);
+
+    // 0.1초마다 불꽃 발사 (나선형)
+    const fireInterval = 0.1;
+    const totalShots = 96; // 48발 → 96발로 증가
+
+    if (this.spiralFireTimer >= fireInterval) {
+      this.spiralFireTimer = 0;
+
+      // 발사
+      this.fireSpiralBullet(this.spiralFireIndex);
+      this.spiralFireIndex++;
+
+      // 96발 모두 발사 완료
+      if (this.spiralFireIndex >= totalShots) {
+        this.isFiringSpiral = false;
+        this.spiralFireIndex = 0;
+
+        // 차징 이펙트 제거
+        if (this.onRemoveChargeEffect) {
+          this.onRemoveChargeEffect();
+        }
+
+        // 보스 색상 원래대로
+        this.setSpriteTint(0xffffff);
+      }
+    }
   }
 
   /**
-   * 원형 불꽃 공격 (48발 한번에 발사)
+   * 나선형 불꽃 발사 (단일)
+   */
+  private fireSpiralBullet(index: number): void {
+    if (!this.onFireFireball) {
+      return;
+    }
+
+    // 나선형 계산
+    const baseAngle = 0; // 시작 각도
+    const angleIncrement = Math.PI / 12; // 15도씩 회전 (더 촘촘한 나선)
+
+    // 각 회전마다 각도 오프셋 추가 (24발씩 4회전)
+    const shotsPerRotation = 24; // 한 바퀴당 24발
+    const rotationNumber = Math.floor(index / shotsPerRotation); // 현재 회전 번호 (0, 1, 2, 3)
+    const rotationOffset = (Math.PI / 24) * rotationNumber; // 각 회전마다 7.5도씩 추가 오프셋
+
+    const angle = baseAngle + angleIncrement * index + rotationOffset;
+
+    const direction = {
+      x: Math.cos(angle),
+      y: Math.sin(angle),
+    };
+
+    // 속도는 점진적으로 증가 (150 → 630px/s)
+    const speed = 150 + index * 5;
+
+    // FireballProjectile 생성
+    const projectile = new FireballProjectile(
+      `boss_spiral_${Date.now()}_${index}`,
+      this.x,
+      this.y,
+      direction,
+      30, // damage (40 → 30으로 조정)
+      speed, // 속도 변화
+      50, // radius (25 → 50으로 2배 증가)
+      4 // lifeTime
+    );
+
+    // GameScene에 추가
+    this.onFireFireball(projectile);
+  }
+
+  /**
+   * 원형 불꽃 공격 (48발 한번에 발사) - 향후 다른 패턴에 사용 가능
    */
   private fireCircularBurst(): void {
     if (!this.onFireFireball) {
@@ -437,9 +650,9 @@ export class WhiteTigerBoss extends BaseEnemy {
         this.x,
         this.y,
         direction,
-        40, // damage
+        30, // damage (40 → 30으로 조정)
         speed,
-        30, // radius
+        60, // radius (30 → 60으로 2배 증가)
         4 // lifeTime (4초)
       );
 
@@ -456,9 +669,12 @@ export class WhiteTigerBoss extends BaseEnemy {
       return;
     }
 
+    // 장판 공격 시작 시 idle 애니메이션
+    this.switchAnimation(false);
+
     // 플레이어 반지름을 모르므로 고정값 사용 (일반적으로 24)
     const playerRadius = 24;
-    const aoeRadius = playerRadius * 3; // 플레이어 지름 기준 3배
+    const aoeRadius = playerRadius * 6; // 플레이어 지름 기준 6배로 증가 (3배 → 6배)
 
     // 보스 주변 2개
     for (let i = 0; i < 2; i++) {

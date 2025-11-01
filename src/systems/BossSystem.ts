@@ -4,16 +4,15 @@
  * 보스 스폰, 전투, 보상 처리를 담당
  */
 
-import { Container } from 'pixi.js';
+import { Container, type Spritesheet } from 'pixi.js';
 
 import { BossProjectile } from '@/game/entities/BossProjectile';
+import { BossSoul } from '@/game/entities/BossSoul';
 import { WhiteTigerBoss } from '@/game/entities/enemies/WhiteTigerBoss';
-import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { FireAOE } from '@/game/entities/FireAOE';
 import { FireballProjectile } from '@/game/entities/FireballProjectile';
 import { LightningEffect } from '@/game/entities/LightningEffect';
 import type { Player } from '@/game/entities/Player';
-import { RewardChest } from '@/game/entities/RewardChest';
 import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
 import { AOEWarning } from '@/game/entities/warnings/AOEWarning';
 import { WarningLine } from '@/game/entities/warnings/WarningLine';
@@ -32,7 +31,7 @@ export class BossSystem {
   private fireAOEs: FireAOE[] = [];
   private warningLines: WarningLine[] = [];
   private lightningEffects: LightningEffect[] = [];
-  private rewardChest: RewardChest | null = null;
+  private bossSoul: BossSoul | null = null;
 
   // UI
   private bossHealthBar: BossHealthBar | null = null;
@@ -55,7 +54,10 @@ export class BossSystem {
   // 상태
   private isActive: boolean = false;
   private isBossDefeated: boolean = false;
-  private isChestOpened: boolean = false;
+  private isSoulCollected: boolean = false;
+
+  // spritesheet (경험치 젬용)
+  private spiritEnergySpritesheet: Spritesheet | null = null;
 
   // 콜백
   public onStageClear?: () => void;
@@ -67,24 +69,30 @@ export class BossSystem {
     uiLayer: Container,
     player: Player,
     screenWidth: number,
-    screenHeight: number
+    screenHeight: number,
+    spiritEnergySpritesheet?: Spritesheet
   ) {
     this.gameLayer = gameLayer;
     this.uiLayer = uiLayer;
     this.player = player;
     this.screenWidth = screenWidth;
     this.screenHeight = screenHeight;
+    this.spiritEnergySpritesheet = spiritEnergySpritesheet || null;
   }
 
   /**
    * 보스 스폰
    */
   public async spawnBoss(x: number, y: number): Promise<void> {
-    console.log('[BossSystem] Spawning boss at', { x, y });
+    // 보스를 플레이어 위 화면 밖에서 스폰
+    const spawnX = this.player.x;
+    const spawnY = this.player.y - this.screenHeight; // 화면 높이만큼 위에서 시작
+
+    console.log('[BossSystem] Spawning boss from above at', { spawnX, spawnY });
     this.isActive = true;
 
     // 보스 생성
-    this.boss = new WhiteTigerBoss(`boss_white_tiger`, x, y);
+    this.boss = new WhiteTigerBoss(`boss_white_tiger`, spawnX, spawnY);
     this.boss.setTarget({ x: this.player.x, y: this.player.y });
     console.log('[BossSystem] Boss created:', this.boss);
 
@@ -112,6 +120,17 @@ export class BossSystem {
 
       this.spiralChargeEffect = new SpiralChargeEffect(boss);
       this.gameLayer.addChild(this.spiralChargeEffect);
+      // 차징 이펙트를 보스보다 위에 표시
+      this.spiralChargeEffect.zIndex = boss.zIndex + 100;
+    };
+
+    // 차징 이펙트 제거 콜백
+    this.boss.onRemoveChargeEffect = () => {
+      if (this.spiralChargeEffect) {
+        this.gameLayer.removeChild(this.spiralChargeEffect);
+        this.spiralChargeEffect.destroy();
+        this.spiralChargeEffect = null;
+      }
     };
 
     // 보스 AOE 경고 생성 콜백
@@ -282,8 +301,12 @@ export class BossSystem {
       }
 
       // 보스 체력 0 이하 시 처리
-      if (this.boss.health <= 0 && !this.isBossDefeated) {
-        this.handleBossDefeat();
+      if (this.boss.health <= 0) {
+        console.log(`[BossSystem] Boss health: ${this.boss.health}, isBossDefeated: ${this.isBossDefeated}`);
+        if (!this.isBossDefeated) {
+          console.log('[BossSystem] Calling handleBossDefeat()');
+          this.handleBossDefeat();
+        }
       }
 
       // 보스와 플레이어 충돌
@@ -356,9 +379,10 @@ export class BossSystem {
 
     // 나선형 차징 이펙트 업데이트
     if (this.spiralChargeEffect) {
-      const isComplete = this.spiralChargeEffect.update(deltaTime);
+      const shouldRemove = this.spiralChargeEffect.update(deltaTime);
 
-      if (isComplete) {
+      // 보스가 죽었거나 이펙트가 제거 신호를 보내면 제거
+      if (shouldRemove || !this.boss || this.boss.destroyed) {
         this.gameLayer.removeChild(this.spiralChargeEffect);
         this.spiralChargeEffect.destroy();
         this.spiralChargeEffect = null;
@@ -395,13 +419,18 @@ export class BossSystem {
       }
     }
 
-    // 보상 상자 업데이트
-    if (this.rewardChest && this.rewardChest.active) {
-      this.rewardChest.update(deltaTime);
+    // Soul 업데이트 및 획득 체크
+    if (this.bossSoul && !this.isSoulCollected) {
+      this.bossSoul.update(deltaTime, this.player);
 
-      // 플레이어가 상자에 접근
-      if (this.rewardChest.checkPlayerProximity(this.player) && !this.isChestOpened) {
-        this.handleChestPickup();
+      // Soul이 비활성화되면 (플레이어가 획득함) 제거
+      if (!this.bossSoul.active) {
+        this.isSoulCollected = true;
+        this.gameLayer.removeChild(this.bossSoul);
+        this.bossSoul = null;
+
+        // 스테이지 클리어 처리
+        this.handleStageClear();
       }
     }
 
@@ -437,14 +466,32 @@ export class BossSystem {
 
     console.log('보스 처치!');
 
-    // 경험치 드롭 (spritesheet는 null로 처리 - ExperienceGem이 내부적으로 처리하도록)
-    // @ts-expect-error - spritesheet 인자 문제 임시 해결
-    const xpGem = new ExperienceGem(this.boss.x, this.boss.y, this.boss.xpDrop, null);
-    this.gameLayer.addChild(xpGem);
+    // 진행 중인 이펙트 모두 정리
+    if (this.spiralChargeEffect) {
+      this.gameLayer.removeChild(this.spiralChargeEffect);
+      this.spiralChargeEffect.destroy();
+      this.spiralChargeEffect = null;
+    }
 
-    // 보스 제거
+    // 경고 이펙트 모두 제거
+    for (const warning of this.aoeWarnings) {
+      this.gameLayer.removeChild(warning);
+      warning.destroy();
+    }
+    this.aoeWarnings = [];
+
+    // 번개 이펙트 모두 제거
+    for (const effect of this.lightningEffects) {
+      this.gameLayer.removeChild(effect);
+      effect.destroy();
+    }
+    this.lightningEffects = [];
+
+    // 보스 위치 저장
     const bossX = this.boss.x;
     const bossY = this.boss.y;
+
+    // 보스 제거
     this.gameLayer.removeChild(this.boss);
     this.boss.destroy();
     this.boss = null;
@@ -456,30 +503,17 @@ export class BossSystem {
       this.bossHealthBar = null;
     }
 
-    // 보상 상자 생성
-    this.rewardChest = new RewardChest(`reward_chest`, bossX, bossY);
-    this.gameLayer.addChild(this.rewardChest);
+    // Soul 드랍
+    this.bossSoul = new BossSoul(bossX, bossY);
+    this.gameLayer.addChild(this.bossSoul);
+    console.log('[BossSystem] Boss soul dropped');
   }
 
   /**
-   * 보상 상자 획득 처리
+   * 스테이지 클리어 처리
    */
-  private handleChestPickup(): void {
-    if (!this.rewardChest) {
-      return;
-    }
-
-    this.isChestOpened = true;
-
-    console.log('보상 상자 획득!');
-
-    // 체력 전체 회복
-    this.player.health = this.player.maxHealth;
-
-    // 상자 제거
-    this.gameLayer.removeChild(this.rewardChest);
-    this.rewardChest.destroy();
-    this.rewardChest = null;
+  private handleStageClear(): void {
+    console.log('[BossSystem] Stage cleared!');
 
     // TODO: Epic 파워업 2개 지급 (LevelSystem을 통해)
     // 현재는 미구현 상태로, 추후 다음 기능 추가 필요:
@@ -611,11 +645,11 @@ export class BossSystem {
     }
     this.fireAOEs = [];
 
-    // 보상 상자
-    if (this.rewardChest) {
-      this.gameLayer.removeChild(this.rewardChest);
-      this.rewardChest.destroy();
-      this.rewardChest = null;
+    // Soul
+    if (this.bossSoul) {
+      this.gameLayer.removeChild(this.bossSoul);
+      this.bossSoul.destroy();
+      this.bossSoul = null;
     }
 
     // UI

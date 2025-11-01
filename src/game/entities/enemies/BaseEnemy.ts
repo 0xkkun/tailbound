@@ -261,8 +261,9 @@ export abstract class BaseEnemy extends Container {
    */
   public takeDamage(amount: number, isCritical: boolean = false): void {
     this.health -= amount;
-    if (this.health < 0) {
+    if (this.health <= 0) {
       this.health = 0;
+      this.active = false; // 체력이 0이면 비활성화
     }
 
     // 데미지 텍스트 표시
