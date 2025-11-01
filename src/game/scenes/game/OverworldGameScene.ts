@@ -21,11 +21,11 @@ import { ExperienceGem } from '@/game/entities/ExperienceGem';
 import { FireAOE } from '@/game/entities/FireAOE';
 import { FireballProjectile } from '@/game/entities/FireballProjectile';
 import { HealthPotion } from '@/game/entities/HealthPotion';
-import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
 import { MeleeSwing } from '@/game/entities/MeleeSwing';
 import { Player } from '@/game/entities/Player';
 import { Portal } from '@/game/entities/Portal';
 import { Projectile } from '@/game/entities/Projectile';
+import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
 import { LevelUpUI } from '@/game/ui/LevelUpUI';
 import { PixelButton } from '@/game/ui/PixelButton';
 import { PortalIndicator } from '@/game/ui/PortalIndicator';
@@ -1620,9 +1620,13 @@ export class OverworldGameScene extends BaseGameScene {
       this.screenHeight
     );
 
-    // 보스 스폰 (플레이어 앞쪽)
-    const spawnX = this.player.x;
-    const spawnY = this.player.y - 300; // 플레이어 위쪽에 스폰
+    // 보스 스폰 (화면 중앙에 스폰)
+    const spawnX = this.screenWidth / 2;
+    const spawnY = this.screenHeight / 2;
+
+    console.log(
+      `[Boss] Spawning at screen center: ${spawnX}, ${spawnY} (Screen: ${this.screenWidth}x${this.screenHeight})`
+    );
 
     this.bossSystem.spawnBoss(spawnX, spawnY);
 

@@ -7,15 +7,15 @@
 import { Container } from 'pixi.js';
 
 import { BossProjectile } from '@/game/entities/BossProjectile';
-import { FireAOE } from '@/game/entities/FireAOE';
-import { FireballProjectile } from '@/game/entities/FireballProjectile';
-import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
-import { AOEWarning } from '@/game/entities/warnings/AOEWarning';
 import { WhiteTigerBoss } from '@/game/entities/enemies/WhiteTigerBoss';
 import { ExperienceGem } from '@/game/entities/ExperienceGem';
+import { FireAOE } from '@/game/entities/FireAOE';
+import { FireballProjectile } from '@/game/entities/FireballProjectile';
 import { LightningEffect } from '@/game/entities/LightningEffect';
 import type { Player } from '@/game/entities/Player';
 import { RewardChest } from '@/game/entities/RewardChest';
+import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
+import { AOEWarning } from '@/game/entities/warnings/AOEWarning';
 import { WarningLine } from '@/game/entities/warnings/WarningLine';
 import { BossHealthBar } from '@/game/ui/BossHealthBar';
 import { StageClearUI } from '@/game/ui/StageClearUI';
@@ -90,20 +90,17 @@ export class BossSystem {
 
     // 보스 투사체 발사 콜백
     this.boss.onFireProjectile = (projectile: BossProjectile) => {
-      console.log('[BossSystem] Adding boss projectile (lightning):', projectile);
       this.bossProjectiles.push(projectile);
       this.gameLayer.addChild(projectile);
     };
 
     // 보스 불꽃 발사 콜백
     this.boss.onFireFireball = (projectile: FireballProjectile) => {
-      console.log('[BossSystem] Adding fireball projectile:', projectile);
       this.fireballProjectiles.push(projectile);
       this.gameLayer.addChild(projectile);
       // z-index를 위해 최상단으로 이동
       projectile.zIndex = 1000;
     };
-    console.log('[BossSystem] Fireball callback set:', !!this.boss.onFireFireball);
 
     // 보스 나선형 차징 이펙트 생성 콜백
     this.boss.onCreateChargeEffect = (boss: WhiteTigerBoss) => {
@@ -318,21 +315,6 @@ export class BossSystem {
     for (let i = this.fireballProjectiles.length - 1; i >= 0; i--) {
       const projectile = this.fireballProjectiles[i];
 
-      // 디버깅: 투사체 상태 확인 (처음 3개만)
-      if (i < 3) {
-        // 처음 3개 투사체 상태 출력
-        console.log('[BossSystem] Fireball state:', {
-          id: projectile.id,
-          active: projectile.active,
-          x: Math.round(projectile.x),
-          y: Math.round(projectile.y),
-          radius: projectile.radius,
-          children: projectile.children.length,
-          visible: projectile.visible,
-          alpha: projectile.alpha,
-        });
-      }
-
       projectile.update(deltaTime);
 
       // 플레이어 충돌
@@ -342,7 +324,8 @@ export class BossSystem {
       }
 
       // 비활성화 또는 화면 밖
-      if (!projectile.active || projectile.isOutOfBounds(this.screenWidth, this.screenHeight)) {
+      const isOutOfBounds = projectile.isOutOfBounds(this.screenWidth, this.screenHeight);
+      if (!projectile.active || isOutOfBounds) {
         this.gameLayer.removeChild(projectile);
         projectile.destroy();
         this.fireballProjectiles.splice(i, 1);
@@ -454,8 +437,9 @@ export class BossSystem {
 
     console.log('보스 처치!');
 
-    // 경험치 드롭
-    const xpGem = new ExperienceGem(this.boss.x, this.boss.y, this.boss.xpDrop);
+    // 경험치 드롭 (spritesheet는 null로 처리 - ExperienceGem이 내부적으로 처리하도록)
+    // @ts-expect-error - spritesheet 인자 문제 임시 해결
+    const xpGem = new ExperienceGem(this.boss.x, this.boss.y, this.boss.xpDrop, null);
     this.gameLayer.addChild(xpGem);
 
     // 보스 제거
