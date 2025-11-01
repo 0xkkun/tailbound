@@ -9,13 +9,29 @@ import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class DokkaebiEnemy extends BaseEnemy {
-  // 도깨비 스프라이트 설정
-  private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/enemy/dokkaebi-walk.png',
-    totalWidth: 352, // 32 * 11 frames
-    height: 32,
-    frameCount: 11,
-    scale: 2.5,
+  // 도깨비 스프라이트 설정 (티어별)
+  private static readonly SPRITE_CONFIGS: Record<EnemyTier, EnemySpriteConfig> = {
+    normal: {
+      assetPath: '/assets/enemy/dokkaebi-green-walk.png',
+      totalWidth: 352, // 32 * 11 frames
+      height: 32,
+      frameCount: 11,
+      scale: 2.5, // 기본 크기
+    },
+    elite: {
+      assetPath: '/assets/enemy/dokkaebi-blue-walk.png',
+      totalWidth: 352, // 32 * 11 frames
+      height: 32,
+      frameCount: 11,
+      scale: 3.0, // 20% 크게
+    },
+    boss: {
+      assetPath: '/assets/enemy/dokkaebi-red-walk.png',
+      totalWidth: 352, // 32 * 11 frames
+      height: 32,
+      frameCount: 11,
+      scale: 3.5, // 40% 크게
+    },
   };
 
   constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
@@ -28,15 +44,18 @@ export class DokkaebiEnemy extends BaseEnemy {
     this.maxHealth = this.health;
     this.speed = 75; // 기본보다 25% 느림
     this.damage = Math.floor(baseStats.damage * 1.2); // 기본보다 20% 높음
-    this.radius = 35; // 큰 히트박스
+
+    // 티어에 따라 히트박스도 증가
+    const radiusMultiplier = tier === 'elite' ? 1.2 : tier === 'boss' ? 1.4 : 1;
+    this.radius = 35 * radiusMultiplier;
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return DokkaebiEnemy.SPRITE_CONFIG;
+    return DokkaebiEnemy.SPRITE_CONFIGS[this.tier];
   }
 
   protected getEnemyType(): string {
-    return 'dokkaebi';
+    return `dokkaebi_${this.tier}`;
   }
 
   /**
@@ -49,9 +68,13 @@ export class DokkaebiEnemy extends BaseEnemy {
   }
 
   /**
-   * 도깨비 스프라이트 preload
+   * 도깨비 스프라이트 preload (모든 티어)
    */
   public static async preloadSprites(): Promise<void> {
-    return BaseEnemy.preloadSpriteType('dokkaebi', DokkaebiEnemy.SPRITE_CONFIG);
+    await Promise.all([
+      BaseEnemy.preloadSpriteType('dokkaebi_normal', DokkaebiEnemy.SPRITE_CONFIGS.normal),
+      BaseEnemy.preloadSpriteType('dokkaebi_elite', DokkaebiEnemy.SPRITE_CONFIGS.elite),
+      BaseEnemy.preloadSpriteType('dokkaebi_boss', DokkaebiEnemy.SPRITE_CONFIGS.boss),
+    ]);
   }
 }
