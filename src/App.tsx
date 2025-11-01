@@ -1,8 +1,10 @@
 // import I18nExample from '@components/I18nExample';
+import { useState } from 'react';
 import { Application, extend } from '@pixi/react';
-import { Container, TextureSource } from 'pixi.js';
+import { Container, Text, TextureSource } from 'pixi.js';
 
 import { GameContainer } from './components/GameContainer';
+import { PressToStart } from './components/PressToStart';
 
 // 픽셀 아트 렌더링 설정 (앱 시작 시 한 번만 설정)
 // PixiJS v8에서는 TextureSource의 기본 스케일 모드를 설정
@@ -15,6 +17,8 @@ extend({
 });
 
 export default function App() {
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+
   return (
     <>
       {/* <I18nExample /> */}
@@ -28,8 +32,9 @@ export default function App() {
         autoDensity={true} // 고해상도 디스플레이 대응
         resolution={window.devicePixelRatio || 1} // 디바이스 픽셀 비율 사용
       >
-        <GameContainer />
+        <GameContainer onAssetsLoaded={() => setAssetsLoaded(true)} />
       </Application>
+      <PressToStart assetsLoaded={assetsLoaded} />
     </>
   );
 }

@@ -29,3 +29,8 @@ coverage
 # Claude
 .claude/
 .vercel
+
+.granite
+
+# Build
+*.ait
