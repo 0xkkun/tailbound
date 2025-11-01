@@ -30,6 +30,7 @@ export class FireballProjectile extends Container {
   private static readonly FRAME_WIDTH = 64;
   private static readonly FRAME_HEIGHT = 64;
   private static readonly FRAME_COUNT = 10;
+  private static readonly VISUAL_SIZE = 120; // 시각적 크기 (픽셀) - 원래 radius 60 기준 (60 * 2)
   private static textures: Texture[] | null = null;
 
   constructor(
@@ -75,8 +76,8 @@ export class FireballProjectile extends Container {
 
     this.sprite = new AnimatedSprite(FireballProjectile.textures);
     this.sprite.anchor.set(0.5);
-    // 스프라이트 크기 조정 (64x64 원본에서 적절한 크기로)
-    const scale = (radius * 2) / FireballProjectile.FRAME_WIDTH;
+    // 스프라이트 크기 조정 - 시각적 크기는 고정, 히트박스(radius)와 독립적
+    const scale = FireballProjectile.VISUAL_SIZE / FireballProjectile.FRAME_WIDTH;
     this.sprite.scale.set(scale, scale);
     this.sprite.animationSpeed = 0.3; // 애니메이션 속도 조정
     this.sprite.loop = false; // 루프 비활성화 (한 번만 재생)

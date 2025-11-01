@@ -85,17 +85,63 @@ export class BossSystem {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async spawnBoss(_x: number, _y: number): Promise<void> {
-    // 보스를 플레이어 위 화면 밖에서 스폰
-    const spawnX = this.player.x;
-    const spawnY = this.player.y - this.screenHeight; // 화면 높이만큼 위에서 시작
+    // 맵 경계 정의 (월드 크기: 3200x2400)
+    const WORLD_HEIGHT = 2400;
+    const MAP_TOP = 0;
+    const MAP_BOTTOM = WORLD_HEIGHT;
+    const MAP_EDGE_THRESHOLD = 600; // 맵 끝으로부터 600px 이내면 "끝"으로 간주
 
-    console.log('[BossSystem] Spawning boss from above at', { spawnX, spawnY });
+    const spawnX = this.player.x;
+    let spawnY: number;
+    let entryDirection: 'fromTop' | 'fromBottom';
+
+    // 플레이어가 맵 상단 근처에 있는지 체크
+    const isPlayerNearTop = this.player.y < MAP_TOP + MAP_EDGE_THRESHOLD;
+    // 플레이어가 맵 하단 근처에 있는지 체크
+    const isPlayerNearBottom = this.player.y > MAP_BOTTOM - MAP_EDGE_THRESHOLD;
+
+    // 디버그 로그
+    console.log('[BossSystem] Spawn calculation:', {
+      playerY: this.player.y,
+      mapTop: MAP_TOP,
+      mapBottom: MAP_BOTTOM,
+      isPlayerNearTop,
+      isPlayerNearBottom,
+      screenHeight: this.screenHeight,
+    });
+
+    // 플레이어 위치에 따라 스폰 위치 결정
+    if (isPlayerNearTop) {
+      // 플레이어가 상단 근처 -> 아래에서 스폰
+      spawnY = this.player.y + this.screenHeight;
+      entryDirection = 'fromBottom';
+      console.log('[BossSystem] Player near top, spawning from bottom');
+    } else if (isPlayerNearBottom) {
+      // 플레이어가 하단 근처 -> 위에서 스폰
+      spawnY = this.player.y - this.screenHeight;
+      entryDirection = 'fromTop';
+      console.log('[BossSystem] Player near bottom, spawning from top');
+    } else {
+      // 플레이어가 중앙 -> 위에서 스폰 (기본값)
+      spawnY = this.player.y - this.screenHeight;
+      entryDirection = 'fromTop';
+      console.log('[BossSystem] Player in center, spawning from top');
+    }
+
+    console.log('[BossSystem] Final spawn position:', {
+      spawnX,
+      spawnY,
+      entryDirection,
+      playerY: this.player.y,
+    });
+
     this.isActive = true;
 
     // 보스 생성
     this.boss = new WhiteTigerBoss(`boss_white_tiger`, spawnX, spawnY);
     this.boss.setTarget({ x: this.player.x, y: this.player.y });
-    console.log('[BossSystem] Boss created:', this.boss);
+    this.boss.setEntryDirection(entryDirection); // 진입 방향 설정
+    console.log('[BossSystem] Boss created with entry direction:', entryDirection);
 
     // 보스 투사체 발사 콜백
     this.boss.onFireProjectile = (projectile: BossProjectile) => {

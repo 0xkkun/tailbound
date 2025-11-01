@@ -4,7 +4,7 @@
  * 보스가 생성하는 불 장판 공격
  */
 
-import { AnimatedSprite, Assets, Container, Graphics, Texture } from 'pixi.js';
+import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
 import type { Player } from './Player';
 
@@ -30,6 +30,7 @@ export class FireAOE extends Container {
   private static readonly FRAME_HEIGHT = 100;
   private static readonly FRAME_COUNT = 61;
   private static readonly GRID_WIDTH = 8; // 8x8 그리드
+  private static readonly VISUAL_SIZE = 288; // 시각적 크기 (픽셀, 지름) - radius 144 기준 원래 크기
   private static textures: Texture[] | null = null;
 
   constructor(id: string, x: number, y: number, radius: number, damage: number = 40) {
@@ -59,9 +60,8 @@ export class FireAOE extends Container {
     this.sprite = new AnimatedSprite(FireAOE.textures);
     this.sprite.anchor.set(0.5);
 
-    // 크기 조정 (플레이어 반지름 × 6)
-    // 원본 크기 100x100에서 장판 크기로 스케일
-    const scale = (radius * 2) / FireAOE.FRAME_WIDTH;
+    // 크기 조정 - 시각적 크기는 고정, 히트박스(radius)와 독립적
+    const scale = FireAOE.VISUAL_SIZE / FireAOE.FRAME_WIDTH;
     this.sprite.scale.set(scale, scale);
 
     // 애니메이션 설정
@@ -96,14 +96,16 @@ export class FireAOE extends Container {
         const row = Math.floor(i / FireAOE.GRID_WIDTH);
         const col = i % FireAOE.GRID_WIDTH;
 
+        const frame = new Rectangle(
+          col * FireAOE.FRAME_WIDTH,
+          row * FireAOE.FRAME_HEIGHT,
+          FireAOE.FRAME_WIDTH,
+          FireAOE.FRAME_HEIGHT
+        );
+
         const texture = new Texture({
           source: baseTexture.source,
-          frame: {
-            x: col * FireAOE.FRAME_WIDTH,
-            y: row * FireAOE.FRAME_HEIGHT,
-            width: FireAOE.FRAME_WIDTH,
-            height: FireAOE.FRAME_HEIGHT,
-          },
+          frame: frame,
         });
         textures.push(texture);
       }

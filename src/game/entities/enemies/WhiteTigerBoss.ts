@@ -78,6 +78,11 @@ export class WhiteTigerBoss extends BaseEnemy {
   public onCreateLightningEffect?: (x: number, y: number, rotation: number) => void;
   public onDashCollision?: (damage: number) => void;
 
+  // 초기 진입 방향 (위에서/아래에서)
+  private entryDirection: 'fromTop' | 'fromBottom' | null = null;
+  private entryTimer: number = 0;
+  private readonly ENTRY_DURATION: number = 3.0; // 3초간 진입 (천천히 등장)
+
   constructor(id: string, x: number, y: number) {
     // 보스는 항상 'boss' 티어
     super(id, x, y, 'boss');
@@ -96,6 +101,14 @@ export class WhiteTigerBoss extends BaseEnemy {
 
   protected getEnemyType(): string {
     return 'white_tiger_boss';
+  }
+
+  /**
+   * 진입 방향 설정
+   */
+  public setEntryDirection(direction: 'fromTop' | 'fromBottom'): void {
+    this.entryDirection = direction;
+    this.entryTimer = 0;
   }
 
   /**
@@ -249,6 +262,32 @@ export class WhiteTigerBoss extends BaseEnemy {
       return;
     }
 
+    // 초기 진입 처리
+    if (this.entryDirection !== null) {
+      this.entryTimer += deltaTime;
+
+      // 진입 방향에 따른 이동
+      const entrySpeed = 150; // 진입 속도 (느리게 등장)
+      if (this.entryDirection === 'fromTop') {
+        // 위에서 아래로
+        this.y += entrySpeed * deltaTime;
+      } else {
+        // 아래에서 위로
+        this.y -= entrySpeed * deltaTime;
+      }
+
+      // Walk 애니메이션 사용
+      this.switchAnimation(true);
+
+      // 진입 완료
+      if (this.entryTimer >= this.ENTRY_DURATION) {
+        this.entryDirection = null;
+      }
+
+      this.render();
+      return;
+    }
+
     // 넉백 처리
     if (this.updateKnockback(deltaTime)) {
       this.render();
@@ -365,15 +404,15 @@ export class WhiteTigerBoss extends BaseEnemy {
       y: dy / distance,
     };
 
-    // FireballProjectile 직접 생성 (크기 증가)
+    // FireballProjectile 직접 생성
     const projectile = new FireballProjectile(
       `boss_fireball_${Date.now()}`,
       this.x,
       this.y,
       direction,
-      25, // damage (30 → 25로 조정)
+      25, // damage
       200, // speed
-      60 // radius (30 → 60으로 2배 증가)
+      20 // radius - 히트박스 크기
     );
 
     // GameScene에 추가
@@ -406,9 +445,9 @@ export class WhiteTigerBoss extends BaseEnemy {
         this.x,
         this.y,
         direction,
-        35, // damage (40 → 35로 조정)
+        35, // damage
         speed,
-        50, // radius (25 → 50으로 2배 증가)
+        18, // radius - 히트박스 크기
         4 // lifetime
       );
 
@@ -621,9 +660,9 @@ export class WhiteTigerBoss extends BaseEnemy {
       this.x,
       this.y,
       direction,
-      30, // damage (40 → 30으로 조정)
+      30, // damage
       speed, // 속도 변화
-      50, // radius (25 → 50으로 2배 증가)
+      18, // radius - 히트박스 크기
       4 // lifeTime
     );
 
@@ -659,9 +698,9 @@ export class WhiteTigerBoss extends BaseEnemy {
         this.x,
         this.y,
         direction,
-        30, // damage (40 → 30으로 조정)
+        30, // damage
         speed,
-        60, // radius (30 → 60으로 2배 증가)
+        20, // radius - 히트박스 크기
         4 // lifeTime (4초)
       );
 
@@ -683,7 +722,7 @@ export class WhiteTigerBoss extends BaseEnemy {
 
     // 플레이어 반지름을 모르므로 고정값 사용 (일반적으로 24)
     const playerRadius = 24;
-    const aoeRadius = playerRadius * 6; // 플레이어 지름 기준 6배로 증가 (3배 → 6배)
+    const aoeRadius = playerRadius * 5; // 플레이어 반지름 기준 5배 (히트박스 크기)
 
     // 보스 주변 2개
     for (let i = 0; i < 2; i++) {
