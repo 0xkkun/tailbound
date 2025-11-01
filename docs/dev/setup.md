@@ -3,6 +3,7 @@
 ## 기술 스택
 
 ### 핵심 기술
+
 - **React 19**: UI 프레임워크
 - **PixiJS 8**: 2D WebGL 렌더링 엔진
 - **@pixi/react**: PixiJS React 통합
@@ -10,12 +11,14 @@
 - **Vite**: 빌드 도구 및 개발 서버
 
 ### 개발 도구
+
 - **ESLint**: 코드 품질 검사
 - **Prettier**: 코드 포맷팅
 - **Vitest**: 테스트 프레임워크
 - **pnpm**: 패키지 매니저
 
 ### 라이브러리
+
 - **react-i18next**: 국제화 (i18n)
 - **@testing-library/react**: React 컴포넌트 테스트
 - **vitest-canvas-mock**: Canvas API 모킹
@@ -79,12 +82,12 @@ import i18n from '@i18n/config';
 
 ### 사용 가능한 Alias
 
-| Alias | 실제 경로 | 예제 |
-|-------|---------|------|
-| `@/*` | `src/*` | `import App from '@/App'` |
+| Alias           | 실제 경로          | 예제                                      |
+| --------------- | ------------------ | ----------------------------------------- |
+| `@/*`           | `src/*`            | `import App from '@/App'`                 |
 | `@components/*` | `src/components/*` | `import Button from '@components/Button'` |
-| `@i18n/*` | `src/i18n/*` | `import i18n from '@i18n/config'` |
-| `@test/*` | `src/test/*` | `import { mock } from '@test/utils'` |
+| `@i18n/*`       | `src/i18n/*`       | `import i18n from '@i18n/config'`         |
+| `@test/*`       | `src/test/*`       | `import { mock } from '@test/utils'`      |
 
 ### 설정 파일
 
@@ -159,14 +162,14 @@ Import는 다음 순서로 자동 정렬됩니다:
 
 ```json
 {
-  "semi": true,                 // 세미콜론 사용
-  "trailingComma": "es5",      // ES5 호환 trailing comma
-  "singleQuote": true,         // 싱글 쿼트
-  "printWidth": 100,           // 100자 줄 길이
-  "tabWidth": 2,               // 2 스페이스 인덴트
-  "useTabs": false,            // 탭 대신 스페이스
-  "arrowParens": "always",     // 화살표 함수 괄호 항상 사용
-  "endOfLine": "lf"            // LF 줄바꿈
+  "semi": true, // 세미콜론 사용
+  "trailingComma": "es5", // ES5 호환 trailing comma
+  "singleQuote": true, // 싱글 쿼트
+  "printWidth": 100, // 100자 줄 길이
+  "tabWidth": 2, // 2 스페이스 인덴트
+  "useTabs": false, // 탭 대신 스페이스
+  "arrowParens": "always", // 화살표 함수 괄호 항상 사용
+  "endOfLine": "lf" // LF 줄바꿈
 }
 ```
 
@@ -182,12 +185,7 @@ Import는 다음 순서로 자동 정렬됩니다:
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "never"
   },
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ]
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"]
 }
 ```
 

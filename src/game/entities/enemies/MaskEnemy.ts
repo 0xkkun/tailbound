@@ -2,6 +2,7 @@
  * 탈령 적 - 빠른 암살자형 (낮은 체력, 높은 데미지)
  */
 
+import { ENEMY_BALANCE } from '@/config/balance.config';
 import type { EnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
@@ -21,11 +22,12 @@ export class MaskEnemy extends BaseEnemy {
     super(id, x, y, tier);
 
     // 탈령 고유 스탯: 낮은 체력, 매우 빠름, 높은 데미지
-    const tierMultiplier = tier === 'elite' ? 3.5 : tier === 'boss' ? 15 : 1;
-    this.health = 18 * tierMultiplier; // 기본보다 40% 낮음
+    // balance.config.ts의 티어 기본값에 타입별 배율 적용
+    const baseStats = ENEMY_BALANCE[tier];
+    this.health = Math.floor(baseStats.health * 0.6); // 기본보다 40% 낮음
     this.maxHealth = this.health;
     this.speed = 150; // 기본보다 50% 빠름 (가장 빠른 적)
-    this.damage = 15 * tierMultiplier; // 기본보다 50% 높음 (가장 아픈 적)
+    this.damage = Math.floor(baseStats.damage * 1.5); // 기본보다 50% 높음 (가장 아픈 적)
     this.radius = 28; // 중간 히트박스
   }
 

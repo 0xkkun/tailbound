@@ -9,3 +9,4 @@ export { EvilSpiritEnemy } from './EvilSpiritEnemy';
 export { MaidenGhostEnemy } from './MaidenGhostEnemy';
 export { MaskEnemy } from './MaskEnemy';
 export { SkeletonEnemy } from './SkeletonEnemy';
+export { WhiteTigerBoss } from './WhiteTigerBoss';

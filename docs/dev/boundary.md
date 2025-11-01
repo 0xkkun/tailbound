@@ -22,19 +22,23 @@
 ## 개요
 
 ### 목적
+
 경계(境界)는 상계(스테이지 1)와 하계(스테이지 2) 사이의 휴식 공간입니다. 플레이어는 이곳에서:
+
 - 장비 정리 및 판매
 - 스텟 확인
 - 저승의 상인(NPC)과 거래
 - 다음 스테이지로 진입
 
 ### 핵심 기능
+
 1. **포탈 생성**: 스테이지 1 종료 후 일정 시간이 지나면 플레이어 시점 근처에 포탈 생성
 2. **포탈 진입**: 플레이어가 포탈에 접근하면 경계 맵으로 전환
 3. **NPC 상호작용**: NPC에게 가까이 가면 대화 시나리오 자동 진행
 4. **시간 제한**: 30초~1분의 휴식 시간 제공
 
 ### 참고 문서
+
 - [CORE_DESIGN.md](../CORE_DESIGN.md) - 경계 스펙 (라인 408-418)
 - [start-lobby.md](./start-lobby.md) - UI 컴포넌트 구조 참고
 
@@ -72,12 +76,12 @@
 
 ```typescript
 type GamePhase =
-  | 'lobby'          // 로비 화면
+  | 'lobby' // 로비 화면
   | 'playing_stage1' // 상계 (스테이지 1)
-  | 'boundary'       // 경계 (휴식 시간)
+  | 'boundary' // 경계 (휴식 시간)
   | 'playing_stage2' // 하계 (스테이지 2)
-  | 'game_over'      // 게임 종료
-  | 'victory';       // 승리
+  | 'game_over' // 게임 종료
+  | 'victory'; // 승리
 ```
 
 ---
@@ -104,17 +108,17 @@ DialogUI
 
 ### 주요 클래스
 
-| 클래스 | 역할 | 위치 | 상태 |
-|--------|------|------|------|
-| `Portal` | 포탈 엔티티 (충돌 감지, 진입 처리) | `src/game/entities/Portal.ts` | ✅ 구현 완료 |
-| `PortalSpawner` | 포탈 생성 시스템 | `src/systems/PortalSpawner.ts` | ✅ 구현 완료 |
-| `BaseGameScene` | 게임 씬 공통 기반 클래스 | `src/game/scenes/game/BaseGameScene.ts` | ✅ 구현 완료 |
-| `OverworldGameScene` | 상계 맵 씬 (전투) | `src/game/scenes/game/OverworldGameScene.ts` | ✅ 구현 완료 |
-| `BoundaryGameScene` | 경계 맵 씬 (NPC) | `src/game/scenes/game/BoundaryGameScene.ts` | ✅ 구현 완료 |
-| `NPC` | NPC 엔티티 (근접 감지, 대화 트리거) | `src/game/entities/NPC.ts` | ✅ 구현 완료 |
-| `DialogSystem` | 대화 시나리오 관리 | `src/systems/DialogSystem.ts` | ✅ 구현 완료 |
-| `DialogUI` | 대화 UI 표시 | `src/game/ui/DialogUI.ts` | ✅ 구현 완료 |
-| `PortalIndicator` | 포탈 위치 인디케이터 UI | `src/game/ui/PortalIndicator.ts` | ✅ 구현 완료 |
+| 클래스               | 역할                                | 위치                                         | 상태         |
+| -------------------- | ----------------------------------- | -------------------------------------------- | ------------ |
+| `Portal`             | 포탈 엔티티 (충돌 감지, 진입 처리)  | `src/game/entities/Portal.ts`                | ✅ 구현 완료 |
+| `PortalSpawner`      | 포탈 생성 시스템                    | `src/systems/PortalSpawner.ts`               | ✅ 구현 완료 |
+| `BaseGameScene`      | 게임 씬 공통 기반 클래스            | `src/game/scenes/game/BaseGameScene.ts`      | ✅ 구현 완료 |
+| `OverworldGameScene` | 상계 맵 씬 (전투)                   | `src/game/scenes/game/OverworldGameScene.ts` | ✅ 구현 완료 |
+| `BoundaryGameScene`  | 경계 맵 씬 (NPC)                    | `src/game/scenes/game/BoundaryGameScene.ts`  | ✅ 구현 완료 |
+| `NPC`                | NPC 엔티티 (근접 감지, 대화 트리거) | `src/game/entities/NPC.ts`                   | ✅ 구현 완료 |
+| `DialogSystem`       | 대화 시나리오 관리                  | `src/systems/DialogSystem.ts`                | ✅ 구현 완료 |
+| `DialogUI`           | 대화 UI 표시                        | `src/game/ui/DialogUI.ts`                    | ✅ 구현 완료 |
+| `PortalIndicator`    | 포탈 위치 인디케이터 UI             | `src/game/ui/PortalIndicator.ts`             | ✅ 구현 완료 |
 
 ---
 
@@ -123,11 +127,13 @@ DialogUI
 ### 포탈 생성 조건
 
 **트리거**:
+
 - 스테이지 1 보스 처치 후 5초 경과
 - 플레이어 시점 기준 400-600px 거리에 생성
 - 화면에 보이는 위치에 배치
 
 **생성 위치 계산**:
+
 ```typescript
 // 플레이어 기준 랜덤 각도와 거리
 const angle = Math.random() * Math.PI * 2;
@@ -512,9 +518,9 @@ export class NPC extends Container {
  */
 export interface DialogNode {
   id: string;
-  speaker: string;      // NPC 이름
-  text: string;         // 대사 내용
-  nextId?: string;      // 다음 대화 노드 ID (없으면 종료)
+  speaker: string; // NPC 이름
+  text: string; // 대사 내용
+  nextId?: string; // 다음 대화 노드 ID (없으면 종료)
 }
 
 /**
@@ -523,7 +529,7 @@ export interface DialogNode {
 export interface DialogScenario {
   id: string;
   nodes: DialogNode[];
-  startNodeId: string;  // 시작 노드 ID
+  startNodeId: string; // 시작 노드 ID
 }
 ```
 
@@ -743,8 +749,7 @@ export class DialogUI extends Container {
     this.hitArea = new Graphics()
       .beginFill(0xffffff)
       .drawRect(0, 0, window.innerWidth, window.innerHeight)
-      .endFill()
-      .geometry;
+      .endFill().geometry;
 
     this.on('pointerdown', () => {
       this.onClick?.();
@@ -963,6 +968,7 @@ export class BoundaryScene extends Container {
 에셋이 없는 동안 다음과 같은 임시 그래픽을 사용합니다:
 
 #### 포탈 (Portal)
+
 - **외곽 원**: 보라색 테두리 (`0x9966ff`)
 - **내부 원**: 반투명 보라색 채우기
 - **중앙 별**: 흰색 별 모양
@@ -977,6 +983,7 @@ g.drawCircle(0, 0, 50);
 ```
 
 #### NPC (상인)
+
 - **몸체**: 회색 삼각형 (두건을 쓴 모습)
 - **얼굴**: 베이지색 원 (`0xf5deb3`)
 - **눈**: 검은 점 2개
@@ -992,6 +999,7 @@ g.endFill();
 ```
 
 #### 대화 창 (DialogUI)
+
 - **배경**: 반투명 검은색 (`0x000000, 0.85`)
 - **테두리**: 금색 (`0xd4af37`)
 - **화자 이름**: 금색 텍스트
@@ -1002,6 +1010,7 @@ g.endFill();
 향후 실제 에셋으로 교체 시:
 
 1. **Portal.ts**:
+
    ```typescript
    // createPortalGraphic() 메서드를 다음으로 교체:
    private createPortalSprite(): Sprite {
@@ -1012,6 +1021,7 @@ g.endFill();
    ```
 
 2. **NPC.ts**:
+
    ```typescript
    // createNPCGraphic() 메서드를 다음으로 교체:
    private createNPCSprite(): Sprite {
@@ -1098,6 +1108,7 @@ src/game/scenes/BoundaryScene.ts
 ## 개발 체크리스트
 
 ### Phase 1: 포탈 시스템 ✅ 완료
+
 - [x] `Portal.ts` 엔티티 구현
 - [x] `PortalSpawner.ts` 시스템 구현
 - [x] OverworldGameScene에 포탈 생성 로직 추가
@@ -1108,6 +1119,7 @@ src/game/scenes/BoundaryScene.ts
 - [x] 포탈 즉시 생성 (5초 딜레이 제거)
 
 ### Phase 2: NPC 시스템 ✅ 완료
+
 - [x] `NPC.ts` 엔티티 구현
 - [x] NPC 그래픽 (placeholder) 생성
 - [x] 플레이어 근접 감지 구현
@@ -1115,6 +1127,7 @@ src/game/scenes/BoundaryScene.ts
 - [x] NPC 이름 표시 위치 조정 (y: 30 → 5)
 
 ### Phase 3: 대화 시스템 ✅ 완료
+
 - [x] `dialog.types.ts` 타입 정의
 - [x] `dialogs.ts` 대화 데이터 작성
 - [x] `DialogSystem.ts` 구현
@@ -1127,6 +1140,7 @@ src/game/scenes/BoundaryScene.ts
 - [x] 대화 중 조이스틱 비활성화
 
 ### Phase 4: 경계 씬 ✅ 완료
+
 - [x] `BoundaryGameScene.ts` 구현
 - [x] BaseGameScene 상속 구조로 리팩토링
 - [x] 배경 및 타이틀 생성
@@ -1136,6 +1150,7 @@ src/game/scenes/BoundaryScene.ts
 - [x] 플레이어 상태 스냅샷 시스템 구현
 
 ### Phase 5: 테스트 및 디버깅 ✅ 완료
+
 - [x] 스테이지 1 → 경계 전환 테스트
 - [x] 포탈 생성 위치 확인
 - [x] NPC 근접 감지 거리 조정
@@ -1145,6 +1160,7 @@ src/game/scenes/BoundaryScene.ts
 - [x] 씬 전환 시 플레이어 스탯 유지 확인
 
 ### Phase 6: 아키텍처 개선 ✅ 완료
+
 - [x] BaseGameScene 추상 클래스 설계
 - [x] OverworldGameScene이 BaseGameScene 상속
 - [x] BoundaryGameScene이 BaseGameScene 상속
@@ -1153,6 +1169,7 @@ src/game/scenes/BoundaryScene.ts
 - [x] 코드 중복 제거 (약 100줄 이상)
 
 ### Phase 7: 폴리싱 (선택적)
+
 - [ ] 포탈 파티클 효과 추가
 - [ ] NPC 애니메이션 (idle) 추가
 - [ ] 대화 타이핑 효과 추가
@@ -1165,9 +1182,11 @@ src/game/scenes/BoundaryScene.ts
 ### 1. 아키텍처 개선 (2025-10-18)
 
 #### BaseGameScene 추상 클래스 도입
+
 **목적**: 게임 씬 간 공통 로직 추상화 및 코드 중복 제거
 
 **구조**:
+
 ```typescript
 // src/game/scenes/game/BaseGameScene.ts
 export abstract class BaseGameScene extends Container {
@@ -1197,6 +1216,7 @@ export abstract class BaseGameScene extends Container {
 ```
 
 **주요 기능**:
+
 - **공통 시스템 관리**: Player, Camera, Input, VirtualJoystick
 - **비동기 초기화 플로우**: loadAssets → createPlayer → restorePlayerState → initScene → startGameLoop
 - **플레이어 상태 복원**: PlayerSnapshot을 통한 씬 간 상태 전달
@@ -1204,12 +1224,15 @@ export abstract class BaseGameScene extends Container {
 - **모바일 지원**: 자동 터치 디바이스 감지 및 VirtualJoystick 생성
 
 **리팩토링 효과**:
+
 - OverworldGameScene: ~100줄 코드 감소
 - BoundaryGameScene: 처음부터 BaseGameScene 기반으로 간결하게 구현 (193줄 → 147줄)
 - 코드 유지보수성 향상
 
 #### 씬 구조 재편성
+
 **변경 전**:
+
 ```
 src/game/scenes/
   ├── LobbyScene.ts
@@ -1218,6 +1241,7 @@ src/game/scenes/
 ```
 
 **변경 후**:
+
 ```
 src/game/scenes/
   ├── LobbyScene.ts              # 로비 (독립적)
@@ -1229,6 +1253,7 @@ src/game/scenes/
 ```
 
 **명명 규칙**:
+
 - 로비: `LobbyScene` (게임 외부)
 - 인게임: `{Type}GameScene` (게임 내부)
 - 디렉토리: `scenes/game/` (인게임 씬 그룹화)
@@ -1236,7 +1261,9 @@ src/game/scenes/
 ### 2. 설정 파일 관리 개선
 
 #### game.config.ts 구조 변경
+
 **변경 전**:
+
 ```typescript
 world: {
   width: 3200,
@@ -1245,6 +1272,7 @@ world: {
 ```
 
 **변경 후**:
+
 ```typescript
 world: {
   overworld: {   // 상계 (전투 맵)
@@ -1263,6 +1291,7 @@ world: {
 ```
 
 **효과**:
+
 - 하드코딩된 상수 제거
 - 씬별 월드 크기 명확한 구분
 - 설정 변경 용이성 향상
@@ -1270,7 +1299,9 @@ world: {
 ### 3. 포탈 시스템 개선
 
 #### 즉시 생성 모드 (테스트용)
+
 **변경 사항**:
+
 - 기존: 보스 처치 후 5초 대기 → 포탈 생성
 - 현재: `triggerSpawn(player)` 호출 시 즉시 생성
 
@@ -1287,6 +1318,7 @@ public triggerSpawn(player: Player): Portal | null {
 ```
 
 **테스트 트리거**:
+
 ```typescript
 // OverworldGameScene.ts
 if (this.gameTime >= 5 && !this.portalSpawnTriggered) {
@@ -1296,9 +1328,11 @@ if (this.gameTime >= 5 && !this.portalSpawnTriggered) {
 ```
 
 #### 포탈 인디케이터 UI
+
 **위치**: `src/game/ui/PortalIndicator.ts`
 
 **기능**:
+
 - 포탈이 화면 밖에 있을 때 방향 표시
 - 화면 가장자리에 화살표 렌더링
 - 포탈과의 거리 표시
@@ -1306,7 +1340,9 @@ if (this.gameTime >= 5 && !this.portalSpawnTriggered) {
 ### 4. 대화 시스템 개선
 
 #### DialogUI 개선 사항
+
 1. **오버레이 추가**:
+
    ```typescript
    // 반투명 검은색 전체 화면 오버레이
    g.rect(0, 0, screenWidth, screenHeight);
@@ -1319,6 +1355,7 @@ if (this.gameTime >= 5 && !this.portalSpawnTriggered) {
    - 대화창과 정렬된 레이아웃
 
 3. **레이어 순서**:
+
    ```
    1. overlay (맨 아래)
    2. portraitContainer
@@ -1330,12 +1367,13 @@ if (this.gameTime >= 5 && !this.portalSpawnTriggered) {
 5. **대화 중 입력 차단**: VirtualJoystick 비활성화
    ```typescript
    this.virtualJoystick?.setVisible(false); // 대화 시작
-   this.virtualJoystick?.setVisible(true);  // 대화 종료
+   this.virtualJoystick?.setVisible(true); // 대화 종료
    ```
 
 ### 5. BoundaryGameScene 구현 세부사항
 
 #### 플레이어 상태 유지
+
 ```typescript
 constructor(screenWidth, screenHeight, playerSnapshot) {
   super({
@@ -1349,17 +1387,20 @@ constructor(screenWidth, screenHeight, playerSnapshot) {
 ```
 
 **복원되는 상태**:
+
 - health, maxHealth
 - damageMultiplier, cooldownMultiplier
 - speedMultiplier, pickupRangeMultiplier
 - totalXP (레벨 자동 계산)
 
 #### 레이어 순서 버그 수정
+
 **문제**: 배경이 플레이어 위에 렌더링되어 캐릭터가 보이지 않음
 
 **원인**: `createPlayer()` 메서드에서 player를 먼저 addChild한 후 background를 addChild
 
 **해결**:
+
 ```typescript
 protected createPlayer(): void {
   // 1. 배경 먼저 (z-index 맨 아래)
@@ -1379,18 +1420,21 @@ protected createPlayer(): void {
 ### 6. NPC 시스템 개선
 
 #### 이름 표시 위치 조정
+
 **변경 사항**: 캐릭터와 이름 간격 축소
+
 ```typescript
 // Before
-text.y = 30;  // 너무 멀음
+text.y = 30; // 너무 멀음
 
 // After
-text.y = 5;   // 적절한 간격
+text.y = 5; // 적절한 간격
 ```
 
 ### 7. 파일 변경 내역
 
 #### Git 통계
+
 ```
 18 files changed
 2822 insertions(+)
@@ -1400,6 +1444,7 @@ text.y = 5;   // 적절한 간격
 **순 증가**: +2581 줄 (새로운 시스템 구현)
 
 #### 새로 추가된 파일 (8개)
+
 1. `src/game/scenes/game/BaseGameScene.ts` (301 줄) - 게임 씬 기반 클래스
 2. `src/game/scenes/game/BoundaryGameScene.ts` (169 줄) - 경계 맵 씬
 3. `src/game/ui/DialogUI.ts` (310 줄) - 대화 UI
@@ -1410,18 +1455,22 @@ text.y = 5;   // 적절한 간격
 8. `src/systems/DialogSystem.ts` (76 줄) - 대화 시스템
 
 #### 데이터 파일 추가 (2개)
+
 - `src/data/dialogs.ts` (33 줄) - 대화 시나리오 데이터
 - `src/types/dialog.types.ts` (22 줄) - 대화 타입 정의
 
 #### 에셋 추가 (1개)
+
 - `public/assets/monk.png` - 플레이어 초상화 (1.2KB)
 
 #### 이동/리팩토링된 파일 (1개)
+
 - `src/game/scenes/GameScene.ts` → `src/game/scenes/game/OverworldGameScene.ts`
   - 343 줄 삭제, BaseGameScene 상속으로 전환
   - 중복 코드 제거
 
 #### 수정된 파일 (5개)
+
 1. `src/config/game.config.ts` (+17 줄) - 월드 크기 구조 변경
 2. `src/components/GameContainer.tsx` (+66 줄) - 씬 전환 로직, import 경로 변경
 3. `src/hooks/useGameState.ts` (+39 줄) - PlayerSnapshot, GamePhase 추가
@@ -1429,6 +1478,7 @@ text.y = 5;   // 적절한 간격
 5. `src/systems/LevelSystem.ts` (+15 줄) - setTotalXP 메서드 추가
 
 #### 문서 업데이트 (1개)
+
 - `docs/dev/boundary.md` (+1208 줄) - 구현 완료 상세 내역 추가
 
 ---
@@ -1444,25 +1494,30 @@ text.y = 5;   // 적절한 간격
 ## 주의사항
 
 ### 1. 페이즈 관리
+
 ```typescript
 // useGameState.ts에 'boundary' 페이즈 추가
 export type GamePhase = 'lobby' | 'playing_stage1' | 'boundary' | 'playing_stage2' | 'game_over';
 ```
 
 ### 2. 포탈 생성 타이밍
+
 - 보스 처치 후 5초 대기
 - 플레이어가 안전한 위치에 포탈 생성
 - 화면 밖이 아닌 화면 안에 생성
 
 ### 3. NPC 근접 감지
+
 - 너무 가까우면 플레이어가 지나치기 쉬움 → 100px 권장
 - 한 번만 트리거되도록 플래그 관리
 
 ### 4. 대화 UI 반응형
+
 - 모바일 대응 (화면 크기에 따라 폰트 크기 조정)
 - wordWrap 활용하여 긴 대사 처리
 
 ### 5. 메모리 관리
+
 - 씬 전환 시 이전 씬의 엔티티 제거
 - `destroy()` 메서드 호출 필수
 
@@ -1471,19 +1526,23 @@ export type GamePhase = 'lobby' | 'playing_stage1' | 'boundary' | 'playing_stage
 ## 향후 확장 계획
 
 ### 상점 시스템 추가
+
 - NPC와 대화 후 상점 UI 열기
 - 골드로 아이템/장비 구매
 - 장비 판매 기능
 
 ### 장비 정리 UI
+
 - 인벤토리에서 불필요한 장비 판매
 - 장비 비교 기능
 
 ### 스텟 확인 UI
+
 - 현재 스텟 표시
 - 장착 중인 장비 효과 표시
 
 ### 하계 진입 포탈
+
 - 준비 완료 후 하계로 가는 포탈 생성
 - 포탈 진입 시 스테이지 2로 전환
 
@@ -1498,12 +1557,13 @@ export type GamePhase = 'lobby' | 'playing_stage1' | 'boundary' | 'playing_stage
 
 ## 변경 이력
 
-| 날짜 | 변경 사항 | 작성자 |
-|------|----------|--------|
-| 2025-10-18 (v1.0) | 초기 문서 작성 | 개발팀 |
+| 날짜              | 변경 사항                               | 작성자 |
+| ----------------- | --------------------------------------- | ------ |
+| 2025-10-18 (v1.0) | 초기 문서 작성                          | 개발팀 |
 | 2025-10-18 (v2.0) | Phase 1-6 구현 완료, 아키텍처 개선 반영 | 개발팀 |
 
 ### v2.0 주요 변경사항
+
 - ✅ 전체 시스템 구현 완료 (Portal, NPC, Dialog, BoundaryScene)
 - ✅ BaseGameScene 추상 클래스 도입
 - ✅ OverworldGameScene 및 BoundaryGameScene 리팩토링

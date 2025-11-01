@@ -11,6 +11,7 @@ export class LobbyScene extends Container {
   private titleImage!: Sprite;
   private startButton!: PixelButton;
   private characterSelectButton!: PixelButton;
+  private testButton?: PixelButton; // 개발 환경 전용
   private comingSoonText!: Text;
   private copyrightText!: Text;
   private devSettingsButton?: DevSettingsButton;
@@ -19,6 +20,7 @@ export class LobbyScene extends Container {
   private screenWidth: number;
 
   public onStartGame?: () => void;
+  public onStartTestMode?: () => void;
 
   constructor(screenWidth: number, screenHeight: number) {
     super();
@@ -118,8 +120,8 @@ export class LobbyScene extends Container {
       const texture = await Assets.load('/assets/gui/title.png');
 
       // 픽셀 아트 렌더링 설정
-      if (texture.baseTexture) {
-        texture.baseTexture.scaleMode = 'nearest';
+      if (texture.source) {
+        texture.source.scaleMode = 'nearest';
       }
 
       // 타이틀 이미지
@@ -192,6 +194,25 @@ export class LobbyScene extends Container {
     this.comingSoonText.x = buttonX;
     this.comingSoonText.y = characterSelectY + buttonHeight / 2;
     this.addChild(this.comingSoonText);
+
+    // 테스트 모드 버튼 (개발 환경에서만 표시, 가장 하단에 배치)
+    if (import.meta.env.DEV) {
+      const testButtonY = characterSelectY + gap;
+      this.testButton = PixelButton.createResponsive(
+        '테스트 모드',
+        screenWidth,
+        buttonX,
+        testButtonY,
+        () => {
+          console.log('테스트 모드 시작!');
+          this.onStartTestMode?.();
+        },
+        false, // 활성화 상태
+        this.isMobile,
+        this.scaleFactor
+      );
+      this.addChild(this.testButton);
+    }
   }
 
   private createCopyright(screenWidth: number, screenHeight: number): void {
@@ -212,15 +233,15 @@ export class LobbyScene extends Container {
     this.addChild(this.copyrightText);
 
     // 폰트 저작권 (아래, 줄바꿈)
-    const fontCopyright = new Text(
-      'Neo둥근모 Pro © 2017-2024, Eunbin Jeong (Dalgona.)\n<project-neodgm@dalgona.dev>',
-      {
+    const fontCopyright = new Text({
+      text: 'Neo둥근모 Pro © 2017-2024, Eunbin Jeong (Dalgona.)\n<project-neodgm@dalgona.dev>',
+      style: {
         fontFamily: 'NeoDunggeunmo',
         fontSize: fontSize,
         fill: 0x888888,
         align: 'center',
-      }
-    );
+      },
+    });
     fontCopyright.resolution = 2;
     fontCopyright.anchor.set(0.5, 1);
     fontCopyright.x = screenWidth / 2;
@@ -231,6 +252,9 @@ export class LobbyScene extends Container {
   public destroy(): void {
     this.startButton.destroy();
     this.characterSelectButton.destroy();
+    if (this.testButton) {
+      this.testButton.destroy();
+    }
     this.devSettingsButton?.destroy();
     super.destroy({ children: true });
   }

@@ -68,14 +68,15 @@ export const ENEMY_BALANCE = {
     xpDrop: 25,
     animationSpeed: 0.2,
   },
-  // 보스 적 (추후 구현)
+  // 보스 적 (백호)
   boss: {
-    health: 500,
-    speed: 60,
-    damage: 30,
-    radius: 60,
-    xpDrop: 100,
-    animationSpeed: 0.25,
+    health: 75000, // 2.5분 전투 목표 (평균 DPS 500 기준, 150초)
+    speed: 90, // 플레이어보다 느리지만 위협적
+    damage: 60, // 접촉 데미지 (플레이어 체력의 1/3~1/2)
+    radius: 110, // 보스 히트박스 (스프라이트 288px의 약 40% 크기)
+    xpDrop: 1000, // 보스 처치 시 경험치 (2-3레벨업)
+    animationSpeed: 0.15,
+    knockbackResistance: 0.2, // 넉백 80% 저항
   },
 } as const;
 

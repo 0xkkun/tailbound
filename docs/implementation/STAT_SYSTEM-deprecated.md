@@ -26,11 +26,11 @@
 
 ### 파워업 등급 시스템
 
-| 등급 | 색상 | 효과 | 예시 |
-|------|------|------|------|
-| Common (일반) | 흰색 | 기본적인 강화 | 치명타 확률 +5% |
-| Rare (고급) | 파란색 | 중간 단계 강화 | 치명타 확률 +10% |
-| Epic (전설) | 보라색 | 강력한 강화 | 치명타 확률 +20% |
+| 등급          | 색상   | 효과           | 예시             |
+| ------------- | ------ | -------------- | ---------------- |
+| Common (일반) | 흰색   | 기본적인 강화  | 치명타 확률 +5%  |
+| Rare (고급)   | 파란색 | 중간 단계 강화 | 치명타 확률 +10% |
+| Epic (전설)   | 보라색 | 강력한 강화    | 치명타 확률 +20% |
 
 ---
 
@@ -42,13 +42,14 @@
 
 #### 치명타 확률 (필살)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_crit_rate_common` | 필살 (일반) | 치명타 확률 +5% | 100% |
-| `powerup_crit_rate_rare` | 필살 (고급) | 치명타 확률 +10% | 100% |
-| `powerup_crit_rate_epic` | 필살 (전설) | 치명타 확률 +20% | 100% |
+| 파워업 ID                  | 이름        | 효과             | 최대치 |
+| -------------------------- | ----------- | ---------------- | ------ |
+| `powerup_crit_rate_common` | 필살 (일반) | 치명타 확률 +5%  | 100%   |
+| `powerup_crit_rate_rare`   | 필살 (고급) | 치명타 확률 +10% | 100%   |
+| `powerup_crit_rate_epic`   | 필살 (전설) | 치명타 확률 +20% | 100%   |
 
 **구현**:
+
 ```typescript
 this.criticalRate += increment; // 0.05, 0.10, 0.20
 this.criticalRate = Math.min(this.criticalRate, 1.0); // 최대 100%
@@ -56,13 +57,14 @@ this.criticalRate = Math.min(this.criticalRate, 1.0); // 최대 100%
 
 #### 치명타 피해량 (극살)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_crit_damage_common` | 극살 (일반) | 치명타 피해 +20% | 650% (1.5 + 5.0) |
-| `powerup_crit_damage_rare` | 극살 (고급) | 치명타 피해 +50% | 650% |
-| `powerup_crit_damage_epic` | 극살 (전설) | 치명타 피해 +100% | 650% |
+| 파워업 ID                    | 이름        | 효과              | 최대치           |
+| ---------------------------- | ----------- | ----------------- | ---------------- |
+| `powerup_crit_damage_common` | 극살 (일반) | 치명타 피해 +20%  | 650% (1.5 + 5.0) |
+| `powerup_crit_damage_rare`   | 극살 (고급) | 치명타 피해 +50%  | 650%             |
+| `powerup_crit_damage_epic`   | 극살 (전설) | 치명타 피해 +100% | 650%             |
 
 **구현**:
+
 ```typescript
 this.criticalDamage += increment; // 0.20, 0.50, 1.00
 this.criticalDamage = Math.min(this.criticalDamage, 6.5); // 최대 650%
@@ -74,13 +76,14 @@ this.criticalDamage = Math.min(this.criticalDamage, 6.5); // 최대 650%
 
 #### 피해 감소 (강체)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_damage_reduction_common` | 강체 (일반) | 받는 피해 -3% | 80% |
-| `powerup_damage_reduction_rare` | 강체 (고급) | 받는 피해 -8% | 80% |
-| `powerup_damage_reduction_epic` | 강체 (전설) | 받는 피해 -15% | 80% |
+| 파워업 ID                         | 이름        | 효과           | 최대치 |
+| --------------------------------- | ----------- | -------------- | ------ |
+| `powerup_damage_reduction_common` | 강체 (일반) | 받는 피해 -3%  | 80%    |
+| `powerup_damage_reduction_rare`   | 강체 (고급) | 받는 피해 -8%  | 80%    |
+| `powerup_damage_reduction_epic`   | 강체 (전설) | 받는 피해 -15% | 80%    |
 
 **구현**:
+
 ```typescript
 this.damageReduction += increment; // 0.03, 0.08, 0.15
 this.damageReduction = Math.min(this.damageReduction, 0.8); // 최대 80%
@@ -91,15 +94,16 @@ const actualDamage = damage * (1 - this.damageReduction);
 
 #### 호흡 (呼吸) - 주기적 체력 회복
 
-| 파워업 ID | 이름 | 주기 | 회복량 |
-|---------|------|------|--------|
-| `powerup_breathing_common` | 호흡 (일반) | 8초 | 5 HP |
-| `powerup_breathing_rare` | 호흡 (고급) | 6초 | 8 HP |
-| `powerup_breathing_epic` | 호흡 (전설) | 4초 | 12 HP |
+| 파워업 ID                  | 이름        | 주기 | 회복량 |
+| -------------------------- | ----------- | ---- | ------ |
+| `powerup_breathing_common` | 호흡 (일반) | 8초  | 5 HP   |
+| `powerup_breathing_rare`   | 호흡 (고급) | 6초  | 8 HP   |
+| `powerup_breathing_epic`   | 호흡 (전설) | 4초  | 12 HP  |
 
 **특징**: 더 높은 등급 획득 시 자동 업그레이드 (낮은 등급은 무시)
 
 **구현**:
+
 ```typescript
 // 타이머 업데이트 (Player.update)
 this.breathingTimer += deltaTime;
@@ -115,13 +119,14 @@ if (this.breathingTimer >= this.breathingInterval) {
 
 #### 경험치 획득량 (수련)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_xp_gain_common` | 수련 (일반) | 경험치 +5% | 300% |
-| `powerup_xp_gain_rare` | 수련 (고급) | 경험치 +12% | 300% |
-| `powerup_xp_gain_epic` | 수련 (전설) | 경험치 +25% | 300% |
+| 파워업 ID                | 이름        | 효과        | 최대치 |
+| ------------------------ | ----------- | ----------- | ------ |
+| `powerup_xp_gain_common` | 수련 (일반) | 경험치 +5%  | 300%   |
+| `powerup_xp_gain_rare`   | 수련 (고급) | 경험치 +12% | 300%   |
+| `powerup_xp_gain_epic`   | 수련 (전설) | 경험치 +25% | 300%   |
 
 **구현**:
+
 ```typescript
 this.xpMultiplier += increment; // 0.05, 0.12, 0.25
 this.xpMultiplier = Math.min(this.xpMultiplier, 3.0); // 최대 300%
@@ -136,19 +141,19 @@ const earnedXp = baseXp * this.xpMultiplier;
 
 #### 이동 속도 (경신)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_speed_common` | 경신 (일반) | 이동 속도 +3% | 200% |
-| `powerup_speed_rare` | 경신 (고급) | 이동 속도 +7% | 200% |
-| `powerup_speed_epic` | 경신 (전설) | 이동 속도 +15% | 200% |
+| 파워업 ID              | 이름        | 효과           | 최대치 |
+| ---------------------- | ----------- | -------------- | ------ |
+| `powerup_speed_common` | 경신 (일반) | 이동 속도 +3%  | 200%   |
+| `powerup_speed_rare`   | 경신 (고급) | 이동 속도 +7%  | 200%   |
+| `powerup_speed_epic`   | 경신 (전설) | 이동 속도 +15% | 200%   |
 
 #### 획득 범위 (영혼 흡인)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_pickup_common` | 영혼 흡인 (일반) | 획득 범위 +5% | 500% |
-| `powerup_pickup_rare` | 영혼 흡인 (고급) | 획득 범위 +15% | 500% |
-| `powerup_pickup_epic` | 영혼 흡인 (전설) | 획득 범위 +30% | 500% |
+| 파워업 ID               | 이름             | 효과           | 최대치 |
+| ----------------------- | ---------------- | -------------- | ------ |
+| `powerup_pickup_common` | 영혼 흡인 (일반) | 획득 범위 +5%  | 500%   |
+| `powerup_pickup_rare`   | 영혼 흡인 (고급) | 획득 범위 +15% | 500%   |
+| `powerup_pickup_epic`   | 영혼 흡인 (전설) | 획득 범위 +30% | 500%   |
 
 ---
 
@@ -156,27 +161,27 @@ const earnedXp = baseXp * this.xpMultiplier;
 
 #### 공격력 (무력)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_damage_common` | 무력 (일반) | 공격력 +2% | 500% |
-| `powerup_damage_rare` | 무력 (고급) | 공격력 +5% | 500% |
-| `powerup_damage_epic` | 무력 (전설) | 공격력 +10% | 500% |
+| 파워업 ID               | 이름        | 효과        | 최대치 |
+| ----------------------- | ----------- | ----------- | ------ |
+| `powerup_damage_common` | 무력 (일반) | 공격력 +2%  | 500%   |
+| `powerup_damage_rare`   | 무력 (고급) | 공격력 +5%  | 500%   |
+| `powerup_damage_epic`   | 무력 (전설) | 공격력 +10% | 500%   |
 
 #### 쿨타임 감소 (신속)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_cooldown_common` | 신속 (일반) | 쿨타임 -2% | 70% 감소 |
-| `powerup_cooldown_rare` | 신속 (고급) | 쿨타임 -5% | 70% 감소 |
-| `powerup_cooldown_epic` | 신속 (전설) | 쿨타임 -10% | 70% 감소 |
+| 파워업 ID                 | 이름        | 효과        | 최대치   |
+| ------------------------- | ----------- | ----------- | -------- |
+| `powerup_cooldown_common` | 신속 (일반) | 쿨타임 -2%  | 70% 감소 |
+| `powerup_cooldown_rare`   | 신속 (고급) | 쿨타임 -5%  | 70% 감소 |
+| `powerup_cooldown_epic`   | 신속 (전설) | 쿨타임 -10% | 70% 감소 |
 
 #### 체력 증가 (생명력)
 
-| 파워업 ID | 이름 | 효과 | 최대치 |
-|---------|------|------|--------|
-| `powerup_health_common` | 생명력 (일반) | 최대 체력 +5 HP | 500 HP |
-| `powerup_health_rare` | 생명력 (고급) | 최대 체력 +15 HP | 500 HP |
-| `powerup_health_epic` | 생명력 (전설) | 최대 체력 +30 HP | 500 HP |
+| 파워업 ID               | 이름          | 효과             | 최대치 |
+| ----------------------- | ------------- | ---------------- | ------ |
+| `powerup_health_common` | 생명력 (일반) | 최대 체력 +5 HP  | 500 HP |
+| `powerup_health_rare`   | 생명력 (고급) | 최대 체력 +15 HP | 500 HP |
+| `powerup_health_epic`   | 생명력 (전설) | 최대 체력 +30 HP | 500 HP |
 
 ---
 
@@ -184,11 +189,12 @@ const earnedXp = baseXp * this.xpMultiplier;
 
 #### 혼백 (魂魄) - 부활
 
-| 아이템 ID | 이름 | 효과 | 드롭 확률 |
-|---------|------|------|----------|
-| `drop_revive` | 혼백 (魂魄) | 사망 시 1회 부활 (최대 체력 50%) | 보스 10% |
+| 아이템 ID     | 이름        | 효과                             | 드롭 확률 |
+| ------------- | ----------- | -------------------------------- | --------- |
+| `drop_revive` | 혼백 (魂魄) | 사망 시 1회 부활 (최대 체력 50%) | 보스 10%  |
 
 **구현**:
+
 ```typescript
 // 사망 시 체크 (Player.takeDamage)
 if (this.health <= 0) {

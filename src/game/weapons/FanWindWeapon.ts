@@ -68,7 +68,8 @@ export class FanWindWeapon extends Weapon {
 
       projectile.speed = this.weaponData.projectileSpeed || 350;
       projectile.lifeTime = this.weaponData.projectileLifetime || 1.2;
-      projectile.radius = this.weaponData.projectileRadius || 15;
+      projectile.radius =
+        (this.weaponData.projectileRadius || 15) * (player?.areaMultiplier ?? 1.0);
       projectile.piercing = Infinity; // 무제한 관통
 
       // 관통 시 데미지 감소 활성화

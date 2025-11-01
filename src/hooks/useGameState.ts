@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import type { Player } from '@/game/entities/Player';
 
-export type GamePhase = 'lobby' | 'playing' | 'boundary';
+export type GamePhase = 'lobby' | 'playing' | 'boundary' | 'test';
 
 export interface PlayerSnapshot {
   health: number;
@@ -21,6 +21,11 @@ export const useGameState = () => {
 
   const startGame = () => {
     setGamePhase('playing');
+    setGameKey((prev) => prev + 1); // 게임 시작 시 키 증가
+  };
+
+  const startTestMode = () => {
+    setGamePhase('test');
     setGameKey((prev) => prev + 1); // 게임 시작 시 키 증가
   };
 
@@ -49,6 +54,13 @@ export const useGameState = () => {
     // 로비로 돌아가기 (플레이어 데이터 초기화)
     setPlayerSnapshot(null);
     setGamePhase('lobby');
+
+    // URL 쿼리 파라미터 제거 (테스트 모드 쿼리 제거)
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('test')) {
+      url.searchParams.delete('test');
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
   const restartGame = () => {
@@ -62,6 +74,7 @@ export const useGameState = () => {
     playerSnapshot,
     gameKey,
     startGame,
+    startTestMode,
     enterBoundary,
     continueToStage2,
     returnToLobby,
