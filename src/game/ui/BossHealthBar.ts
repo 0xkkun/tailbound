@@ -23,11 +23,11 @@ export class BossHealthBar extends Container {
 
     this.maxHealth = maxHealth;
     this.currentHealth = maxHealth;
-    this.barWidth = screenWidth * 0.6; // 화면의 60%
+    this.barWidth = screenWidth - 32; // 경험치바와 동일한 길이 (양쪽 패딩 16px)
 
-    // 화면 상단 중앙에 배치
+    // 화면 상단 중앙에 배치 (타이머 아래)
     this.x = screenWidth / 2;
-    this.y = 30;
+    this.y = 80; // 타이머 아래 충분한 여백을 두고 배치
 
     // 배경
     this.background = new Graphics();

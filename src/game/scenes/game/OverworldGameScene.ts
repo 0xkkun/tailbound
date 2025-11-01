@@ -1628,6 +1628,23 @@ export class OverworldGameScene extends BaseGameScene {
 
     console.log('보스 스폰! 10분 경과');
 
+    // 플레이어 UI 숨기기
+    if (this.xpBarContainer) {
+      this.xpBarContainer.visible = false;
+    }
+    if (this.xpBarFill) {
+      this.xpBarFill.visible = false;
+    }
+    if (this.levelText) {
+      this.levelText.visible = false;
+    }
+    if (this.scoreText) {
+      this.scoreText.visible = false;
+    }
+    if (this.killIcon) {
+      this.killIcon.visible = false;
+    }
+
     // BossSystem 생성 (보스 경험치용으로 spiritEnergySpritesheet3 전달)
     this.bossSystem = new BossSystem(
       this.gameLayer,
@@ -1652,6 +1669,23 @@ export class OverworldGameScene extends BaseGameScene {
     this.bossSystem.onStageClear = () => {
       console.log('스테이지 클리어!');
       this.bossDefeated = true;
+
+      // 플레이어 UI 다시 표시
+      if (this.xpBarContainer) {
+        this.xpBarContainer.visible = true;
+      }
+      if (this.xpBarFill) {
+        this.xpBarFill.visible = true;
+      }
+      if (this.levelText) {
+        this.levelText.visible = true;
+      }
+      if (this.scoreText) {
+        this.scoreText.visible = true;
+      }
+      if (this.killIcon) {
+        this.killIcon.visible = true;
+      }
     };
 
     // 레벨업 UI 콜백 (보상 상자에서 사용)
