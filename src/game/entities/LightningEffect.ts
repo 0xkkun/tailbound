@@ -16,7 +16,7 @@ export class LightningEffect extends Container {
     totalWidth: 1352, // 13프레임 × 104px
     height: 22,
     frameCount: 13,
-    scale: 2.5,
+    scale: 6.0, // 보스 크기에 맞게 증가 (2.5 → 6.0)
     animationSpeed: 0.5,
   };
 

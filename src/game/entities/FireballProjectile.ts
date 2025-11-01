@@ -4,7 +4,7 @@
  * 보스가 발사하는 불꽃 속성 투사체
  */
 
-import { AnimatedSprite, Assets, Container, Graphics, Texture } from 'pixi.js';
+import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
 import type { Player } from './Player';
 
@@ -78,15 +78,26 @@ export class FireballProjectile extends Container {
     // 스프라이트 크기 조정 (64x64 원본에서 적절한 크기로)
     const scale = (radius * 2) / FireballProjectile.FRAME_WIDTH;
     this.sprite.scale.set(scale, scale);
-    this.sprite.animationSpeed = 0.3; // 10프레임을 약 0.33초에 재생 (30fps)
-    this.sprite.loop = true;
+    this.sprite.animationSpeed = 0.3; // 애니메이션 속도 조정
+    this.sprite.loop = false; // 루프 비활성화 (한 번만 재생)
     this.sprite.play();
+
+    // 스프라이트가 항상 보이도록 설정
+    this.sprite.visible = true;
+    this.sprite.alpha = 1.0;
+    this.sprite.blendMode = 'add'; // 블렌드 모드를 add로 변경 (더 밝게)
 
     // 불꽃이 진행 방향을 향하도록 회전
     const angle = Math.atan2(direction.y, direction.x);
     this.sprite.rotation = angle;
 
     this.addChild(this.sprite);
+
+    // 디버깅: 프레임과 텍스처 상태 확인
+    console.log(`[FireballProjectile] Created with ${FireballProjectile.textures.length} frames`);
+    console.log(
+      `[FireballProjectile] Current frame: ${this.sprite.currentFrame}, Total frames: ${this.sprite.totalFrames}`
+    );
   }
 
   /**
@@ -102,20 +113,26 @@ export class FireballProjectile extends Container {
 
       // 10프레임 추출 (가로로 배치)
       const textures: Texture[] = [];
+
+      // 모든 10프레임 사용
       for (let i = 0; i < FireballProjectile.FRAME_COUNT; i++) {
+        const frame = new Rectangle(
+          i * FireballProjectile.FRAME_WIDTH,
+          0,
+          FireballProjectile.FRAME_WIDTH,
+          FireballProjectile.FRAME_HEIGHT
+        );
         const texture = new Texture({
           source: baseTexture.source,
-          frame: {
-            x: i * FireballProjectile.FRAME_WIDTH,
-            y: 0,
-            width: FireballProjectile.FRAME_WIDTH,
-            height: FireballProjectile.FRAME_HEIGHT,
-          },
+          frame: frame,
         });
         textures.push(texture);
       }
 
       FireballProjectile.textures = textures;
+      console.log(
+        `[FireballProjectile] Loaded ${textures.length} frames from sprite sheet (640x64)`
+      );
     } catch (error) {
       console.error('[FireballProjectile] Failed to load sprites:', error);
       throw error;
@@ -133,6 +150,18 @@ export class FireballProjectile extends Container {
     // 이동
     this.x += this.direction.x * this.speed * deltaTime;
     this.y += this.direction.y * this.speed * deltaTime;
+
+    // 스프라이트가 있으면 애니메이션 관리
+    if (this.sprite) {
+      // 애니메이션이 끝났으면 다시 시작
+      if (!this.sprite.playing && this.sprite.currentFrame === this.sprite.totalFrames - 1) {
+        this.sprite.gotoAndPlay(0); // 처음부터 다시 재생
+      }
+      // 가시성 확인
+      if (!this.sprite.visible) {
+        this.sprite.visible = true;
+      }
+    }
 
     // 생명 시간 체크
     this.elapsedTime += deltaTime;

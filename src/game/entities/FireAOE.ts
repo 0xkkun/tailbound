@@ -32,7 +32,7 @@ export class FireAOE extends Container {
   private static readonly GRID_WIDTH = 8; // 8x8 그리드
   private static textures: Texture[] | null = null;
 
-  constructor(id: string, x: number, y: number, radius: number, damage: number = 50) {
+  constructor(id: string, x: number, y: number, radius: number, damage: number = 40) {
     super();
 
     this.id = id;

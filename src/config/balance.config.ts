@@ -70,10 +70,10 @@ export const ENEMY_BALANCE = {
   },
   // 보스 적 (백호)
   boss: {
-    health: 12000, // 2-3분 전투 목표 (평균 DPS 250 기준)
+    health: 75000, // 2.5분 전투 목표 (평균 DPS 500 기준, 150초)
     speed: 90, // 플레이어보다 느리지만 위협적
     damage: 60, // 접촉 데미지 (플레이어 체력의 1/3~1/2)
-    radius: 90, // 큰 보스 체형
+    radius: 180, // 큰 보스 체형 (90 → 180으로 2배 증가)
     xpDrop: 1000, // 보스 처치 시 경험치 (2-3레벨업)
     animationSpeed: 0.15,
     knockbackResistance: 0.2, // 넉백 80% 저항
