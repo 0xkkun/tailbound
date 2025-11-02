@@ -12,12 +12,15 @@ export class PixelButton extends Container {
   private static buttonTexture: Texture | null = null;
   private static textureLoading: Promise<Texture> | null = null;
 
+  // 상호작용 이벤트 이름들
+  private readonly INTERACTION_EVENTS = ['pointerover', 'pointerout', 'pointerdown', 'pointerup'];
+
   public onClick?: () => void;
 
   constructor(
     text: string,
-    width: number = 300,
-    height: number = 60,
+    width: number = 184,
+    height: number = 56,
     color: number = 0xffffff,
     disabled: boolean = false
   ) {
@@ -163,6 +166,26 @@ export class PixelButton extends Container {
     });
   }
 
+  public setDisabled(disabled: boolean): void {
+    this.isDisabled = disabled;
+
+    // 상호작용 이벤트만 제거 (커스텀 이벤트는 유지)
+    this.INTERACTION_EVENTS.forEach((eventName) => {
+      this.removeAllListeners(eventName);
+    });
+
+    if (disabled) {
+      this.alpha = 0.6;
+      this.cursor = 'not-allowed';
+      this.eventMode = 'none';
+    } else {
+      this.alpha = 1.0;
+      this.cursor = 'pointer';
+      this.eventMode = 'static';
+      this.setupInteraction();
+    }
+  }
+
   public destroy(): void {
     this.removeAllListeners();
     super.destroy({ children: true });
@@ -185,8 +208,8 @@ export class PixelButton extends Container {
     y: number,
     onClick?: () => void,
     disabled: boolean = false,
-    width: number = 300,
-    height: number = 70
+    width: number = 184,
+    height: number = 56
   ): PixelButton {
     const button = new PixelButton(text, width, height, 0xffffff, disabled);
     button.x = x;

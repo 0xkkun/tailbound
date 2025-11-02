@@ -30,6 +30,7 @@ export class AudioManager {
   private alternatingTracks: string[] = [];
   private currentTrackIndex: number = 0;
   private isAlternatingMode: boolean = false;
+  private bgmWasPausedManually: boolean = false; // 수동 일시정지 여부 추적
 
   private constructor() {
     this.loadSettings();
@@ -196,14 +197,15 @@ export class AudioManager {
     sfx.play();
   }
 
-  // === Private Methods ===
+  // === BGM 일시정지/재개 ===
 
   /**
    * 모든 BGM 일시정지
    */
-  private pauseAllBGM(): void {
-    if (this.currentBGM) {
+  pauseAllBGM(): void {
+    if (this.currentBGM && this.currentBGM.playing()) {
       this.currentBGM.pause();
+      this.bgmWasPausedManually = true;
       console.log('[Audio] BGM paused');
     }
   }
@@ -211,15 +213,18 @@ export class AudioManager {
   /**
    * BGM 재개
    */
-  private resumeBGM(): void {
-    if (this.currentBGM && this.bgmEnabled) {
-      // 현재 재생 중인 트랙을 재개 (교차 재생이든 일반이든)
+  resumeBGM(): void {
+    if (this.currentBGM && this.bgmEnabled && this.bgmWasPausedManually) {
+      // 수동으로 일시정지된 BGM만 재개
       if (!this.currentBGM.playing()) {
         this.currentBGM.play();
+        this.bgmWasPausedManually = false;
+        console.log('[Audio] BGM resumed');
       }
-      console.log('[Audio] BGM resumed');
     }
   }
+
+  // === Private Methods ===
 
   /**
    * Visibility change 이벤트 핸들러 설정
@@ -248,6 +253,7 @@ export class AudioManager {
     // 교차 재생 모드 해제
     this.isAlternatingMode = false;
     this.alternatingTracks = [];
+    this.bgmWasPausedManually = false; // 새 BGM 시작 시 플래그 리셋
 
     // 기존 BGM이 있으면 중지
     if (this.currentBGM) {
@@ -293,6 +299,7 @@ export class AudioManager {
     this.isAlternatingMode = true;
     this.alternatingTracks = tracks;
     this.currentTrackIndex = 0;
+    this.bgmWasPausedManually = false; // 새 BGM 시작 시 플래그 리셋
 
     // 첫 번째 트랙 재생
     this.playNextAlternatingTrack();
@@ -340,10 +347,31 @@ export class AudioManager {
         this.playNextAlternatingTrack();
       },
       onloaderror: (id, error) => {
-        console.error(`[Audio] Alternating BGM load error: ${id}`, error);
+        console.error(
+          `[Audio] Alternating BGM load error (${this.currentTrackIndex + 1}/${this.alternatingTracks.length}): ${id}`,
+          error
+        );
+        // 에러 발생 시 다음 트랙으로 스킵 (무한 루프 방지)
+        console.warn('[Audio] 로드 실패한 트랙 건너뛰기, 다음 트랙으로 이동');
+        this.currentTrackIndex = (this.currentTrackIndex + 1) % this.alternatingTracks.length;
+        // 모든 트랙이 실패하면 중단
+        const nextTrack = this.alternatingTracks[this.currentTrackIndex];
+        if (nextTrack !== currentTrack) {
+          this.playNextAlternatingTrack();
+        } else {
+          console.error('[Audio] 모든 교차 재생 트랙 로드 실패');
+          this.isAlternatingMode = false;
+        }
       },
       onplayerror: (id, error) => {
-        console.error(`[Audio] Alternating BGM play error: ${id}`, error);
+        console.error(
+          `[Audio] Alternating BGM play error (${this.currentTrackIndex + 1}/${this.alternatingTracks.length}): ${id}`,
+          error
+        );
+        // 재생 에러 발생 시 다음 트랙으로 스킵
+        console.warn('[Audio] 재생 실패한 트랙 건너뛰기, 다음 트랙으로 이동');
+        this.currentTrackIndex = (this.currentTrackIndex + 1) % this.alternatingTracks.length;
+        this.playNextAlternatingTrack();
       },
     });
   }

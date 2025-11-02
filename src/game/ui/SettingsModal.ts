@@ -8,38 +8,19 @@
  * - 반투명 오버레이
  */
 
-import { Assets, Container, Graphics, Sprite, Text, TextStyle } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
 import { audioManager } from '../../services/audioManager';
 import { hapticManager } from '../../services/hapticManager';
 
 import { PixelButton } from './PixelButton';
 
-interface ToggleButton {
-  container: Container;
-  background: Graphics;
-  toggle: Graphics;
-  label: Text;
-  isOn: boolean;
-}
-
 export class SettingsModal extends Container {
   private overlay!: Graphics;
-  private modalBackground!: Graphics;
-  private titleText!: Text;
-  private closeButton!: PixelButton;
 
-  // Toggle buttons
-  private bgmToggle!: ToggleButton;
-  private sfxToggle!: ToggleButton;
-  private hapticToggle!: ToggleButton;
-
-  // Volume sliders
-  private bgmVolumeSlider!: { bar: Graphics; handle: Graphics; label: Text };
-  private sfxVolumeSlider!: { bar: Graphics; handle: Graphics; label: Text };
-
-  // RAF IDs for cleanup
-  private rafIds: Set<number> = new Set();
+  // 버튼 참조 (텍스트 업데이트용)
+  private bgmButton!: PixelButton;
+  private hapticButton!: PixelButton;
 
   public onClose?: () => void;
 
@@ -51,7 +32,6 @@ export class SettingsModal extends Container {
 
     this.createOverlay();
     this.createModal();
-    this.loadSettings();
   }
 
   /**
@@ -70,307 +50,218 @@ export class SettingsModal extends Container {
   }
 
   /**
-   * 모달 UI 생성
+   * 모달 UI 생성 (인게임 설정 메뉴와 동일한 형태)
    */
   private createModal(): void {
-    const modalWidth = Math.min(400, this.screenWidth - 40);
-    const modalHeight = Math.min(500, this.screenHeight - 80);
-    const modalX = this.screenWidth / 2;
-    const modalY = this.screenHeight / 2;
+    const centerX = this.screenWidth / 2;
+    const centerY = this.screenHeight / 2;
 
-    // 모달 배경
-    this.modalBackground = new Graphics();
-    this.modalBackground.rect(-modalWidth / 2, -modalHeight / 2, modalWidth, modalHeight);
-    this.modalBackground.fill({ color: 0x1a1a2e, alpha: 0.95 });
-    this.modalBackground.stroke({ width: 2, color: 0x4a4a6a });
-    this.modalBackground.x = modalX;
-    this.modalBackground.y = modalY;
-    this.modalBackground.eventMode = 'static';
-    this.addChild(this.modalBackground);
+    // 버튼 크기 및 간격 (인게임과 동일)
+    const buttonGap = 72;
+    const buttonWidth = 184;
+    const buttonHeight = 56;
 
-    // 타이틀
-    this.titleText = new Text({
-      text: '설정',
-      style: new TextStyle({
-        fontFamily: 'NeoDunggeunmo',
-        fontSize: 28,
-        fill: 0xffffff,
-      }),
-    });
-    this.titleText.anchor.set(0.5, 0);
-    this.titleText.x = modalX;
-    this.titleText.y = modalY - modalHeight / 2 + 20;
-    this.addChild(this.titleText);
-
-    // 토글 버튼들
-    const startY = modalY - modalHeight / 2 + 80;
-    const gap = 80;
-
-    this.bgmToggle = this.createToggle('배경 음악', modalX - 120, startY);
-    this.sfxToggle = this.createToggle('효과음', modalX - 120, startY + gap);
-    this.hapticToggle = this.createToggle('진동', modalX - 120, startY + gap * 2);
-
-    // 볼륨 슬라이더들 (라벨 공간 50px 확보)
-    this.bgmVolumeSlider = this.createVolumeSlider(modalX - 150, startY + 35, modalWidth - 110);
-    this.sfxVolumeSlider = this.createVolumeSlider(
-      modalX - 150,
-      startY + gap + 35,
-      modalWidth - 110
-    );
-
-    // 닫기 버튼
-    this.closeButton = new PixelButton('닫기', 200, 50);
-    this.closeButton.x = modalX;
-    this.closeButton.y = modalY + modalHeight / 2 - 50;
-    this.closeButton.onClick = () => this.close();
-    this.addChild(this.closeButton);
-
-    // BGM 토글 이벤트
-    this.bgmToggle.container.on('pointerdown', () => {
-      const newState = audioManager.toggleBGM();
-      this.updateToggle(this.bgmToggle, newState);
-      this.bgmVolumeSlider.bar.alpha = newState ? 1 : 0.3;
-      this.bgmVolumeSlider.handle.alpha = newState ? 1 : 0.3;
-      this.bgmVolumeSlider.label.alpha = newState ? 1 : 0.5;
+    // 소리 켜기/끄기 버튼
+    const bgmEnabled = audioManager.isBGMEnabled();
+    this.createMenuButtonWithIcon(
+      bgmEnabled ? '소리 끄기' : '소리 켜기',
+      '/assets/gui/sound.png',
+      centerX,
+      centerY - 80,
+      buttonWidth,
+      buttonHeight,
+      () => {
+        const newState = audioManager.toggleBGM();
+        audioManager.toggleSFX(); // SFX도 함께 토글
+        // 버튼 텍스트 업데이트 (켜기/끄기)
+        this.updateButtonWithIcon(
+          this.bgmButton,
+          newState ? '소리 끄기' : '소리 켜기',
+          '/assets/gui/sound.png'
+        );
+      }
+    ).then((button) => {
+      this.bgmButton = button;
     });
 
-    // SFX 토글 이벤트
-    this.sfxToggle.container.on('pointerdown', () => {
-      const newState = audioManager.toggleSFX();
-      this.updateToggle(this.sfxToggle, newState);
-      this.sfxVolumeSlider.bar.alpha = newState ? 1 : 0.3;
-      this.sfxVolumeSlider.handle.alpha = newState ? 1 : 0.3;
-      this.sfxVolumeSlider.label.alpha = newState ? 1 : 0.5;
+    // 진동 켜기/끄기 버튼
+    const hapticEnabled = hapticManager.isEnabled();
+    this.createMenuButtonWithIcon(
+      hapticEnabled ? '진동 끄기' : '진동 켜기',
+      '/assets/gui/resume.png',
+      centerX,
+      centerY - 80 + buttonGap,
+      buttonWidth,
+      buttonHeight,
+      () => {
+        const newState = hapticManager.toggle();
+        // 버튼 텍스트 업데이트 (켜기/끄기)
+        this.updateButtonWithIcon(
+          this.hapticButton,
+          newState ? '진동 끄기' : '진동 켜기',
+          '/assets/gui/resume.png'
+        );
+      }
+    ).then((button) => {
+      this.hapticButton = button;
     });
 
-    // 햅틱 토글 이벤트
-    this.hapticToggle.container.on('pointerdown', () => {
-      const newState = hapticManager.toggle();
-      this.updateToggle(this.hapticToggle, newState);
-    });
-
-    // BGM 볼륨 슬라이더 이벤트 (피드백 없음)
-    this.setupSliderInteraction(
-      this.bgmVolumeSlider,
-      (volume) => {
-        audioManager.setBGMVolume(volume);
-      },
-      false
-    );
-
-    // SFX 볼륨 슬라이더 이벤트 (피드백 있음)
-    this.setupSliderInteraction(
-      this.sfxVolumeSlider,
-      (volume) => {
-        audioManager.setSFXVolume(volume);
-        // 볼륨 조절 시 테스트 사운드 재생 (즉시 피드백)
-        audioManager.playButtonClickSound();
-      },
-      true
-    );
+    // 닫기 버튼은 이제 필요없음 (오버레이 클릭으로 닫기)
   }
 
   /**
-   * 토글 버튼 생성
+   * 아이콘이 있는 메뉴 버튼 생성 (인게임과 동일한 스타일)
    */
-  private createToggle(labelText: string, x: number, y: number): ToggleButton {
-    const container = new Container();
-    container.x = x;
-    container.y = y;
-    container.eventMode = 'static';
-    container.cursor = 'pointer';
-
-    // 라벨
-    const label = new Text({
-      text: labelText,
-      style: new TextStyle({
-        fontFamily: 'NeoDunggeunmo',
-        fontSize: 18,
-        fill: 0xffffff,
-      }),
-    });
-    label.anchor.set(0, 0.5);
-    container.addChild(label);
-
-    // 토글 배경 (오른쪽 정렬)
-    const background = new Graphics();
-    background.roundRect(0, 0, 60, 30, 15);
-    background.fill({ color: 0x4a4a6a });
-    background.x = 180;
-    background.y = -15;
-    container.addChild(background);
-
-    // 토글 핸들
-    const toggle = new Graphics();
-    toggle.circle(15, 15, 12);
-    toggle.fill({ color: 0xffffff });
-    toggle.x = 180;
-    toggle.y = -15;
-    container.addChild(toggle);
-
-    this.addChild(container);
-
-    return {
-      container,
-      background,
-      toggle,
-      label,
-      isOn: false,
-    };
-  }
-
-  /**
-   * 토글 상태 업데이트
-   */
-  private updateToggle(toggle: ToggleButton, isOn: boolean): void {
-    toggle.isOn = isOn;
-
-    // 애니메이션 (즉시 변경)
-    toggle.toggle.x = isOn ? 210 : 180;
-    toggle.background.clear();
-    toggle.background.roundRect(0, 0, 60, 30, 15);
-    toggle.background.fill({ color: isOn ? 0x4caf50 : 0x4a4a6a });
-  }
-
-  /**
-   * 볼륨 슬라이더 생성
-   */
-  private createVolumeSlider(
+  private async createMenuButtonWithIcon(
+    text: string,
+    iconPath: string,
     x: number,
     y: number,
-    width: number
-  ): { bar: Graphics; handle: Graphics; label: Text } {
-    // 슬라이더 바
-    const bar = new Graphics();
-    bar.rect(0, 0, width, 4);
-    bar.fill({ color: 0x4a4a6a });
-    bar.x = x;
-    bar.y = y;
-    this.addChild(bar);
+    width: number,
+    height: number,
+    onClick: () => void
+  ): Promise<PixelButton> {
+    // 버튼 생성 (텍스트 없이)
+    const button = PixelButton.create('', x, y, onClick, false, width, height);
+    this.addChild(button);
 
-    // 슬라이더 핸들
-    const handle = new Graphics();
-    handle.circle(0, 0, 10);
-    handle.fill({ color: 0xffffff });
-    handle.x = x;
-    handle.y = y + 2;
-    handle.eventMode = 'static';
-    handle.cursor = 'pointer';
-    this.addChild(handle);
+    // 아이콘 로드 및 버튼 내부에 [아이콘+텍스트] 배치
+    try {
+      const texture = await Assets.load(iconPath);
+      if (texture.source) {
+        texture.source.scaleMode = 'nearest';
+      }
 
-    // 볼륨 퍼센트 라벨
-    const label = new Text({
-      text: '50%',
-      style: new TextStyle({
-        fontFamily: 'NeoDunggeunmo',
-        fontSize: 14,
-        fill: 0xaaaaaa,
-      }),
-    });
-    label.anchor.set(0, 0.5);
-    label.x = x + width + 10;
-    label.y = y + 2;
-    this.addChild(label);
+      const icon = new Sprite(texture);
+      icon.anchor.set(0.5);
 
-    return { bar, handle, label };
+      // 아이콘 크기를 32px로 조정
+      const targetSize = 32;
+      const scale = targetSize / texture.width;
+      icon.scale.set(scale);
+
+      // 텍스트 생성
+      const labelText = new Text({
+        text,
+        style: {
+          fontFamily: 'NeoDunggeunmo',
+          fontSize: 16,
+          fill: 0x773f16,
+        },
+      });
+      labelText.resolution = 3;
+      labelText.anchor.set(0.5);
+
+      // 아이콘과 텍스트 사이 간격 (4px)
+      const gap = 4;
+
+      // [아이콘 + 텍스트] 전체 너비 계산
+      const totalContentWidth = targetSize + gap + labelText.width;
+
+      // 버튼 중앙에 맞춰 아이콘과 텍스트 배치
+      icon.x = -totalContentWidth / 2 + targetSize / 2;
+      icon.y = 0;
+      button.addChild(icon);
+
+      labelText.x = -totalContentWidth / 2 + targetSize + gap + labelText.width / 2;
+      labelText.y = 0;
+      button.addChild(labelText);
+    } catch (error) {
+      console.error(`아이콘 로드 실패: ${iconPath}`, error);
+
+      // 폴백: 텍스트만 표시
+      const labelText = new Text({
+        text,
+        style: {
+          fontFamily: 'NeoDunggeunmo',
+          fontSize: 16,
+          fill: 0x773f16,
+        },
+      });
+      labelText.resolution = 3;
+      labelText.anchor.set(0.5);
+      labelText.x = 0;
+      labelText.y = 0;
+      button.addChild(labelText);
+    }
+
+    return button;
   }
 
   /**
-   * 슬라이더 상호작용 설정
+   * 버튼 아이콘과 텍스트 업데이트
    */
-  private setupSliderInteraction(
-    slider: { bar: Graphics; handle: Graphics; label: Text },
-    onChange: (volume: number) => void,
-    enableFeedback: boolean = false
-  ): void {
-    let isDragging = false;
-    let rafId: number | null = null;
-    let lastFeedbackTime = 0;
-    const FEEDBACK_THROTTLE = 150; // ms
+  private async updateButtonWithIcon(
+    button: PixelButton,
+    text: string,
+    iconPath: string
+  ): Promise<void> {
+    // 배경을 제외한 컨텐츠만 제거 (배경은 첫 번째 자식)
+    while (button.children.length > 1) {
+      const child = button.children[1];
+      button.removeChild(child);
+      child.destroy();
+    }
 
-    const updateVolume = (globalX: number) => {
-      const barLeft = slider.bar.x;
-      const barRight = slider.bar.x + slider.bar.width;
-      const clampedX = Math.max(barLeft, Math.min(barRight, globalX));
-      const volume = (clampedX - barLeft) / slider.bar.width;
-
-      slider.handle.x = clampedX;
-      slider.label.text = `${Math.round(volume * 100)}%`;
-
-      // requestAnimationFrame으로 throttle (성능 최적화)
-      if (rafId === null) {
-        rafId = requestAnimationFrame(() => {
-          // 피드백 throttle (너무 자주 재생되지 않도록)
-          const now = Date.now();
-          if (enableFeedback && now - lastFeedbackTime > FEEDBACK_THROTTLE) {
-            onChange(volume);
-            lastFeedbackTime = now;
-          } else if (!enableFeedback) {
-            onChange(volume);
-          }
-          this.rafIds.delete(rafId!);
-          rafId = null;
-        });
-        this.rafIds.add(rafId);
+    // 아이콘 로드 및 버튼 내부에 [아이콘+텍스트] 배치
+    try {
+      const texture = await Assets.load(iconPath);
+      if (texture.source) {
+        texture.source.scaleMode = 'nearest';
       }
-    };
 
-    slider.handle.on('pointerdown', (e) => {
-      isDragging = true;
-      e.stopPropagation();
-    });
+      const icon = new Sprite(texture);
+      icon.anchor.set(0.5);
 
-    slider.bar.eventMode = 'static';
-    slider.bar.on('pointerdown', (e) => {
-      updateVolume(e.globalX);
-      isDragging = true;
-      e.stopPropagation();
-    });
+      // 아이콘 크기를 32px로 조정
+      const targetSize = 32;
+      const scale = targetSize / texture.width;
+      icon.scale.set(scale);
 
-    this.on('pointermove', (e) => {
-      if (isDragging) {
-        updateVolume(e.globalX);
-      }
-    });
+      // 텍스트 생성
+      const labelText = new Text({
+        text,
+        style: {
+          fontFamily: 'NeoDunggeunmo',
+          fontSize: 16,
+          fill: 0x773f16,
+        },
+      });
+      labelText.resolution = 3;
+      labelText.anchor.set(0.5);
 
-    this.on('pointerup', () => {
-      isDragging = false;
-    });
+      // 아이콘과 텍스트 사이 간격 (4px)
+      const gap = 4;
 
-    this.on('pointerupoutside', () => {
-      isDragging = false;
-    });
-  }
+      // [아이콘 + 텍스트] 전체 너비 계산
+      const totalContentWidth = targetSize + gap + labelText.width;
 
-  /**
-   * 현재 설정 로드
-   */
-  private loadSettings(): void {
-    // BGM
-    const bgmEnabled = audioManager.isBGMEnabled();
-    const bgmVolume = audioManager.getBGMVolume();
-    this.updateToggle(this.bgmToggle, bgmEnabled);
-    this.bgmVolumeSlider.handle.x =
-      this.bgmVolumeSlider.bar.x + bgmVolume * this.bgmVolumeSlider.bar.width;
-    this.bgmVolumeSlider.label.text = `${Math.round(bgmVolume * 100)}%`;
-    this.bgmVolumeSlider.bar.alpha = bgmEnabled ? 1 : 0.3;
-    this.bgmVolumeSlider.handle.alpha = bgmEnabled ? 1 : 0.3;
-    this.bgmVolumeSlider.label.alpha = bgmEnabled ? 1 : 0.5;
+      // 버튼 중앙에 맞춰 아이콘과 텍스트 배치
+      icon.x = -totalContentWidth / 2 + targetSize / 2;
+      icon.y = 0;
+      button.addChild(icon);
 
-    // SFX
-    const sfxEnabled = audioManager.isSFXEnabled();
-    const sfxVolume = audioManager.getSFXVolume();
-    this.updateToggle(this.sfxToggle, sfxEnabled);
-    this.sfxVolumeSlider.handle.x =
-      this.sfxVolumeSlider.bar.x + sfxVolume * this.sfxVolumeSlider.bar.width;
-    this.sfxVolumeSlider.label.text = `${Math.round(sfxVolume * 100)}%`;
-    this.sfxVolumeSlider.bar.alpha = sfxEnabled ? 1 : 0.3;
-    this.sfxVolumeSlider.handle.alpha = sfxEnabled ? 1 : 0.3;
-    this.sfxVolumeSlider.label.alpha = sfxEnabled ? 1 : 0.5;
+      labelText.x = -totalContentWidth / 2 + targetSize + gap + labelText.width / 2;
+      labelText.y = 0;
+      button.addChild(labelText);
+    } catch (error) {
+      console.error(`아이콘 로드 실패: ${iconPath}`, error);
 
-    // Haptic
-    const hapticEnabled = hapticManager.isEnabled();
-    this.updateToggle(this.hapticToggle, hapticEnabled);
+      // 폴백: 텍스트만 표시
+      const labelText = new Text({
+        text,
+        style: {
+          fontFamily: 'NeoDunggeunmo',
+          fontSize: 16,
+          fill: 0x773f16,
+        },
+      });
+      labelText.resolution = 3;
+      labelText.anchor.set(0.5);
+      labelText.x = 0;
+      labelText.y = 0;
+      button.addChild(labelText);
+    }
   }
 
   /**
@@ -424,10 +315,6 @@ export class SettingsModal extends Container {
   public override destroy(
     options?: boolean | { children?: boolean; texture?: boolean; baseTexture?: boolean }
   ): void {
-    // RAF cleanup
-    this.rafIds.forEach((id) => cancelAnimationFrame(id));
-    this.rafIds.clear();
-
     super.destroy(options);
   }
 }

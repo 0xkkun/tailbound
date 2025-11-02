@@ -6,6 +6,7 @@ import { BoundaryGameScene } from '../game/scenes/game/BoundaryGameScene';
 import { OverworldGameScene } from '../game/scenes/game/OverworldGameScene';
 import { TestGameScene } from '../game/scenes/game/TestGameScene';
 import { LobbyScene } from '../game/scenes/LobbyScene';
+import { StageSelectModal } from '../game/ui/StageSelectModal';
 import { useGameState } from '../hooks/useGameState';
 
 interface GameContainerProps {
@@ -17,6 +18,7 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
   const {
     gamePhase,
     playerSnapshot,
+    selectedStage,
     gameKey,
     startGame,
     startTestMode,
@@ -24,6 +26,8 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
     continueToStage2,
     returnToLobby,
     restartGame,
+    showStageSelect,
+    startGameWithStage,
   } = useGameState();
   const lobbySceneRef = useRef<LobbyScene | null>(null);
   const overworldSceneRef = useRef<OverworldGameScene | null>(null);
@@ -98,7 +102,7 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [app, gamePhase, startGame]);
+  }, [app, gamePhase, startGame, startTestMode]);
 
   // 에셋 프리로딩
   useEffect(() => {
@@ -152,6 +156,11 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
         startTestMode();
       };
 
+      // Connect stage select callback
+      lobbyScene.onShowStageSelect = () => {
+        showStageSelect();
+      };
+
       app.stage.addChild(lobbyScene);
       lobbySceneRef.current = lobbyScene;
 
@@ -161,6 +170,28 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
           app.stage.removeChild(lobbySceneRef.current);
           lobbySceneRef.current = null;
         }
+      };
+    } else if (gamePhase === 'stage-select') {
+      // Stage select modal
+      console.log('스테이지 선택 모달 표시');
+
+      const stageSelectModal = new StageSelectModal(app.screen.width, app.screen.height);
+
+      stageSelectModal.onStageSelect = (stageId: string) => {
+        console.log('스테이지 선택:', stageId);
+        startGameWithStage(stageId);
+      };
+
+      stageSelectModal.onCancel = () => {
+        console.log('스테이지 선택 취소');
+        returnToLobby();
+      };
+
+      app.stage.addChild(stageSelectModal);
+
+      return () => {
+        stageSelectModal.destroy();
+        app.stage.removeChild(stageSelectModal);
       };
     } else if (gamePhase === 'playing') {
       // Game scene
@@ -202,9 +233,12 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
 
       return () => {
         if (overworldSceneRef.current) {
-          overworldSceneRef.current.destroy();
-          app.stage.removeChild(overworldSceneRef.current);
+          const scene = overworldSceneRef.current;
           overworldSceneRef.current = null;
+          // 비동기 정리 - cleanup 함수에서는 await 불가하므로 then 사용
+          scene.destroy().then(() => {
+            app.stage.removeChild(scene);
+          });
         }
       };
     } else if (gamePhase === 'boundary') {
@@ -267,6 +301,7 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
   }, [
     gamePhase,
     playerSnapshot,
+    selectedStage,
     gameKey,
     startGame,
     startTestMode,
@@ -274,6 +309,8 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
     continueToStage2,
     returnToLobby,
     restartGame,
+    showStageSelect,
+    startGameWithStage,
     app,
   ]);
 
