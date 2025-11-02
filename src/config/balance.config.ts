@@ -254,6 +254,7 @@ export const SPAWN_BALANCE = {
   maxGroups: 2, // 최대 그룹 수
   clusterRadius: 200, // 그룹 내 적들의 퍼짐 정도
   groupIncreaseInterval: 60, // 초 단위, 그룹 수 증가 주기
+  maxActiveEnemies: 150, // 최대 활성 적 개체 수 (성능 최적화)
 
   // 적 스폰 확률 (합계 1.0)
   enemySpawnRates: {
