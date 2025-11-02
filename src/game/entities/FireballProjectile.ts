@@ -26,10 +26,10 @@ export class FireballProjectile extends Container {
   private sprite: AnimatedSprite | null = null;
 
   // 스프라이트 설정
-  private static readonly SPRITE_PATH = '/assets/boss/boss-fireball.png';
-  private static readonly FRAME_WIDTH = 64;
-  private static readonly FRAME_HEIGHT = 64;
-  private static readonly FRAME_COUNT = 10;
+  private static readonly SPRITE_PATH = '/assets/boss/boss-soulball.png';
+  private static readonly FRAME_WIDTH = 128;
+  private static readonly FRAME_HEIGHT = 128;
+  private static readonly FRAME_COUNT = 8; // 전체 8프레임 (1줄 8열)
   private static readonly VISUAL_SIZE = 120; // 시각적 크기 (픽셀) - 원래 radius 60 기준 (60 * 2)
   private static textures: Texture[] | null = null;
 
@@ -79,14 +79,14 @@ export class FireballProjectile extends Container {
     // 스프라이트 크기 조정 - 시각적 크기는 고정, 히트박스(radius)와 독립적
     const scale = FireballProjectile.VISUAL_SIZE / FireballProjectile.FRAME_WIDTH;
     this.sprite.scale.set(scale, scale);
-    this.sprite.animationSpeed = 0.3; // 애니메이션 속도 조정
-    this.sprite.loop = false; // 루프 비활성화 (한 번만 재생)
+    this.sprite.animationSpeed = 0.15; // 애니메이션 속도 느리게 조정 (0.3 -> 0.15)
+    this.sprite.loop = true; // 루프 활성화 (계속 재생)
     this.sprite.play();
 
     // 스프라이트가 항상 보이도록 설정
     this.sprite.visible = true;
     this.sprite.alpha = 1.0;
-    this.sprite.blendMode = 'add'; // 블렌드 모드를 add로 변경 (더 밝게)
+    // blendMode 제거 - 깜빡임 원인일 수 있음
 
     // 불꽃이 진행 방향을 향하도록 회전
     const angle = Math.atan2(direction.y, direction.x);
@@ -105,17 +105,15 @@ export class FireballProjectile extends Container {
    * 스프라이트 preload
    */
   public static async preloadSprites(): Promise<void> {
-    if (FireballProjectile.textures) {
-      return; // 이미 로드됨
-    }
+    // 캐시 초기화 (이미지 변경 시 필수)
+    FireballProjectile.textures = null;
 
     try {
       const baseTexture = await Assets.load(FireballProjectile.SPRITE_PATH);
 
-      // 10프레임 추출 (가로로 배치)
+      // 8프레임 추출 (1줄 8열 구조)
       const textures: Texture[] = [];
 
-      // 모든 10프레임 사용
       for (let i = 0; i < FireballProjectile.FRAME_COUNT; i++) {
         const frame = new Rectangle(
           i * FireballProjectile.FRAME_WIDTH,
@@ -132,7 +130,7 @@ export class FireballProjectile extends Container {
 
       FireballProjectile.textures = textures;
       console.log(
-        `[FireballProjectile] Loaded ${textures.length} frames from sprite sheet (640x64)`
+        `[FireballProjectile] Loaded ${textures.length} frames from sprite sheet (1 row x 8 columns)`
       );
     } catch (error) {
       console.error('[FireballProjectile] Failed to load sprites:', error);
@@ -152,16 +150,9 @@ export class FireballProjectile extends Container {
     this.x += this.direction.x * this.speed * deltaTime;
     this.y += this.direction.y * this.speed * deltaTime;
 
-    // 스프라이트가 있으면 애니메이션 관리
-    if (this.sprite) {
-      // 애니메이션이 끝났으면 다시 시작
-      if (!this.sprite.playing && this.sprite.currentFrame === this.sprite.totalFrames - 1) {
-        this.sprite.gotoAndPlay(0); // 처음부터 다시 재생
-      }
-      // 가시성 확인
-      if (!this.sprite.visible) {
-        this.sprite.visible = true;
-      }
+    // 애니메이션 루프 수동 처리 (깜빡임 방지)
+    if (this.sprite && !this.sprite.playing) {
+      this.sprite.gotoAndPlay(0); // 다시 시작
     }
 
     // 생명 시간 체크
