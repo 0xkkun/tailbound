@@ -13,9 +13,14 @@ import {
   Ticker,
 } from 'pixi.js';
 
-import { ENEMY_BALANCE, KNOCKBACK_BALANCE } from '@/config/balance.config';
+import {
+  BOSS_BALANCE,
+  FIELD_ENEMY_BALANCE,
+  KNOCKBACK_BALANCE,
+  NAMED_ENEMY_BALANCE,
+} from '@/config/balance.config';
 import { GAME_CONFIG } from '@/config/game.config';
-import type { EnemyTier } from '@/game/data/enemies';
+import type { EnemyCategory, FieldEnemyTier, NamedEnemyType } from '@/game/data/enemies';
 import { getDirection } from '@/game/utils/collision';
 import type { Vector2 } from '@/types/game.types';
 
@@ -27,21 +32,23 @@ export abstract class BaseEnemy extends Container {
 
   public id: string;
   public active: boolean = true;
-  public tier: EnemyTier;
-  public radius: number;
+  public category!: EnemyCategory;
+  public tier?: FieldEnemyTier;
+  public namedType?: NamedEnemyType;
+  public radius!: number;
 
   // 스텟
-  public health: number;
-  public maxHealth: number;
-  public speed: number;
-  public damage: number;
-  public xpDrop: number;
+  public health!: number;
+  public maxHealth!: number;
+  public speed!: number;
+  public damage!: number;
+  public xpDrop!: number;
 
   // 그래픽스
-  protected graphics: Graphics;
+  protected graphics!: Graphics;
   protected sprite?: AnimatedSprite;
-  protected shadow: Graphics; // 그림자
-  protected color: number;
+  protected shadow!: Graphics; // 그림자
+  protected color!: number;
 
   // AI
   protected targetPosition: Vector2 | null = null;
@@ -53,36 +60,37 @@ export abstract class BaseEnemy extends Container {
   // 타임아웃 관리 (메모리 누수 방지)
   private flashTimeoutId?: ReturnType<typeof setTimeout>;
 
-  constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
+  constructor(
+    id: string,
+    x: number,
+    y: number,
+    category: EnemyCategory,
+    tierOrType?: FieldEnemyTier | NamedEnemyType
+  ) {
     super();
 
     this.id = id;
     this.x = x;
     this.y = y;
-    this.tier = tier;
 
     // zIndex 설정
     this.zIndex = GAME_CONFIG.entities.enemy;
 
-    // 티어에 따른 스탯 설정
-    const stats = ENEMY_BALANCE[tier];
-    this.radius = stats.radius;
-    this.health = stats.health;
-    this.maxHealth = stats.health;
-    this.speed = stats.speed;
-    this.damage = stats.damage;
-    this.xpDrop = stats.xpDrop;
+    // 카테고리 설정
+    this.category = category;
+    if (this.category === 'field' && tierOrType) {
+      this.tier = tierOrType as FieldEnemyTier;
+    } else if (this.category === 'named' && tierOrType) {
+      this.namedType = tierOrType as NamedEnemyType;
+    }
 
-    // 티어별 색상
-    switch (tier) {
-      case 'elite':
-        this.color = 0xff8855;
-        break;
-      case 'boss':
-        this.color = 0xff5555;
-        break;
-      default:
-        this.color = 0x55ff55;
+    // 카테고리에 따른 초기화
+    if (this.category === 'field' && this.tier) {
+      this.initFieldEnemy(this.tier);
+    } else if (this.category === 'named' && this.namedType) {
+      this.initNamedEnemy(this.namedType);
+    } else if (this.category === 'boss') {
+      this.initBoss();
     }
 
     // 그림자 생성 (가장 아래 레이어)
@@ -98,6 +106,77 @@ export abstract class BaseEnemy extends Container {
     this.loadSprite();
 
     this.render();
+  }
+
+  /**
+   * 필드몹의 티어를 안전하게 반환 (타입 가드)
+   * 필드몹이 아니거나 티어가 없으면 에러를 던짐
+   */
+  protected getFieldTier(): FieldEnemyTier {
+    if (this.category !== 'field' || !this.tier) {
+      throw new Error(`getFieldTier() can only be called on field enemies with a tier`);
+    }
+    return this.tier;
+  }
+
+  /**
+   * 필드몹 초기화 (low/medium/high)
+   */
+  private initFieldEnemy(tier: FieldEnemyTier): void {
+    const stats = FIELD_ENEMY_BALANCE[tier];
+    this.radius = stats.radius;
+    this.health = stats.health;
+    this.maxHealth = stats.health;
+    this.speed = stats.speed;
+    this.damage = stats.damage;
+    this.xpDrop = stats.xpDrop;
+
+    // 티어별 색상
+    switch (tier) {
+      case 'high':
+        this.color = 0xff8855; // 주황색 (상급령)
+        break;
+      case 'medium':
+        this.color = 0x55ff55; // 녹색 (중급령)
+        break;
+      case 'low':
+        this.color = 0x88ff88; // 연한 녹색 (하급령)
+        break;
+    }
+  }
+
+  /**
+   * 네임드 초기화
+   */
+  private initNamedEnemy(type: NamedEnemyType): void {
+    const stats = NAMED_ENEMY_BALANCE[type];
+    this.radius = stats.radius;
+    this.health = stats.health;
+    this.maxHealth = stats.health;
+    this.speed = stats.speed;
+    this.damage = stats.damage;
+    this.xpDrop = stats.xpDrop;
+    this.knockbackResistance = stats.knockbackResistance ?? 0.5;
+
+    // 네임드는 보라색
+    this.color = 0xaa55ff;
+  }
+
+  /**
+   * 보스 초기화 (자식 클래스에서 오버라이드)
+   */
+  protected initBoss(): void {
+    // WhiteTigerBoss에서 구현
+    // 기본값 설정 (폴백)
+    const stats = BOSS_BALANCE.white_tiger;
+    this.radius = stats.radius;
+    this.health = stats.health;
+    this.maxHealth = stats.health;
+    this.speed = stats.speed;
+    this.damage = stats.damage;
+    this.xpDrop = stats.xpDrop;
+    this.knockbackResistance = stats.knockbackResistance ?? 0.2;
+    this.color = 0xff5555;
   }
 
   /**
@@ -223,8 +302,11 @@ export abstract class BaseEnemy extends Container {
       this.sprite.scale.set(config.scale);
 
       // 티어별 애니메이션 속도 적용
-      const animationSpeed =
-        config.animationSpeed ?? ENEMY_BALANCE[this.tier].animationSpeed ?? 0.15;
+      let animationSpeed = config.animationSpeed ?? 0.15;
+      if (this.category === 'field' && this.tier) {
+        animationSpeed =
+          config.animationSpeed ?? FIELD_ENEMY_BALANCE[this.tier].animationSpeed ?? 0.15;
+      }
       this.sprite.animationSpeed = animationSpeed;
       this.sprite.play();
 

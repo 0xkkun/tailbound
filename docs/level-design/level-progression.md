@@ -28,10 +28,13 @@
 ### 경험치 드랍 (balance.config.ts 기준)
 
 ```typescript
-// 적 티어별 기본 경험치
-normal: 5 XP    // 일반 적
-elite: 25 XP    // 엘리트 적
-boss: 100 XP    // 보스
+// 필드몹 티어별 경험치
+low: 5 XP       // 하급령 (Low Tier)
+medium: 25 XP   // 중급령 (Medium Tier)
+high: 100 XP    // 상급령 (High Tier)
+
+// 보스는 경험치를 주지 않음 (특별 보상 제공)
+boss: 0 XP      // 보스 (스테이지 보스)
 ```
 
 ### 경험치 젬 시스템
@@ -566,7 +569,8 @@ export class ExperienceBar extends Container {
   - 자석 범위: 80픽셀 (pickupRadius)
   - 젬 최대 속도: 500픽셀/초 (gemSpeed)
   - 수집 거리: 60픽셀 (하드코딩)
-  - 적 경험치: normal(5), elite(25), boss(100)
+  - 필드몹 경험치: low(5), medium(25), high(100)
+  - 보스 경험치: 0 (특별 보상 제공)
 
 #### 7. 레벨업 UI
 

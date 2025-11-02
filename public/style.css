@@ -105,13 +105,6 @@ canvas {
   }
 }
 
-/* 클릭 시 텍스트 즉시 페이드아웃 */
-.press-start-overlay.clicked .press-start-text {
-  animation: none;
-  opacity: 0;
-  transition: opacity 0.2s ease-out;
-}
-
 /* 포커스 스타일 (접근성) */
 .press-start-overlay:focus {
   outline: none;

@@ -2,41 +2,61 @@
  * 스켈레톤 적 - 빠르고 약한 유리대포형
  */
 
-import { ENEMY_BALANCE } from '@/config/balance.config';
-import type { EnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
+import type { FieldEnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class SkeletonEnemy extends BaseEnemy {
-  // 스켈레톤 스프라이트 설정
-  private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/enemy/skeleton-walk.png',
-    totalWidth: 286,
-    height: 33,
-    frameCount: 13,
-    scale: 3,
+  // 스켈레톤 스프라이트 설정 (티어별 - 크기만 변경)
+  private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
+    low: {
+      assetPath: '/assets/enemy/skeleton-walk.png',
+      totalWidth: 286, // 22 * 13 frames
+      height: 33,
+      frameCount: 13,
+      scale: 2.5, // 기본 크기
+    },
+    medium: {
+      assetPath: '/assets/enemy/skeleton-walk.png',
+      totalWidth: 286, // 22 * 13 frames
+      height: 33,
+      frameCount: 13,
+      scale: 3.0, // 20% 크게
+    },
+    high: {
+      assetPath: '/assets/enemy/skeleton-walk.png',
+      totalWidth: 286, // 22 * 13 frames
+      height: 33,
+      frameCount: 13,
+      scale: 3.5, // 40% 크게
+    },
   };
 
-  constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
-    super(id, x, y, tier);
+  constructor(id: string, x: number, y: number, tier: FieldEnemyTier = 'medium') {
+    super(id, x, y, 'field', tier);
 
     // 스켈레톤 고유 스탯: 빠르고 약함
-    // balance.config.ts의 티어 기본값에 타입별 배율 적용
-    const baseStats = ENEMY_BALANCE[tier];
-    this.health = Math.floor(baseStats.health * 0.67); // 기본보다 33% 낮음
+    const baseStats = FIELD_ENEMY_BALANCE[tier];
+    const typeConfig = ENEMY_TYPE_BALANCE.skeleton;
+
+    this.health = Math.floor(baseStats.health * typeConfig.healthMultiplier);
     this.maxHealth = this.health;
-    this.speed = 130; // 기본보다 30% 빠름
-    this.damage = Math.floor(baseStats.damage * 0.8); // 기본보다 20% 낮음
-    this.radius = 25; // 작은 히트박스
+    this.speed = typeConfig.speed;
+    this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
+
+    // 티어에 따라 히트박스도 증가
+    const radiusMultiplier = tier === 'medium' ? 1.2 : tier === 'high' ? 1.4 : 1;
+    this.radius = typeConfig.radius * radiusMultiplier;
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return SkeletonEnemy.SPRITE_CONFIG;
+    return SkeletonEnemy.SPRITE_CONFIGS[this.getFieldTier()];
   }
 
   protected getEnemyType(): string {
-    return 'skeleton';
+    return `skeleton_${this.getFieldTier()}`;
   }
 
   /**
@@ -49,9 +69,13 @@ export class SkeletonEnemy extends BaseEnemy {
   }
 
   /**
-   * 스켈레톤 스프라이트 preload
+   * 스켈레톤 스프라이트 preload (모든 티어)
    */
   public static async preloadSprites(): Promise<void> {
-    return BaseEnemy.preloadSpriteType('skeleton', SkeletonEnemy.SPRITE_CONFIG);
+    await Promise.all([
+      BaseEnemy.preloadSpriteType('skeleton_low', SkeletonEnemy.SPRITE_CONFIGS.low),
+      BaseEnemy.preloadSpriteType('skeleton_medium', SkeletonEnemy.SPRITE_CONFIGS.medium),
+      BaseEnemy.preloadSpriteType('skeleton_high', SkeletonEnemy.SPRITE_CONFIGS.high),
+    ]);
   }
 }

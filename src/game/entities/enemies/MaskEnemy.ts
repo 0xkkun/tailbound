@@ -2,41 +2,61 @@
  * 탈령 적 - 빠른 암살자형 (낮은 체력, 높은 데미지)
  */
 
-import { ENEMY_BALANCE } from '@/config/balance.config';
-import type { EnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
+import type { FieldEnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class MaskEnemy extends BaseEnemy {
-  // 탈령 스프라이트 설정
-  private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/enemy/mask-walk.png',
-    totalWidth: 352, // 32 * 11 frames
-    height: 32,
-    frameCount: 11,
-    scale: 2.5,
+  // 탈령 스프라이트 설정 (티어별)
+  private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
+    low: {
+      assetPath: '/assets/enemy/mask-red-walk.png',
+      totalWidth: 352, // 32 * 11 frames
+      height: 32,
+      frameCount: 11,
+      scale: 2.5, // 기본 크기
+    },
+    medium: {
+      assetPath: '/assets/enemy/mask-green-walk.png',
+      totalWidth: 352, // 32 * 11 frames
+      height: 32,
+      frameCount: 11,
+      scale: 3.0, // 20% 크게
+    },
+    high: {
+      assetPath: '/assets/enemy/mask-green-walk.png',
+      totalWidth: 352, // 32 * 11 frames
+      height: 32,
+      frameCount: 11,
+      scale: 3.5, // 40% 크게
+    },
   };
 
-  constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
-    super(id, x, y, tier);
+  constructor(id: string, x: number, y: number, tier: FieldEnemyTier = 'medium') {
+    super(id, x, y, 'field', tier);
 
-    // 탈령 고유 스탯: 낮은 체력, 매우 빠름, 높은 데미지
-    // balance.config.ts의 티어 기본값에 타입별 배율 적용
-    const baseStats = ENEMY_BALANCE[tier];
-    this.health = Math.floor(baseStats.health * 0.6); // 기본보다 40% 낮음
+    // 탈령 고유 스탯: 낮은 체력, 빠른 속도, 높은 데미지
+    const baseStats = FIELD_ENEMY_BALANCE[tier];
+    const typeConfig = ENEMY_TYPE_BALANCE.mask;
+
+    this.health = Math.floor(baseStats.health * typeConfig.healthMultiplier);
     this.maxHealth = this.health;
-    this.speed = 150; // 기본보다 50% 빠름 (가장 빠른 적)
-    this.damage = Math.floor(baseStats.damage * 1.5); // 기본보다 50% 높음 (가장 아픈 적)
-    this.radius = 28; // 중간 히트박스
+    this.speed = typeConfig.speed;
+    this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
+
+    // 티어에 따라 히트박스도 증가
+    const radiusMultiplier = tier === 'medium' ? 1.2 : tier === 'high' ? 1.4 : 1;
+    this.radius = typeConfig.radius * radiusMultiplier;
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return MaskEnemy.SPRITE_CONFIG;
+    return MaskEnemy.SPRITE_CONFIGS[this.getFieldTier()];
   }
 
   protected getEnemyType(): string {
-    return 'mask';
+    return `mask_${this.getFieldTier()}`;
   }
 
   /**
@@ -49,9 +69,13 @@ export class MaskEnemy extends BaseEnemy {
   }
 
   /**
-   * 탈령 스프라이트 preload
+   * 탈령 스프라이트 preload (모든 티어)
    */
   public static async preloadSprites(): Promise<void> {
-    return BaseEnemy.preloadSpriteType('mask', MaskEnemy.SPRITE_CONFIG);
+    await Promise.all([
+      BaseEnemy.preloadSpriteType('mask_low', MaskEnemy.SPRITE_CONFIGS.low),
+      BaseEnemy.preloadSpriteType('mask_medium', MaskEnemy.SPRITE_CONFIGS.medium),
+      BaseEnemy.preloadSpriteType('mask_high', MaskEnemy.SPRITE_CONFIGS.high),
+    ]);
   }
 }

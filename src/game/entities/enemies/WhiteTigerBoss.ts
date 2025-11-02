@@ -84,12 +84,8 @@ export class WhiteTigerBoss extends BaseEnemy {
   private readonly ENTRY_DURATION: number = 3.0; // 3초간 진입 (천천히 등장)
 
   constructor(id: string, x: number, y: number) {
-    // 보스는 항상 'boss' 티어
-    super(id, x, y, 'boss');
-
-    // 보스 고유 스탯은 ENEMY_BALANCE.boss에서 자동으로 적용됨
-    // 넉백 저항 설정
-    this.knockbackResistance = 0.2; // 80% 저항
+    // 보스 카테고리로 생성 (initBoss()가 자동 호출됨)
+    super(id, x, y, 'boss', undefined);
 
     // idle과 walk 스프라이트 로드
     this.loadBothSprites();

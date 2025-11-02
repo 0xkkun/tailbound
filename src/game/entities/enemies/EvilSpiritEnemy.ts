@@ -6,20 +6,36 @@
 
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
-import { ENEMY_BALANCE, ENEMY_TYPE_BALANCE } from '@/config/balance.config';
-import type { EnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
+import type { FieldEnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
 
 export class EvilSpiritEnemy extends BaseEnemy {
-  // 악령 스프라이트 설정
-  private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/enemy/evil-spirit.png',
-    totalWidth: 192, // 32 * 6 = 192
-    height: 32,
-    frameCount: 6,
-    scale: 2.0,
+  // 악령 스프라이트 설정 (티어별 - 크기만 변경)
+  private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
+    low: {
+      assetPath: '/assets/enemy/evil-spirit.png',
+      totalWidth: 192, // 32 * 6 frames
+      height: 32,
+      frameCount: 6,
+      scale: 2.5, // 기본 크기
+    },
+    medium: {
+      assetPath: '/assets/enemy/evil-spirit.png',
+      totalWidth: 192, // 32 * 6 frames
+      height: 32,
+      frameCount: 6,
+      scale: 3.0, // 20% 크게
+    },
+    high: {
+      assetPath: '/assets/enemy/evil-spirit.png',
+      totalWidth: 192, // 32 * 6 frames
+      height: 32,
+      frameCount: 6,
+      scale: 3.5, // 40% 크게
+    },
   };
 
   // 공격 애니메이션 스프라이트
@@ -40,27 +56,30 @@ export class EvilSpiritEnemy extends BaseEnemy {
     direction: { x: number; y: number };
   }) => void;
 
-  constructor(id: string, x: number, y: number, tier: EnemyTier = 'normal') {
-    super(id, x, y, tier);
+  constructor(id: string, x: number, y: number, tier: FieldEnemyTier = 'medium') {
+    super(id, x, y, 'field', tier);
 
     // 악령 고유 스탯: 낮은 체력, 빠름, 원거리 공격
-    const baseStats = ENEMY_BALANCE[tier];
+    const baseStats = FIELD_ENEMY_BALANCE[tier];
     const typeConfig = ENEMY_TYPE_BALANCE.evilSpirit;
     this.health = Math.floor(baseStats.health * typeConfig.healthMultiplier);
     this.maxHealth = this.health;
     this.speed = typeConfig.speed;
     this.damage = Math.floor(baseStats.damage * typeConfig.damageMultiplier);
-    this.radius = typeConfig.radius;
+
+    // 티어에 따라 히트박스도 증가
+    const radiusMultiplier = tier === 'medium' ? 1.2 : tier === 'high' ? 1.4 : 1;
+    this.radius = typeConfig.radius * radiusMultiplier;
 
     this.loadAttackAnimation();
   }
 
   protected getSpriteConfig(): EnemySpriteConfig {
-    return EvilSpiritEnemy.SPRITE_CONFIG;
+    return EvilSpiritEnemy.SPRITE_CONFIGS[this.getFieldTier()];
   }
 
   protected getEnemyType(): string {
-    return 'evil_spirit';
+    return `evil_spirit_${this.getFieldTier()}`;
   }
 
   /**
@@ -73,10 +92,14 @@ export class EvilSpiritEnemy extends BaseEnemy {
   }
 
   /**
-   * 악령 스프라이트 preload
+   * 악령 스프라이트 preload (모든 티어)
    */
   public static async preloadSprites(): Promise<void> {
-    return BaseEnemy.preloadSpriteType('evil_spirit', EvilSpiritEnemy.SPRITE_CONFIG);
+    await Promise.all([
+      BaseEnemy.preloadSpriteType('evil_spirit_low', EvilSpiritEnemy.SPRITE_CONFIGS.low),
+      BaseEnemy.preloadSpriteType('evil_spirit_medium', EvilSpiritEnemy.SPRITE_CONFIGS.medium),
+      BaseEnemy.preloadSpriteType('evil_spirit_high', EvilSpiritEnemy.SPRITE_CONFIGS.high),
+    ]);
   }
 
   /**
@@ -100,10 +123,14 @@ export class EvilSpiritEnemy extends BaseEnemy {
       frames.push(new Texture({ source: texture.source, frame: rect }));
     }
 
+    // 티어에 따른 스케일 설정
+    const tier = this.getFieldTier();
+    const spriteScale = tier === 'low' ? 2.5 : tier === 'medium' ? 3.0 : 3.5;
+
     // AnimatedSprite 생성
     this.attackSprite = new AnimatedSprite(frames);
     this.attackSprite.anchor.set(0.5);
-    this.attackSprite.scale.set(2.0); // 악령 기본 스케일과 동일
+    this.attackSprite.scale.set(spriteScale); // 티어에 맞는 스케일 적용
     this.attackSprite.animationSpeed = 0.3; // 애니메이션 속도
     this.attackSprite.loop = false; // 한 번만 재생
     this.attackSprite.visible = false;
