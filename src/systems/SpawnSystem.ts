@@ -81,6 +81,17 @@ export class SpawnSystem {
    * 웨이브 스폰 (여러 방향에서 소규모 그룹으로 생성)
    */
   private spawnWave(playerPos: Vector2, enemies: BaseEnemy[]): void {
+    // 최대 적 개체 수 체크 (성능 최적화)
+    const activeEnemyCount = enemies.filter((e) => e.active && e.isAlive()).length;
+    if (activeEnemyCount >= SPAWN_BALANCE.maxActiveEnemies) {
+      console.log(
+        `최대 적 개체 수 도달 (${activeEnemyCount}/${SPAWN_BALANCE.maxActiveEnemies}), 스폰 생략`
+      );
+      return;
+    }
+
+    const availableSlots = SPAWN_BALANCE.maxActiveEnemies - activeEnemyCount;
+
     // 게임 시간에 따라 그룹 수 증가
     const timeBonus = Math.floor(this.gameTime / SPAWN_BALANCE.groupIncreaseInterval);
     const groupCount = Math.min(SPAWN_BALANCE.maxGroups, SPAWN_BALANCE.minGroups + timeBonus);
@@ -90,10 +101,17 @@ export class SpawnSystem {
 
     // 여러 그룹 생성
     for (let i = 0; i < groupCount; i++) {
-      // 각 그룹의 크기 (1~4마리)
-      const groupSize =
+      // 슬롯 초과 체크
+      if (totalSpawned >= availableSlots) {
+        break;
+      }
+
+      // 각 그룹의 크기 (1~4마리), 남은 슬롯만큼만
+      const groupSize = Math.min(
         Math.floor(Math.random() * (SPAWN_BALANCE.maxGroupSize - SPAWN_BALANCE.minGroupSize + 1)) +
-        SPAWN_BALANCE.minGroupSize;
+          SPAWN_BALANCE.minGroupSize,
+        availableSlots - totalSpawned
+      );
 
       // 중복되지 않는 방향 선택 (가능하면)
       let side: number;
@@ -147,7 +165,9 @@ export class SpawnSystem {
       }
     }
 
-    console.log(`웨이브 스폰: ${groupCount}개 그룹, 총 ${totalSpawned}마리`);
+    console.log(
+      `웨이브 스폰: ${groupCount}개 그룹, 총 ${totalSpawned}마리 (활성: ${activeEnemyCount + totalSpawned}/${SPAWN_BALANCE.maxActiveEnemies})`
+    );
   }
 
   /**

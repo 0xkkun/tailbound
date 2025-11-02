@@ -392,6 +392,12 @@ export abstract class BaseEnemy extends Container {
       elapsed += deltaTime;
       const progress = Math.min(elapsed / duration, 1.0);
 
+      // destroyed 체크 추가 (안전장치 - 메모리 누수 방지)
+      if (floatingText.destroyed || !floatingText.parent) {
+        Ticker.shared.remove(animate);
+        return;
+      }
+
       // 위로 올라가기
       floatingText.y = startY - progress * riseDistance;
       // 페이드아웃
@@ -400,7 +406,9 @@ export abstract class BaseEnemy extends Container {
       // 애니메이션 완료 시 정리
       if (progress >= 1.0) {
         Ticker.shared.remove(animate); // Ticker에서 제거
-        floatingText.destroy(); // 텍스트 제거
+        if (!floatingText.destroyed) {
+          floatingText.destroy(); // 텍스트 제거
+        }
       }
     };
 
@@ -583,6 +591,9 @@ export abstract class BaseEnemy extends Container {
       clearTimeout(this.flashTimeoutId);
       this.flashTimeoutId = undefined;
     }
+
+    // 자식 텍스트 즉시 제거 (Ticker 콜백 정리)
+    this.removeChildren();
 
     this.sprite?.stop();
     // 프레임은 static 캐시이므로 destroy하지 않음
