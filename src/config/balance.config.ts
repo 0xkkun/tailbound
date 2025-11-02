@@ -210,7 +210,7 @@ export const WEAPON_BALANCE = {
     projectileLifetime: 7, // 사거리 증가 (5 -> 7, 2000px -> 2800px)
     piercing: 5,
     projectileCount: 1,
-    attackRadius: 80, // 작두날 공격 범위 (기본 64 -> 80으로 증가)
+    attackRadius: 120, // 작두날 공격 범위 (80 -> 120으로 증가, 50% 증가)
     offsetDistance: 60, // 플레이어로부터의 거리
     levelScaling: {
       damage: 6,
