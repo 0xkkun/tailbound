@@ -1,9 +1,10 @@
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
 import { audioManager } from '@/services/audioManager';
+import { safeGetSafeAreaInsets } from '@/utils/tossAppBridge';
 
-import { DevSettingsButton } from '../ui/DevSettingsButton';
 import { PixelButton } from '../ui/PixelButton';
+import { SettingsModal } from '../ui/SettingsModal';
 
 export class LobbyScene extends Container {
   private backgroundSprite!: Sprite;
@@ -14,13 +15,20 @@ export class LobbyScene extends Container {
   private testButton?: PixelButton; // 개발 환경 전용
   private comingSoonText!: Text;
   private copyrightText!: Text;
-  private devSettingsButton?: DevSettingsButton;
+  private settingsButton!: Container;
+  private settingsModal: SettingsModal | null = null;
   private isMobile: boolean;
   private scaleFactor: number;
   private screenWidth: number;
+  private screenHeight: number;
+
+  // UI 레이아웃 상수
+  private readonly UI_PADDING = 16;
+  private readonly UI_SETTINGS_SIZE = 32;
 
   public onStartGame?: () => void;
   public onStartTestMode?: () => void;
+  public onShowStageSelect?: () => void;
 
   constructor(screenWidth: number, screenHeight: number) {
     super();
@@ -29,6 +37,7 @@ export class LobbyScene extends Container {
     this.isMobile = screenWidth < 768;
     this.scaleFactor = Math.min(screenWidth / 375, 1.5); // 375px 기준, 최대 1.5배
     this.screenWidth = screenWidth;
+    this.screenHeight = screenHeight;
 
     // 극소형 화면 대응 (330px)
     if (screenWidth <= 330) {
@@ -38,19 +47,14 @@ export class LobbyScene extends Container {
     this.loadAndCreateBackground(screenWidth, screenHeight);
     this.loadAndCreateTitleImage();
     this.createButtons(screenWidth, screenHeight);
+    this.createSettingsButton();
     this.createCopyright(screenWidth, screenHeight);
-
-    // DEV 전용: 설정 버튼
-    if (import.meta.env.DEV) {
-      this.devSettingsButton = new DevSettingsButton(screenWidth, screenHeight);
-      this.addChild(this.devSettingsButton);
-    }
   }
 
   private async loadAndCreateBackground(width: number, height: number): Promise<void> {
     try {
-      // main-bg 이미지 로드
-      const texture = await Assets.load('/assets/gui/main-bg.png');
+      // bg-main 이미지 로드
+      const texture = await Assets.load('/assets/gui/bg-main.png');
 
       // 배경 스프라이트 생성
       this.backgroundSprite = new Sprite(texture);
@@ -159,10 +163,8 @@ export class LobbyScene extends Container {
       buttonX,
       startButtonY,
       () => {
-        console.log('게임 시작!');
-        // 로비 BGM 즉시 중지
-        audioManager.stopBGM(false);
-        this.onStartGame?.();
+        console.log('스테이지 선택 화면 표시');
+        this.onShowStageSelect?.();
       },
       false,
       this.isMobile,
@@ -215,6 +217,71 @@ export class LobbyScene extends Container {
     }
   }
 
+  private createSettingsButton(): void {
+    // 인앱토스 SafeArea 적용
+    const insets = safeGetSafeAreaInsets();
+
+    const buttonContainer = new Container();
+    buttonContainer.x = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
+    buttonContainer.y = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2 + insets.top;
+    buttonContainer.zIndex = 1000; // 다른 UI보다 위에
+
+    // 설정 아이콘 비동기 로드
+    Assets.load('/assets/gui/settings.png').then((texture) => {
+      // 픽셀 아트 렌더링 설정
+      if (texture.source) {
+        texture.source.scaleMode = 'nearest';
+      }
+
+      const icon = new Sprite(texture);
+      icon.width = this.UI_SETTINGS_SIZE;
+      icon.height = this.UI_SETTINGS_SIZE;
+      icon.anchor.set(0.5);
+      buttonContainer.addChild(icon);
+    });
+
+    // 인터랙션 활성화
+    buttonContainer.eventMode = 'static';
+    buttonContainer.cursor = 'pointer';
+
+    // 호버 효과
+    buttonContainer.on('pointerover', () => {
+      buttonContainer.scale.set(1.1);
+    });
+
+    buttonContainer.on('pointerout', () => {
+      buttonContainer.scale.set(1.0);
+    });
+
+    // 클릭 시 설정 모달 토글
+    buttonContainer.on('pointerdown', () => {
+      this.toggleSettingsModal();
+    });
+
+    this.settingsButton = buttonContainer;
+    this.addChild(this.settingsButton);
+  }
+
+  private toggleSettingsModal(): void {
+    if (this.settingsModal) {
+      // 모달 닫기
+      this.removeChild(this.settingsModal);
+      this.settingsModal.destroy();
+      this.settingsModal = null;
+      // BGM 재개
+      audioManager.resumeBGM();
+    } else {
+      // 모달 열기
+      this.settingsModal = new SettingsModal(this.screenWidth, this.screenHeight);
+      this.settingsModal.onClose = () => {
+        this.toggleSettingsModal();
+      };
+      this.addChild(this.settingsModal);
+      // BGM 일시정지
+      audioManager.pauseAllBGM();
+    }
+  }
+
   private createCopyright(screenWidth: number, screenHeight: number): void {
     const fontSize = this.isMobile ? 10 : 16;
     const padding = this.isMobile ? 10 : 20;
@@ -255,7 +322,9 @@ export class LobbyScene extends Container {
     if (this.testButton) {
       this.testButton.destroy();
     }
-    this.devSettingsButton?.destroy();
+    if (this.settingsModal) {
+      this.settingsModal.destroy();
+    }
     super.destroy({ children: true });
   }
 }
