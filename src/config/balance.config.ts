@@ -166,7 +166,7 @@ export const WEAPON_BALANCE = {
     piercing: 0,
     projectileCount: 3,
     // 궤도 설정
-    orbitalRadius: 80, // 기본 궤도 반경
+    orbitalRadius: 120, // 기본 궤도 반경 (80 -> 120)
     baseAngularSpeed: 3.5, // 기본 회전 속도 (rad/s)
     maxAngularSpeed: 5.5, // 최대 회전 속도
     maxOrbitalCount: 5, // 최대 궤도 개수
@@ -191,7 +191,7 @@ export const WEAPON_BALANCE = {
     name: '목탁 소리',
     baseDamage: 12, // 지속 데미지로 변경되어 감소
     baseCooldown: 2.0,
-    aoeRadius: 150, // 범위 공격
+    aoeRadius: 200, // 범위 공격 (150 -> 200)
     piercing: 999, // 모든 적 관통
     projectileCount: 1,
     levelScaling: {
@@ -207,10 +207,10 @@ export const WEAPON_BALANCE = {
     baseCooldown: 3.0,
     projectileSpeed: 400,
     projectileRadius: 20,
-    projectileLifetime: 5,
+    projectileLifetime: 7, // 사거리 증가 (5 -> 7, 2000px -> 2800px)
     piercing: 5,
     projectileCount: 1,
-    attackRadius: 80, // 작두날 공격 범위 (기본 64 -> 80으로 증가)
+    attackRadius: 120, // 작두날 공격 범위 (80 -> 120으로 증가, 50% 증가)
     offsetDistance: 60, // 플레이어로부터의 거리
     levelScaling: {
       damage: 6,
@@ -224,9 +224,9 @@ export const WEAPON_BALANCE = {
     name: '부채바람',
     baseDamage: 12,
     baseCooldown: 2.0,
-    projectileSpeed: 350,
+    projectileSpeed: 300,
     projectileRadius: 15,
-    projectileLifetime: 1.2, // 최대 사거리 420픽셀 (350 * 1.2)
+    projectileLifetime: 2.0, // 최대 사거리 600픽셀 (300 * 2.0)
     piercing: Infinity, // 무제한 관통
     projectileCount: 1,
     damageDecayMin: 0.33, // 관통 시 최소 데미지 (33%)

@@ -42,12 +42,12 @@ export class WhiteTigerBoss extends BaseEnemy {
   private static walkFrames: Texture[] | null = null;
 
   // 패턴 1: 번개 탄막 발사
-  private bulletCooldown: number = 3.0; // 3초마다
+  private bulletCooldown: number = 5.0; // 5초마다
   private bulletTimer: number = 0;
   public onFireProjectile?: (projectile: BossProjectile) => void;
 
   // 패턴 추가: 기본 불꽃 공격
-  private fireballCooldown: number = 2.0; // 2초마다
+  private fireballCooldown: number = 4.0; // 4초마다
   private fireballTimer: number = 0;
   public onFireFireball?: (projectile: FireballProjectile) => void;
 
@@ -66,7 +66,6 @@ export class WhiteTigerBoss extends BaseEnemy {
   public onCreateAOEWarning?: (x: number, y: number, radius: number) => void;
 
   // 패턴 2: 번개 돌진
-  private dashCooldown: number = 6.0; // 6초마다
   private dashTimer: number = 0;
   private isDashing: boolean = false;
   private dashState: 'warning' | 'dashing' | 'recovery' | null = null;
@@ -85,7 +84,7 @@ export class WhiteTigerBoss extends BaseEnemy {
 
   constructor(id: string, x: number, y: number) {
     // 보스 카테고리로 생성 (initBoss()가 자동 호출됨)
-    super(id, x, y, 'boss', undefined);
+    super(id, x, y, 'boss');
 
     // idle과 walk 스프라이트 로드
     this.loadBothSprites();
@@ -230,16 +229,16 @@ export class WhiteTigerBoss extends BaseEnemy {
       return;
     }
 
-    // 나선형 공격 카운터 (5회 - 테스트용으로 더 줄임)
+    // 나선형 공격 카운터 (30회)
     this.hitCount++;
-    if (this.hitCount >= 5 && !this.isChargingSpiral && !this.isFiringSpiral && !this.isDashing) {
+    if (this.hitCount >= 30 && !this.isChargingSpiral && !this.isFiringSpiral && !this.isDashing) {
       this.startSpiralAttack();
       this.hitCount = 0;
     }
 
-    // 장판 공격 카운터 (30회 - 테스트용)
+    // 장판 공격 카운터 (60회)
     this.hitCountForAOE++;
-    if (this.hitCountForAOE >= 30 && !this.isDashing) {
+    if (this.hitCountForAOE >= 60 && !this.isDashing) {
       this.startAOEAttack();
       this.hitCountForAOE = 0;
     }
@@ -369,7 +368,7 @@ export class WhiteTigerBoss extends BaseEnemy {
     }
 
     // 패턴 2: 돌진
-    const currentDashCooldown = this.health / this.maxHealth > 0.5 ? 6.0 : 4.0;
+    const currentDashCooldown = this.health / this.maxHealth > 0.5 ? 8.0 : 6.0;
     if (this.dashTimer >= currentDashCooldown) {
       this.startDash();
       this.dashTimer = 0;
