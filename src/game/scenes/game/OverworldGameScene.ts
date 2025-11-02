@@ -30,6 +30,7 @@ import { Player } from '@/game/entities/Player';
 import { Portal } from '@/game/entities/Portal';
 import { Projectile } from '@/game/entities/Projectile';
 import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
+import { StageTransitionScene } from '@/game/scenes/StageTransitionScene';
 import { LevelUpUI } from '@/game/ui/LevelUpUI';
 import { PixelButton } from '@/game/ui/PixelButton';
 import { PortalIndicator } from '@/game/ui/PortalIndicator';
@@ -118,6 +119,7 @@ export class OverworldGameScene extends BaseGameScene {
   private portalIndicator!: PortalIndicator;
   private settingsButton!: Container;
   private settingsMenu: Container | null = null;
+  private transitionScene: StageTransitionScene | null = null;
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
@@ -486,18 +488,40 @@ export class OverworldGameScene extends BaseGameScene {
     // UI 초기화
     this.initUI();
 
-    // BGM은 첫 입력 후 시작 (브라우저 autoplay 정책 대응)
-    // updateScene()에서 첫 입력 감지 시 시작됨
+    // 스테이지 전환 애니메이션 표시
+    this.showTransitionAnimation();
 
     // 개발 환경: 5초 후 자동으로 보스 처치 이벤트 발생
-    if (import.meta.env.DEV) {
-      setTimeout(() => {
-        console.log('[DEV] 자동 보스 처치 (5초 후)');
-        this.handleBossDefeat();
-      }, 5000);
-    }
+    // if (import.meta.env.DEV) {
+    //   setTimeout(() => {
+    //     console.log('[DEV] 자동 보스 처치 (5초 후)');
+    //     this.handleBossDefeat();
+    //   }, 5000);
+    // }
 
     console.log('게임 시작!');
+  }
+
+  /**
+   * 스테이지 전환 애니메이션 표시
+   */
+  private showTransitionAnimation(): void {
+    // 전환 씬 생성 (모달처럼 최상위에 표시)
+    this.transitionScene = new StageTransitionScene(this.screenWidth, this.screenHeight);
+    this.transitionScene.zIndex = GAME_CONFIG.layers.ui + 100; // UI보다 위에 표시
+
+    // 전환 완료 콜백 (fade-out 완료 후 호출됨)
+    this.transitionScene.onTransitionComplete = async () => {
+      // 전환 씬 제거 (이미 완전히 투명해진 상태)
+      if (this.transitionScene) {
+        this.removeChild(this.transitionScene);
+        await this.transitionScene.destroy();
+        this.transitionScene = null;
+      }
+    };
+
+    // 씬에 추가 (최상위 레이어)
+    this.addChild(this.transitionScene);
   }
 
   /**
@@ -1226,10 +1250,10 @@ export class OverworldGameScene extends BaseGameScene {
   /**
    * 보스 처치 이벤트 핸들러
    */
-  private handleBossDefeat(): void {
-    this.bossDefeated = true;
-    console.log('보스 처치! 포탈 생성 준비...');
-  }
+  // private handleBossDefeat(): void {
+  //   this.bossDefeated = true;
+  //   console.log('보스 처치! 포탈 생성 준비...');
+  // }
 
   /**
    * 포탈 시스템 업데이트
@@ -1554,11 +1578,15 @@ export class OverworldGameScene extends BaseGameScene {
       this.uiLayer.removeChild(this.settingsMenu);
       this.settingsMenu.destroy();
       this.settingsMenu = null;
+      // BGM 재개
+      audioManager.resumeBGM();
     } else {
       // 조이스틱 상태 리셋 (설정 메뉴 열기 전)
       if (this.virtualJoystick) {
         this.virtualJoystick.reset();
       }
+      // BGM 일시정지
+      audioManager.pauseAllBGM();
       // 메뉴 열기
       this.settingsMenu = this.createSettingsMenu();
       this.uiLayer.addChild(this.settingsMenu);
@@ -1870,7 +1898,7 @@ export class OverworldGameScene extends BaseGameScene {
   /**
    * 정리
    */
-  public destroy(): void {
+  public async destroy(): Promise<void> {
     if (this.isReady) {
       // 무기 정리 (궤도형 무기 특별 처리)
       for (const weapon of this.weapons) {
@@ -1910,6 +1938,12 @@ export class OverworldGameScene extends BaseGameScene {
 
       // Static 캐시 정리 (게임 종료 시)
       BaseEnemy.clearAllCaches();
+    }
+
+    // 전환 씬 정리
+    if (this.transitionScene) {
+      await this.transitionScene.destroy();
+      this.transitionScene = null;
     }
 
     // BGM 중지

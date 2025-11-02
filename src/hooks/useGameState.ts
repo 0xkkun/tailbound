@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import type { Player } from '@/game/entities/Player';
 
-export type GamePhase = 'lobby' | 'playing' | 'boundary' | 'test';
+export type GamePhase = 'lobby' | 'stage-select' | 'playing' | 'boundary' | 'test';
 
 export interface PlayerSnapshot {
   health: number;
@@ -17,6 +17,7 @@ export interface PlayerSnapshot {
 export const useGameState = () => {
   const [gamePhase, setGamePhase] = useState<GamePhase>('lobby');
   const [playerSnapshot, setPlayerSnapshot] = useState<PlayerSnapshot | null>(null);
+  const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [gameKey, setGameKey] = useState(0); // 게임 재시작용 키
 
   const startGame = () => {
@@ -53,6 +54,7 @@ export const useGameState = () => {
   const returnToLobby = () => {
     // 로비로 돌아가기 (플레이어 데이터 초기화)
     setPlayerSnapshot(null);
+    setSelectedStage(null); // 선택된 스테이지도 초기화
     setGamePhase('lobby');
 
     // URL 쿼리 파라미터 제거 (테스트 모드 쿼리 제거)
@@ -69,9 +71,20 @@ export const useGameState = () => {
     setGameKey((prev) => prev + 1); // 게임 키 증가로 강제 리렌더링
   };
 
+  const showStageSelect = () => {
+    setGamePhase('stage-select');
+  };
+
+  const startGameWithStage = (stageId: string) => {
+    setSelectedStage(stageId);
+    setGamePhase('playing');
+    setGameKey((prev) => prev + 1);
+  };
+
   return {
     gamePhase,
     playerSnapshot,
+    selectedStage,
     gameKey,
     startGame,
     startTestMode,
@@ -79,5 +92,7 @@ export const useGameState = () => {
     continueToStage2,
     returnToLobby,
     restartGame,
+    showStageSelect,
+    startGameWithStage,
   };
 };
