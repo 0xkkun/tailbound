@@ -33,11 +33,11 @@ export class SpiralChargeEffect extends Container {
     // 스프라이트 생성
     if (!SpiralChargeEffect.textures) {
       console.error('[SpiralChargeEffect] Textures not loaded! Creating fallback graphics.');
-      // Fallback: 빨간색 원형 아우라
+      // Fallback: 빨간색 원형 아우라 (보스 크기에 맞춰 2배 증가)
       const fallback = new Graphics();
-      fallback.circle(0, 0, 80);
+      fallback.circle(0, 0, 160); // 80 → 160
       fallback.fill({ color: 0xff0000, alpha: 0.3 });
-      fallback.circle(0, 0, 60);
+      fallback.circle(0, 0, 120); // 60 → 120
       fallback.fill({ color: 0xff0000, alpha: 0.5 });
       this.addChild(fallback);
 
@@ -50,9 +50,9 @@ export class SpiralChargeEffect extends Container {
     this.sprite.anchor.set(0.5);
 
     // 보스를 감쌀 수 있도록 스케일 조정
-    // 보스가 144px 정도 (48px * 3.0 scale)
-    // 원본 이펙트는 59x49로 작으므로 3배 확대
-    const scale = 3.0;
+    // 보스가 288px 정도 (48px * 6.0 scale)
+    // 원본 이펙트는 59x49로 작으므로 6배 확대
+    const scale = 6.0;
     this.sprite.scale.set(scale, scale);
 
     // 애니메이션 설정
