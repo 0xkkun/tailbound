@@ -14,7 +14,7 @@ import type { Player } from './Player';
 export class OrbitalEntity extends Container {
   public active: boolean = true;
   public damage: number = 10;
-  public radius: number = 15; // 엔티티 크기 (충돌 판정)
+  public radius: number = 22.5; // 엔티티 크기 (충돌 판정) - 궤도 반경 비율에 맞춰 증가 (15 * 1.5 = 22.5)
   public angularSpeed: number; // 회전 속도 (rad/s) - public으로 변경
 
   private orbitAngle: number; // 현재 각도 (라디안)
