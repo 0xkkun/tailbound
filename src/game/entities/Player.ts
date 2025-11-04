@@ -1,17 +1,16 @@
 /**
  * 플레이어 엔티티
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { PLAYER_BALANCE } from '@config/balance.config';
+import { GAME_CONFIG } from '@config/game.config';
+import { parsePowerupId, POWERUPS_CONFIG } from '@config/powerups.config';
+import { PLAYER_SPRITE_CONFIG } from '@config/sprite.config';
+import { audioManager } from '@services/audioManager';
+import { hapticManager } from '@services/hapticManager';
+import { LevelSystem, type LevelUpChoice } from '@systems/LevelSystem';
+import type { InputState } from '@type/game.types';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Text, Texture } from 'pixi.js';
-
-import { PLAYER_BALANCE } from '@/config/balance.config';
-import { GAME_CONFIG } from '@/config/game.config';
-import { parsePowerupId, POWERUPS_CONFIG } from '@/config/powerups.config';
-import { PLAYER_SPRITE_CONFIG } from '@/config/sprite.config';
-import { audioManager } from '@/services/audioManager';
-import { hapticManager } from '@/services/hapticManager';
-import { LevelSystem, type LevelUpChoice } from '@/systems/LevelSystem';
-import type { InputState } from '@/types/game.types';
 
 export class Player extends Container {
   public id: string = 'player';
@@ -159,7 +158,7 @@ export class Player extends Container {
    */
   private async loadSprite(): Promise<void> {
     try {
-      const texture = await Assets.load('/assets/player/shaman-walk.png');
+      const texture = await Assets.load(`${CDN_BASE_URL}/assets/player/shaman-walk.png`);
 
       // 로드 중 destroy될 수 있으므로 체크
       if (this.destroyed) {

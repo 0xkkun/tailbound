@@ -2,17 +2,16 @@
  * BoundaryGameScene - 경계 맵 씬
  * BaseGameScene을 확장하여 NPC와 DialogSystem만 추가
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { GAME_CONFIG } from '@config/game.config';
+import { BOUNDARY_MERCHANT_DIALOG } from '@game/data/dialogs';
+import type { NPCData } from '@game/entities/NPC';
+import { NPC } from '@game/entities/NPC';
+import { Player } from '@game/entities/Player';
+import { DialogUI } from '@game/ui/DialogUI';
+import type { PlayerSnapshot } from '@hooks/useGameState';
+import { DialogSystem } from '@systems/DialogSystem';
 import { Assets, Graphics, Sprite, Text, TilingSprite } from 'pixi.js';
-
-import { GAME_CONFIG } from '@/config/game.config';
-import { BOUNDARY_MERCHANT_DIALOG } from '@/data/dialogs';
-import type { NPCData } from '@/game/entities/NPC';
-import { NPC } from '@/game/entities/NPC';
-import { Player } from '@/game/entities/Player';
-import { DialogUI } from '@/game/ui/DialogUI';
-import type { PlayerSnapshot } from '@/hooks/useGameState';
-import { DialogSystem } from '@/systems/DialogSystem';
 
 import { BaseGameScene } from './BaseGameScene';
 
@@ -40,8 +39,8 @@ export class BoundaryGameScene extends BaseGameScene {
    */
   protected async loadAssets(): Promise<void> {
     await super.loadAssets();
-    await Assets.load('/assets/tile/tile_green1.png'); // 바닥 타일
-    await Assets.load('/assets/tile/tile_deco.png'); // 풀 장식
+    await Assets.load(`${CDN_BASE_URL}/assets/tile/tile_green1.png`); // 바닥 타일
+    await Assets.load(`${CDN_BASE_URL}/assets/tile/tile_deco.png`); // 풀 장식
   }
 
   /**
@@ -50,7 +49,7 @@ export class BoundaryGameScene extends BaseGameScene {
    */
   protected createPlayer(): void {
     // 월드 배경 (타일링)
-    const texture = Assets.get('/assets/tile/tile_green1.png');
+    const texture = Assets.get(`${CDN_BASE_URL}/assets/tile/tile_green1.png`);
     texture.source.scaleMode = 'nearest'; // 픽셀 아트용: 픽셀 단위 렌더링
     const bg = new TilingSprite({
       texture,
@@ -82,7 +81,7 @@ export class BoundaryGameScene extends BaseGameScene {
    * 풀 장식 무작위 배치
    */
   private createGrassDecorations(): void {
-    const grassTexture = Assets.get('/assets/tile/tile_deco.png');
+    const grassTexture = Assets.get(`${CDN_BASE_URL}/assets/tile/tile_deco.png`);
     grassTexture.source.scaleMode = 'nearest';
 
     const tileSize = 32; // 타일 크기 (16x16을 2배 확대한 크기)
@@ -134,7 +133,7 @@ export class BoundaryGameScene extends BaseGameScene {
       id: 'merchant_boundary',
       name: '저승의 상인',
       dialogId: 'boundary_merchant',
-      portraitPath: '/assets/npc/monk.png', // 상인 초상화 (현재는 monk 사용)
+      portraitPath: `${CDN_BASE_URL}/assets/npc/monk.png`, // 상인 초상화 (현재는 monk 사용)
     };
     this.npc = new NPC(this.worldWidth / 2, 300, merchantData);
     this.npc.onInteract = () => this.startDialog();

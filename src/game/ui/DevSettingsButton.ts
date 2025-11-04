@@ -4,7 +4,7 @@
  * 로비 화면에 설정 모달을 여는 간단한 버튼을 추가합니다.
  * 프로덕션 빌드 시 쉽게 제거 가능하도록 분리된 컴포넌트입니다.
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { Assets, Container, Graphics, Sprite, Text, TextStyle } from 'pixi.js';
 
 import { SettingsModal } from './SettingsModal';
@@ -29,7 +29,7 @@ export class DevSettingsButton extends Container {
 
     try {
       // 설정 아이콘 로드 시도
-      const texture = await Assets.load('/assets/gui/settings.png');
+      const texture = await Assets.load(`${CDN_BASE_URL}/assets/gui/settings.png`);
       if (texture.baseTexture) {
         texture.baseTexture.scaleMode = 'nearest';
       }

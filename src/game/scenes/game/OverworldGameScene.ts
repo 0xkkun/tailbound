@@ -1,12 +1,10 @@
 /**
  * 게임 씬 - 메인 게임 로직
  */
-
-import { Assets, Container, Graphics, Sprite, Spritesheet, Text } from 'pixi.js';
-
-import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@/config/balance.config';
-import { GAME_CONFIG } from '@/config/game.config';
-import { AoEEffect } from '@/game/entities/AoEEffect';
+import { CDN_BASE_URL } from '@config/assets.config';
+import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
+import { GAME_CONFIG } from '@config/game.config';
+import { AoEEffect } from '@game/entities/AoEEffect';
 import {
   BaseEnemy,
   DokkaebiEnemy,
@@ -19,37 +17,38 @@ import {
   TotemEnemy,
   WaterGhostEnemy,
   WhiteTigerBoss,
-} from '@/game/entities/enemies';
-import { EnemyProjectile } from '@/game/entities/EnemyProjectile';
-import { ExperienceGem } from '@/game/entities/ExperienceGem';
-import { FireAOE } from '@/game/entities/FireAOE';
-import { FireballProjectile } from '@/game/entities/FireballProjectile';
-import { HealthPotion } from '@/game/entities/HealthPotion';
-import { MeleeSwing } from '@/game/entities/MeleeSwing';
-import { Player } from '@/game/entities/Player';
-import { Portal } from '@/game/entities/Portal';
-import { Projectile } from '@/game/entities/Projectile';
-import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
-import { StageTransitionScene } from '@/game/scenes/StageTransitionScene';
-import { LevelUpUI } from '@/game/ui/LevelUpUI';
-import { PixelButton } from '@/game/ui/PixelButton';
-import { PortalIndicator } from '@/game/ui/PortalIndicator';
-import { checkCircleCollision } from '@/game/utils/collision';
-import { DokkaebiFireWeapon } from '@/game/weapons/DokkaebiFireWeapon';
-import { FanWindWeapon } from '@/game/weapons/FanWindWeapon';
-import { JakduBladeWeapon } from '@/game/weapons/JakduBladeWeapon';
-import { MoktakSoundWeapon } from '@/game/weapons/MoktakSoundWeapon';
-import { TalismanWeapon } from '@/game/weapons/TalismanWeapon';
-import type { Weapon } from '@/game/weapons/Weapon';
-import type { PlayerSnapshot } from '@/hooks/useGameState';
-import i18n from '@/i18n/config';
-import { audioManager } from '@/services/audioManager';
-import { BossSystem } from '@/systems/BossSystem';
-import { CombatSystem } from '@/systems/CombatSystem';
-import { PortalSpawner } from '@/systems/PortalSpawner';
-import { SpawnSystem } from '@/systems/SpawnSystem';
-import type { GameResult } from '@/types/game.types';
-import { safeGetSafeAreaInsets } from '@/utils/tossAppBridge';
+} from '@game/entities/enemies';
+import { EnemyProjectile } from '@game/entities/EnemyProjectile';
+import { ExperienceGem } from '@game/entities/ExperienceGem';
+import { FireAOE } from '@game/entities/FireAOE';
+import { FireballProjectile } from '@game/entities/FireballProjectile';
+import { HealthPotion } from '@game/entities/HealthPotion';
+import { MeleeSwing } from '@game/entities/MeleeSwing';
+import { Player } from '@game/entities/Player';
+import { Portal } from '@game/entities/Portal';
+import { Projectile } from '@game/entities/Projectile';
+import { SpiralChargeEffect } from '@game/entities/SpiralChargeEffect';
+import { StageTransitionScene } from '@game/scenes/StageTransitionScene';
+import { LevelUpUI } from '@game/ui/LevelUpUI';
+import { PixelButton } from '@game/ui/PixelButton';
+import { PortalIndicator } from '@game/ui/PortalIndicator';
+import { checkCircleCollision } from '@game/utils/collision';
+import { DokkaebiFireWeapon } from '@game/weapons/DokkaebiFireWeapon';
+import { FanWindWeapon } from '@game/weapons/FanWindWeapon';
+import { JakduBladeWeapon } from '@game/weapons/JakduBladeWeapon';
+import { MoktakSoundWeapon } from '@game/weapons/MoktakSoundWeapon';
+import { TalismanWeapon } from '@game/weapons/TalismanWeapon';
+import type { Weapon } from '@game/weapons/Weapon';
+import type { PlayerSnapshot } from '@hooks/useGameState';
+import i18n from '@i18n/config';
+import { audioManager } from '@services/audioManager';
+import { BossSystem } from '@systems/BossSystem';
+import { CombatSystem } from '@systems/CombatSystem';
+import { PortalSpawner } from '@systems/PortalSpawner';
+import { SpawnSystem } from '@systems/SpawnSystem';
+import type { GameResult } from '@type/game.types';
+import { safeGetSafeAreaInsets } from '@utils/tossAppBridge';
+import { Assets, Container, Graphics, Sprite, Spritesheet, Text } from 'pixi.js';
 
 import { BaseGameScene } from './BaseGameScene';
 
@@ -173,20 +172,20 @@ export class OverworldGameScene extends BaseGameScene {
       GrimReaperEnemy.preloadSprites(),
       TotemEnemy.preloadSprites(),
       WaterGhostEnemy.preloadSprites(),
-      Assets.load('/assets/tile/tile1.png'), // 바닥 타일 1 (32x48)
-      Assets.load('/assets/tile/tile2.png'), // 바닥 타일 2 (32x48)
-      Assets.load('/assets/tile/tile3.png'), // 바닥 타일 3 (32x32)
-      Assets.load('/assets/tile/outline-left.png'), // 테두리 왼쪽 (24x48)
-      Assets.load('/assets/tile/outline-right.png'), // 테두리 오른쪽 (24x48)
-      Assets.load('/assets/tile/outline-bottom.png'), // 테두리 하단 (64x48)
+      Assets.load(`${CDN_BASE_URL}/assets/tile/tile1.png`), // 바닥 타일 1 (32x48)
+      Assets.load(`${CDN_BASE_URL}/assets/tile/tile2.png`), // 바닥 타일 2 (32x48)
+      Assets.load(`${CDN_BASE_URL}/assets/tile/tile3.png`), // 바닥 타일 3 (32x32)
+      Assets.load(`${CDN_BASE_URL}/assets/tile/outline-left.png`), // 테두리 왼쪽 (24x48)
+      Assets.load(`${CDN_BASE_URL}/assets/tile/outline-right.png`), // 테두리 오른쪽 (24x48)
+      Assets.load(`${CDN_BASE_URL}/assets/tile/outline-bottom.png`), // 테두리 하단 (64x48)
     ]);
 
     // Spirit Energy 스프라이트시트 로드 (1, 2, 3)
     [this.spiritEnergySpritesheet1, this.spiritEnergySpritesheet2, this.spiritEnergySpritesheet3] =
       await Promise.all([
-        this.loadSpiritEnergySpritesheet('/assets/drop/spirit-enery-1.png'),
-        this.loadSpiritEnergySpritesheet('/assets/drop/spirit-enery-2.png'),
-        this.loadSpiritEnergySpritesheet('/assets/drop/spirit-enery-3.png'),
+        this.loadSpiritEnergySpritesheet(`${CDN_BASE_URL}/assets/drop/spirit-enery-1.png`),
+        this.loadSpiritEnergySpritesheet(`${CDN_BASE_URL}/assets/drop/spirit-enery-2.png`),
+        this.loadSpiritEnergySpritesheet(`${CDN_BASE_URL}/assets/drop/spirit-enery-3.png`),
       ]);
   }
 
@@ -260,9 +259,9 @@ export class OverworldGameScene extends BaseGameScene {
    * tile1, tile2 (32x48), tile3 (32x32)를 자연스럽게 배치
    */
   private createRandomTileBackground(): void {
-    const tile1Texture = Assets.get('/assets/tile/tile1.png');
-    const tile2Texture = Assets.get('/assets/tile/tile2.png');
-    const tile3Texture = Assets.get('/assets/tile/tile3.png');
+    const tile1Texture = Assets.get(`${CDN_BASE_URL}/assets/tile/tile1.png`);
+    const tile2Texture = Assets.get(`${CDN_BASE_URL}/assets/tile/tile2.png`);
+    const tile3Texture = Assets.get(`${CDN_BASE_URL}/assets/tile/tile3.png`);
 
     // 픽셀 아트 렌더링 설정
     tile1Texture.source.scaleMode = 'nearest';
@@ -331,9 +330,9 @@ export class OverworldGameScene extends BaseGameScene {
    * 월드의 좌/우/하단에 테두리 배치
    */
   private createTileBorders(): void {
-    const leftTexture = Assets.get('/assets/tile/outline-left.png');
-    const rightTexture = Assets.get('/assets/tile/outline-right.png');
-    const bottomTexture = Assets.get('/assets/tile/outline-bottom.png');
+    const leftTexture = Assets.get(`${CDN_BASE_URL}/assets/tile/outline-left.png`);
+    const rightTexture = Assets.get(`${CDN_BASE_URL}/assets/tile/outline-right.png`);
+    const bottomTexture = Assets.get(`${CDN_BASE_URL}/assets/tile/outline-bottom.png`);
 
     // 픽셀 아트 렌더링 설정
     leftTexture.source.scaleMode = 'nearest';
@@ -407,7 +406,7 @@ export class OverworldGameScene extends BaseGameScene {
    * 풀 장식 무작위 배치
    */
   // private createGrassDecorations(): void {
-  //   const grassTexture = Assets.get('/assets/tile/tile_deco.png');
+  //   const grassTexture = Assets.get(`${CDN_BASE_URL}/assets/tile/tile_deco.png`);
   //   grassTexture.source.scaleMode = 'nearest';
 
   //   const worldWidth = GAME_CONFIG.world.overworld.width;
@@ -633,7 +632,7 @@ export class OverworldGameScene extends BaseGameScene {
   private async loadAndCreateKillUI(): Promise<void> {
     try {
       // 해골 아이콘 로드
-      const texture = await Assets.load('/assets/power-up/kill.png');
+      const texture = await Assets.load(`${CDN_BASE_URL}/assets/power-up/kill.png`);
 
       // 픽셀 아트 렌더링 설정
       if (texture.baseTexture) {
@@ -1046,7 +1045,7 @@ export class OverworldGameScene extends BaseGameScene {
 
             // woman-ghost-projectile.png 스프라이트 로드 (16x16, 30프레임, 2배 크기)
             projectile.loadSpriteSheet(
-              '/assets/enemy/woman-ghost-projectile.png',
+              `${CDN_BASE_URL}/assets/enemy/woman-ghost-projectile.png`,
               16,
               16,
               30,
@@ -1076,7 +1075,7 @@ export class OverworldGameScene extends BaseGameScene {
             // TODO: evil-spirit-projectile.png 스프라이트 사용, 어두운 보라색 틴트
             // 현재는 woman-ghost-projectile.png 사용
             projectile.loadSpriteSheet(
-              '/assets/enemy/woman-ghost-projectile.png',
+              `${CDN_BASE_URL}/assets/enemy/woman-ghost-projectile.png`,
               16,
               16,
               30,
@@ -1491,7 +1490,7 @@ export class OverworldGameScene extends BaseGameScene {
     this.createMenuButtonWithIcon(
       gameOverContainer,
       i18n.t('gameOver.returnToLobby'),
-      '/assets/gui/back.png',
+      `${CDN_BASE_URL}/assets/gui/back.png`,
       centerX,
       centerY + 40,
       buttonWidth,
@@ -1506,7 +1505,7 @@ export class OverworldGameScene extends BaseGameScene {
     this.createMenuButtonWithIcon(
       gameOverContainer,
       i18n.t('gameOver.restart'),
-      '/assets/gui/restart.png',
+      `${CDN_BASE_URL}/assets/gui/restart.png`,
       centerX,
       centerY + 40 + buttonGap,
       buttonWidth,
@@ -1541,7 +1540,7 @@ export class OverworldGameScene extends BaseGameScene {
     buttonContainer.zIndex = 1000; // 다른 UI보다 위에
 
     // 설정 아이콘 (톱니바퀴 이미지)
-    const icon = Sprite.from('/assets/gui/settings.png');
+    const icon = Sprite.from(`${CDN_BASE_URL}/assets/gui/settings.png`);
     icon.width = this.UI_SETTINGS_SIZE;
     icon.height = this.UI_SETTINGS_SIZE;
     icon.anchor.set(0.5);
@@ -1619,7 +1618,7 @@ export class OverworldGameScene extends BaseGameScene {
     this.createMenuButtonWithIcon(
       menuContainer,
       '계속하기',
-      '/assets/gui/resume.png',
+      `${CDN_BASE_URL}/assets/gui/resume.png`,
       centerX,
       centerY - 80,
       buttonWidth,
@@ -1634,7 +1633,7 @@ export class OverworldGameScene extends BaseGameScene {
     this.createMenuButtonWithIcon(
       menuContainer,
       '다시하기',
-      '/assets/gui/restart.png',
+      `${CDN_BASE_URL}/assets/gui/restart.png`,
       centerX,
       centerY - 80 + buttonGap,
       buttonWidth,
@@ -1653,7 +1652,7 @@ export class OverworldGameScene extends BaseGameScene {
     // this.createMenuButtonWithIcon(
     //   menuContainer,
     //   '소리끄기',
-    //   '/assets/gui/sound.png',
+    //   `${CDN_BASE_URL}/assets/gui/sound.png`,
     //   centerX,
     //   centerY - 80 + buttonGap * 2,
     //   buttonWidth,
@@ -1668,7 +1667,7 @@ export class OverworldGameScene extends BaseGameScene {
     this.createMenuButtonWithIcon(
       menuContainer,
       '로비로 가기',
-      '/assets/gui/back.png',
+      `${CDN_BASE_URL}/assets/gui/back.png`,
       centerX,
       centerY - 80 + buttonGap * 2,
       buttonWidth,

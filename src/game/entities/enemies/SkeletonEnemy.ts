@@ -1,9 +1,9 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 스켈레톤 적 - 빠르고 약한 유리대포형
  */
-
-import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
-import type { FieldEnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
+import type { FieldEnemyTier } from '@game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -12,21 +12,21 @@ export class SkeletonEnemy extends BaseEnemy {
   // 스켈레톤 스프라이트 설정 (티어별 - 크기만 변경)
   private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
     low: {
-      assetPath: '/assets/enemy/skeleton-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/skeleton-walk.png`,
       totalWidth: 286, // 22 * 13 frames
       height: 33,
       frameCount: 13,
       scale: 2.5, // 기본 크기
     },
     medium: {
-      assetPath: '/assets/enemy/skeleton-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/skeleton-walk.png`,
       totalWidth: 286, // 22 * 13 frames
       height: 33,
       frameCount: 13,
       scale: 3.0, // 20% 크게
     },
     high: {
-      assetPath: '/assets/enemy/skeleton-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/skeleton-walk.png`,
       totalWidth: 286, // 22 * 13 frames
       height: 33,
       frameCount: 13,

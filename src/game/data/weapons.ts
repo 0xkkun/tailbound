@@ -2,7 +2,7 @@
  * 무기 데이터 정의
  */
 
-import { WEAPON_BALANCE } from '@/config/balance.config';
+import { WEAPON_BALANCE } from '@config/balance.config';
 
 /**
  * 무기 타입

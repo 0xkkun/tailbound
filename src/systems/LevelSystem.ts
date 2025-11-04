@@ -2,8 +2,8 @@
  * 레벨 시스템 - 경험치 획득과 레벨업 관리
  */
 
-import { GAME_CONFIG } from '@/config/game.config';
-import i18n from '@/i18n/config';
+import { GAME_CONFIG } from '@config/game.config';
+import i18n from '@i18n/config';
 
 /**
  * 레벨별 필요 경험치 계산

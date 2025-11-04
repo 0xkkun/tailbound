@@ -2,7 +2,7 @@
  * DialogSystem - 대화 시스템
  */
 
-import type { DialogNode, DialogScenario } from '@/types/dialog.types';
+import type { DialogNode, DialogScenario } from '@type/dialog.types';
 
 export class DialogSystem {
   private currentScenario: DialogScenario | null = null;

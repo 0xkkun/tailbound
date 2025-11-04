@@ -8,10 +8,10 @@
  * - 설정 영구 저장 (LocalStorage)
  */
 
+import { CDN_BASE_URL } from '@config/assets.config';
+import type { BGMTrack, SFXType } from '@type/audio.types';
+import { BGM_PATHS } from '@type/audio.types';
 import { Howl } from 'howler';
-
-import type { BGMTrack, SFXType } from '@/types/audio.types';
-import { BGM_PATHS } from '@/types/audio.types';
 
 export class AudioManager {
   private static instance: AudioManager;
@@ -175,9 +175,9 @@ export class AudioManager {
     let sfx = this.sfxPool.get(soundName);
 
     if (!sfx) {
-      // 첫 재생 시 로드
+      // 첫 재생 시 로드 (CDN)
       sfx = new Howl({
-        src: [`/assets/audio/${soundName}.wav`],
+        src: [`${CDN_BASE_URL}/audio/${soundName}.mp3`],
         volume: this.sfxVolume,
         preload: true,
         onloaderror: (_id, error) => {

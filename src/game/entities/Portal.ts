@@ -2,9 +2,8 @@
  * Portal - 경계로 가는 포탈 엔티티
  */
 
+import { GAME_CONFIG } from '@config/game.config';
 import { Container, Graphics, Text } from 'pixi.js';
-
-import { GAME_CONFIG } from '@/config/game.config';
 
 export class Portal extends Container {
   private graphic: Graphics;

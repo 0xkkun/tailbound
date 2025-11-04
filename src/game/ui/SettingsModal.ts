@@ -7,7 +7,7 @@
  * - 볼륨 슬라이더
  * - 반투명 오버레이
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
 import { audioManager } from '../../services/audioManager';
@@ -65,7 +65,7 @@ export class SettingsModal extends Container {
     const bgmEnabled = audioManager.isBGMEnabled();
     this.createMenuButtonWithIcon(
       bgmEnabled ? '소리 끄기' : '소리 켜기',
-      '/assets/gui/sound.png',
+      `${CDN_BASE_URL}/assets/gui/sound.png`,
       centerX,
       centerY - 80,
       buttonWidth,
@@ -77,7 +77,7 @@ export class SettingsModal extends Container {
         this.updateButtonWithIcon(
           this.bgmButton,
           newState ? '소리 끄기' : '소리 켜기',
-          '/assets/gui/sound.png'
+          `${CDN_BASE_URL}/assets/gui/sound.png`
         );
       }
     ).then((button) => {
@@ -88,7 +88,7 @@ export class SettingsModal extends Container {
     const hapticEnabled = hapticManager.isEnabled();
     this.createMenuButtonWithIcon(
       hapticEnabled ? '진동 끄기' : '진동 켜기',
-      '/assets/gui/resume.png',
+      `${CDN_BASE_URL}/assets/gui/resume.png`,
       centerX,
       centerY - 80 + buttonGap,
       buttonWidth,
@@ -99,7 +99,7 @@ export class SettingsModal extends Container {
         this.updateButtonWithIcon(
           this.hapticButton,
           newState ? '진동 끄기' : '진동 켜기',
-          '/assets/gui/resume.png'
+          `${CDN_BASE_URL}/assets/gui/resume.png`
         );
       }
     ).then((button) => {
@@ -278,7 +278,7 @@ export class SettingsModal extends Container {
    */
   static async createSettingsIcon(x: number, y: number): Promise<Sprite> {
     try {
-      const texture = await Assets.load('/assets/gui/settings.png');
+      const texture = await Assets.load(`${CDN_BASE_URL}/assets/gui/settings.png`);
       if (texture.baseTexture) {
         texture.baseTexture.scaleMode = 'nearest';
       }

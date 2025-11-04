@@ -1,9 +1,9 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 토템 적 - 느리지만 강인한 마법형
  */
-
-import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
-import type { FieldEnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
+import type { FieldEnemyTier } from '@game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -12,21 +12,21 @@ export class TotemEnemy extends BaseEnemy {
   // 토템 스프라이트 설정 (티어별 - 크기만 변경)
   private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
     low: {
-      assetPath: '/assets/enemy/totem-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/totem-walk.png`,
       totalWidth: 416, // 32 * 13 frames
       height: 32,
       frameCount: 13,
       scale: 2.5, // 기본 크기
     },
     medium: {
-      assetPath: '/assets/enemy/totem-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/totem-walk.png`,
       totalWidth: 416, // 32 * 13 frames
       height: 32,
       frameCount: 13,
       scale: 3.0, // 20% 크게
     },
     high: {
-      assetPath: '/assets/enemy/totem-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/totem-walk.png`,
       totalWidth: 416, // 32 * 13 frames
       height: 32,
       frameCount: 13,

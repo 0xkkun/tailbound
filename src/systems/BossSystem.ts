@@ -4,22 +4,21 @@
  * 보스 스폰, 전투, 보상 처리를 담당
  */
 
+import { BossProjectile } from '@game/entities/BossProjectile';
+import { BossSoul } from '@game/entities/BossSoul';
+import { WhiteTigerBoss } from '@game/entities/enemies/WhiteTigerBoss';
+import { FireAOE } from '@game/entities/FireAOE';
+import { FireballProjectile } from '@game/entities/FireballProjectile';
+import { LightningEffect } from '@game/entities/LightningEffect';
+import type { Player } from '@game/entities/Player';
+import { SpiralChargeEffect } from '@game/entities/SpiralChargeEffect';
+import { AOEWarning } from '@game/entities/warnings/AOEWarning';
+import { WarningLine } from '@game/entities/warnings/WarningLine';
+import { BossHealthBar } from '@game/ui/BossHealthBar';
+import { StageClearUI } from '@game/ui/StageClearUI';
+import { checkCircleCollision } from '@game/utils/collision';
+import type { LevelUpChoice } from '@systems/LevelSystem';
 import { Container, type Spritesheet } from 'pixi.js';
-
-import { BossProjectile } from '@/game/entities/BossProjectile';
-import { BossSoul } from '@/game/entities/BossSoul';
-import { WhiteTigerBoss } from '@/game/entities/enemies/WhiteTigerBoss';
-import { FireAOE } from '@/game/entities/FireAOE';
-import { FireballProjectile } from '@/game/entities/FireballProjectile';
-import { LightningEffect } from '@/game/entities/LightningEffect';
-import type { Player } from '@/game/entities/Player';
-import { SpiralChargeEffect } from '@/game/entities/SpiralChargeEffect';
-import { AOEWarning } from '@/game/entities/warnings/AOEWarning';
-import { WarningLine } from '@/game/entities/warnings/WarningLine';
-import { BossHealthBar } from '@/game/ui/BossHealthBar';
-import { StageClearUI } from '@/game/ui/StageClearUI';
-import { checkCircleCollision } from '@/game/utils/collision';
-import type { LevelUpChoice } from '@/systems/LevelSystem';
 
 export class BossSystem {
   // 엔티티

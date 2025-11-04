@@ -1,22 +1,22 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 목탁 소리 무기
  *
  * 타입: 광역 (AoE)
  * 주기적으로 발동되는 음파 공격
  */
-
-import { calculateWeaponStats } from '@/game/data/weapons';
-import { AoEEffect } from '@/game/entities/AoEEffect';
-import type { BaseEnemy } from '@/game/entities/enemies';
-import type { Player } from '@/game/entities/Player';
-import type { Vector2 } from '@/types/game.types';
+import { calculateWeaponStats } from '@game/data/weapons';
+import { AoEEffect } from '@game/entities/AoEEffect';
+import type { BaseEnemy } from '@game/entities/enemies';
+import type { Player } from '@game/entities/Player';
+import type { Vector2 } from '@type/game.types';
 
 import { Weapon } from './Weapon';
 
 // 목탁 소리 무기 상수
 const MOKTAK_CONSTANTS = {
   SPRITE: {
-    PATH: '/assets/weapon/mocktak.png',
+    PATH: `${CDN_BASE_URL}/assets/weapon/mocktak.png`,
     FRAME_WIDTH: 120,
     FRAME_HEIGHT: 120,
     TOTAL_FRAMES: 30,

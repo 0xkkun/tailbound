@@ -2,16 +2,15 @@
  * BaseGameScene - 모든 씬의 공통 기반 클래스
  * Player, Camera, Input 시스템을 공통으로 관리
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { GAME_CONFIG } from '@config/game.config';
+import { Player } from '@game/entities/Player';
+import { VirtualJoystick } from '@game/ui/VirtualJoystick';
+import type { PlayerSnapshot } from '@hooks/useGameState';
+import { CameraSystem } from '@systems/CameraSystem';
+import type { InputState } from '@type/game.types';
+import { platform } from '@utils/platform';
 import { Assets, Container } from 'pixi.js';
-
-import { GAME_CONFIG } from '@/config/game.config';
-import { Player } from '@/game/entities/Player';
-import { VirtualJoystick } from '@/game/ui/VirtualJoystick';
-import type { PlayerSnapshot } from '@/hooks/useGameState';
-import { CameraSystem } from '@/systems/CameraSystem';
-import type { InputState } from '@/types/game.types';
-import { platform } from '@/utils/platform';
 
 export interface BaseGameSceneConfig {
   screenWidth: number;
@@ -128,13 +127,13 @@ export abstract class BaseGameScene extends Container {
   protected async loadAssets(): Promise<void> {
     // 공통 에셋 로딩
     await Assets.load([
-      '/assets/npc/monk.png',
-      '/assets/player/shaman.png',
-      '/assets/weapon/talisman.png', // 부적용
-      '/assets/weapon/dokkabi-fire.png', // 도깨비불용
-      '/assets/weapon/mocktak.png',
-      '/assets/weapon/jakdu.png',
-      '/assets/gui/settings.png', // 설정 버튼용
+      `${CDN_BASE_URL}/assets/npc/monk.png`,
+      `${CDN_BASE_URL}/assets/player/shaman.png`,
+      `${CDN_BASE_URL}/assets/weapon/talisman.png`, // 부적용
+      `${CDN_BASE_URL}/assets/weapon/dokkabi-fire.png`, // 도깨비불용
+      `${CDN_BASE_URL}/assets/weapon/mocktak.png`,
+      `${CDN_BASE_URL}/assets/weapon/jakdu.png`,
+      `${CDN_BASE_URL}/assets/gui/settings.png`, // 설정 버튼용
     ]);
   }
 

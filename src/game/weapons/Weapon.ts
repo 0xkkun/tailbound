@@ -2,12 +2,12 @@
  * 무기 베이스 클래스
  */
 
-import type { AoEEffect } from '@/game/entities/AoEEffect';
-import type { BaseEnemy } from '@/game/entities/enemies';
-import type { MeleeSwing } from '@/game/entities/MeleeSwing';
-import type { Player } from '@/game/entities/Player';
-import type { Projectile } from '@/game/entities/Projectile';
-import type { Vector2 } from '@/types/game.types';
+import type { AoEEffect } from '@game/entities/AoEEffect';
+import type { BaseEnemy } from '@game/entities/enemies';
+import type { MeleeSwing } from '@game/entities/MeleeSwing';
+import type { Player } from '@game/entities/Player';
+import type { Projectile } from '@game/entities/Projectile';
+import type { Vector2 } from '@type/game.types';
 
 // 무기가 발사할 수 있는 엔티티 타입들
 export type WeaponEntity = Projectile | AoEEffect | MeleeSwing;

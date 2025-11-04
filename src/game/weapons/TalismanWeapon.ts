@@ -1,13 +1,13 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 부적 무기 (투사체 발사)
  */
-
-import { calculateWeaponStats } from '@/game/data/weapons';
-import type { BaseEnemy } from '@/game/entities/enemies';
-import type { Player } from '@/game/entities/Player';
-import { Projectile } from '@/game/entities/Projectile';
-import { getDirection, getDistance } from '@/game/utils/collision';
-import type { Vector2 } from '@/types/game.types';
+import { calculateWeaponStats } from '@game/data/weapons';
+import type { BaseEnemy } from '@game/entities/enemies';
+import type { Player } from '@game/entities/Player';
+import { Projectile } from '@game/entities/Projectile';
+import { getDirection, getDistance } from '@game/utils/collision';
+import type { Vector2 } from '@type/game.types';
 
 import { Weapon } from './Weapon';
 
@@ -77,7 +77,7 @@ export class TalismanWeapon extends Weapon {
       }
 
       // 부적 스프라이트 로드 (6x4 = 24 프레임, 각 프레임 32x32)
-      await projectile.loadSpriteSheet('/assets/weapon/talisman.png', 32, 32, 24, 6);
+      await projectile.loadSpriteSheet(`${CDN_BASE_URL}/assets/weapon/talisman.png`, 32, 32, 24, 6);
 
       projectiles.push(projectile);
     }

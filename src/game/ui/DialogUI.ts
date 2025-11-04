@@ -2,12 +2,11 @@
  * DialogUI - 리니지2M/루시 벨콜 스타일 대화 UI
  * 초상화 박스(좌측 하단) + 대화창(하단 전체)
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import type { NPCData } from '@game/entities/NPC';
+import type { DialogNode } from '@type/dialog.types';
+import { platform } from '@utils/platform';
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js';
-
-import type { NPCData } from '@/game/entities/NPC';
-import type { DialogNode } from '@/types/dialog.types';
-import { platform } from '@/utils/platform';
 
 export class DialogUI extends Container {
   private screenWidth: number;
@@ -84,7 +83,7 @@ export class DialogUI extends Container {
     const y = this.screenHeight - dialogBoxHeight - boxHeight - padding - 10;
 
     // 초상화 스프라이트 (NPC별 portraitPath 사용, 없으면 기본값)
-    const spritePath = this.currentNPC?.portraitPath || '/assets/npc/monk.png';
+    const spritePath = this.currentNPC?.portraitPath || `${CDN_BASE_URL}/assets/npc/monk.png`;
     this.portraitSprite = Sprite.from(spritePath);
 
     // 크기 확대 (2.5배)

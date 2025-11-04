@@ -4,15 +4,14 @@
  * 타입: 고정형 (Attached)
  * 플레이어 좌우에 고정되어 나타나는 작두
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { WEAPON_BALANCE } from '@config/balance.config';
+import { calculateWeaponStats } from '@game/data/weapons';
+import { AttachedEntity } from '@game/entities/AttachedEntity';
+import type { BaseEnemy } from '@game/entities/enemies';
+import type { Player } from '@game/entities/Player';
+import type { Vector2 } from '@type/game.types';
 import type { Container } from 'pixi.js';
-
-import { WEAPON_BALANCE } from '@/config/balance.config';
-import { calculateWeaponStats } from '@/game/data/weapons';
-import { AttachedEntity } from '@/game/entities/AttachedEntity';
-import type { BaseEnemy } from '@/game/entities/enemies';
-import type { Player } from '@/game/entities/Player';
-import type { Vector2 } from '@/types/game.types';
 
 import { Weapon } from './Weapon';
 
@@ -71,7 +70,7 @@ export class JakduBladeWeapon extends Weapon {
       });
 
       // 작두 스프라이트 로드 (3x3 = 9 프레임, 각 프레임 128x128)
-      await blade.loadSpriteSheet('/assets/weapon/jakdu.png', 128, 128, 9, 3, {
+      await blade.loadSpriteSheet(`${CDN_BASE_URL}/assets/weapon/jakdu.png`, 128, 128, 9, 3, {
         animationSpeed: 0.2, // 느리게 (0.5 -> 0.2)
         loop: false, // 한 번만 재생
         flipX: position === 'right', // 오른쪽은 좌우 반전

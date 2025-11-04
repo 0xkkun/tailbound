@@ -3,7 +3,7 @@
  *
  * 보스 돌진 시 경로를 따라 생성되는 번개 이펙트
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { AnimatedSprite, Assets, Container, Rectangle, Texture } from 'pixi.js';
 
 export class LightningEffect extends Container {
@@ -12,7 +12,7 @@ export class LightningEffect extends Container {
   private maxLifetime: number = 1.0; // 1초 후 소멸
 
   private static readonly SPRITE_CONFIG = {
-    assetPath: '/assets/boss/lighting.png',
+    assetPath: `${CDN_BASE_URL}/assets/boss/lighting.png`,
     totalWidth: 1352, // 13프레임 × 104px
     height: 22,
     frameCount: 13,

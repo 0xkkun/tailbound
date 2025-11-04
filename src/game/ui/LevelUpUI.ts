@@ -2,15 +2,14 @@
  * 레벨업 UI - 선택지 카드 표시
  */
 
-import { Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
-
 import {
   DEFAULT_ICON,
   POWERUP_ICON_MAP,
   STAT_ICON_MAP,
   WEAPON_SPRITE_INFO,
-} from '@/config/levelup.config';
-import type { LevelUpChoice } from '@/systems/LevelSystem';
+} from '@config/levelup.config';
+import type { LevelUpChoice } from '@systems/LevelSystem';
+import { Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 
 export class LevelUpUI extends Container {
   private overlay!: Graphics;

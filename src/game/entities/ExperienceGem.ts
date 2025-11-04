@@ -2,11 +2,10 @@
  * 경험치 젬 - 적 처치 시 드랍되는 경험치 아이템
  */
 
+import { XP_BALANCE } from '@config/balance.config';
+import { GAME_CONFIG } from '@config/game.config';
+import { DROP_SPRITE_CONFIG } from '@config/sprite.config';
 import { AnimatedSprite, Container, Spritesheet, Text } from 'pixi.js';
-
-import { XP_BALANCE } from '@/config/balance.config';
-import { GAME_CONFIG } from '@/config/game.config';
-import { DROP_SPRITE_CONFIG } from '@/config/sprite.config';
 
 import type { Player } from './Player';
 

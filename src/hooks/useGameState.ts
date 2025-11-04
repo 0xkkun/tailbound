@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-import type { Player } from '@/game/entities/Player';
+import type { Player } from '@game/entities/Player';
 
 export type GamePhase = 'lobby' | 'stage-select' | 'playing' | 'boundary' | 'test';
 

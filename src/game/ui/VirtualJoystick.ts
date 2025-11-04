@@ -2,10 +2,9 @@
  * 가상 조이스틱 (모바일용)
  */
 
+import { GAME_CONFIG } from '@config/game.config';
 import type { FederatedPointerEvent } from 'pixi.js';
 import { Container, Graphics } from 'pixi.js';
-
-import { GAME_CONFIG } from '@/config/game.config';
 
 export interface JoystickState {
   x: number; // -1 ~ 1

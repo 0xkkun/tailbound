@@ -1,7 +1,7 @@
+import { CDN_BASE_URL } from '@config/assets.config';
+import { audioManager } from '@services/audioManager';
+import { safeGetSafeAreaInsets } from '@utils/tossAppBridge';
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
-
-import { audioManager } from '@/services/audioManager';
-import { safeGetSafeAreaInsets } from '@/utils/tossAppBridge';
 
 import { PixelButton } from '../ui/PixelButton';
 import { SettingsModal } from '../ui/SettingsModal';
@@ -53,7 +53,7 @@ export class LobbyScene extends Container {
 
   private async loadAndCreateBackground(width: number, height: number): Promise<void> {
     try {
-      // bg-main 이미지 로드
+      // bg-main 이미지 로드 (로컬 번들)
       const texture = await Assets.load('/assets/gui/bg-main.png');
 
       // 배경 스프라이트 생성
@@ -120,7 +120,7 @@ export class LobbyScene extends Container {
 
   private async loadAndCreateTitleImage(): Promise<void> {
     try {
-      // 타이틀 이미지 로드
+      // 타이틀 이미지 로드 (로컬 번들)
       const texture = await Assets.load('/assets/gui/title.png');
 
       // 픽셀 아트 렌더링 설정
@@ -227,7 +227,7 @@ export class LobbyScene extends Container {
     buttonContainer.zIndex = 1000; // 다른 UI보다 위에
 
     // 설정 아이콘 비동기 로드
-    Assets.load('/assets/gui/settings.png').then((texture) => {
+    Assets.load(`${CDN_BASE_URL}/assets/gui/settings.png`).then((texture) => {
       // 픽셀 아트 렌더링 설정
       if (texture.source) {
         texture.source.scaleMode = 'nearest';

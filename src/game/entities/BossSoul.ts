@@ -1,7 +1,7 @@
 /**
  * 보스 영혼 - 보스 처치 시 드랍되는 특별한 아이템
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { AnimatedSprite, Assets, Container, Rectangle, Texture } from 'pixi.js';
 
 import type { Player } from './Player';
@@ -19,7 +19,7 @@ export class BossSoul extends Container {
 
   // 스프라이트 설정
   private static readonly SPRITE_CONFIG = {
-    assetPath: '/assets/drop/soul.png',
+    assetPath: `${CDN_BASE_URL}/assets/drop/soul.png`,
     totalWidth: 320, // 10프레임 × 32px
     height: 32,
     frameCount: 10,

@@ -1,9 +1,9 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 여우 적 - 민첩한 중거리형
  */
-
-import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
-import type { FieldEnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
+import type { FieldEnemyTier } from '@game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -12,21 +12,21 @@ export class FoxEnemy extends BaseEnemy {
   // 여우 스프라이트 설정 (티어별)
   private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
     low: {
-      assetPath: '/assets/enemy/fox-orange-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/fox-orange-walk.png`,
       totalWidth: 224, // 32 * 7 frames
       height: 32,
       frameCount: 7,
       scale: 2.5, // 기본 크기
     },
     medium: {
-      assetPath: '/assets/enemy/fox-white-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/fox-white-walk.png`,
       totalWidth: 224, // 32 * 7 frames
       height: 32,
       frameCount: 7,
       scale: 3.0, // 20% 크게
     },
     high: {
-      assetPath: '/assets/enemy/fox-white-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/fox-white-walk.png`,
       totalWidth: 224, // 32 * 7 frames
       height: 32,
       frameCount: 7,

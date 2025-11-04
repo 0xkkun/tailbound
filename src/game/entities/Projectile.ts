@@ -2,10 +2,9 @@
  * 투사체 엔티티 (무기가 발사하는 공격체)
  */
 
+import { GAME_CONFIG } from '@config/game.config';
+import type { Vector2 } from '@type/game.types';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
-
-import { GAME_CONFIG } from '@/config/game.config';
-import type { Vector2 } from '@/types/game.types';
 
 import { Player } from './Player';
 

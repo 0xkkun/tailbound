@@ -2,7 +2,7 @@
  * 충돌 감지 유틸리티
  */
 
-import type { Vector2 } from '@/types/game.types';
+import type { Vector2 } from '@type/game.types';
 
 /**
  * 두 원형 오브젝트 간의 충돌 감지 (AABB가 아닌 원형 충돌)

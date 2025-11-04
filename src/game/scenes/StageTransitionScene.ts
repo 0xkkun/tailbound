@@ -1,3 +1,4 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 import gsap from 'gsap';
 import { Assets, Container, Graphics, Sprite } from 'pixi.js';
 
@@ -54,7 +55,7 @@ export class StageTransitionScene extends Container {
 
       // shaman-signature.png 로드 (3초 타임아웃)
       const texture = await Promise.race([
-        Assets.load('/assets/gui/shaman-signature.png'),
+        Assets.load(`${CDN_BASE_URL}/assets/gui/shaman-signature.png`),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Asset loading timeout')), 3000)
         ),

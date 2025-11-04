@@ -3,7 +3,7 @@
  *
  * 보스가 생성하는 불 장판 공격
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
 import type { Player } from './Player';
@@ -25,7 +25,7 @@ export class FireAOE extends Container {
   private damagedPlayers: Set<string> = new Set();
 
   // 스프라이트 설정
-  private static readonly SPRITE_PATH = '/assets/boss/boss-AOE.png';
+  private static readonly SPRITE_PATH = `${CDN_BASE_URL}/assets/boss/boss-AOE.png`;
   private static readonly FRAME_WIDTH = 100;
   private static readonly FRAME_HEIGHT = 100;
   private static readonly FRAME_COUNT = 61;

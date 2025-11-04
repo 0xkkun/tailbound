@@ -4,15 +4,14 @@
  * 타입: 궤도형 (Orbital)
  * 플레이어 주변을 맴도는 푸른 불꽃
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { WEAPON_BALANCE } from '@config/balance.config';
+import { calculateWeaponStats } from '@game/data/weapons';
+import type { BaseEnemy } from '@game/entities/enemies';
+import { OrbitalEntity } from '@game/entities/OrbitalEntity';
+import type { Player } from '@game/entities/Player';
+import type { Vector2 } from '@type/game.types';
 import type { Container } from 'pixi.js';
-
-import { WEAPON_BALANCE } from '@/config/balance.config';
-import { calculateWeaponStats } from '@/game/data/weapons';
-import type { BaseEnemy } from '@/game/entities/enemies';
-import { OrbitalEntity } from '@/game/entities/OrbitalEntity';
-import type { Player } from '@/game/entities/Player';
-import type { Vector2 } from '@/types/game.types';
 
 import { Weapon } from './Weapon';
 
@@ -75,7 +74,13 @@ export class DokkaebiFireWeapon extends Weapon {
       orbital.blinkOffDuration = blinkOffDuration;
 
       // 도깨비불 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 48x48)
-      await orbital.loadSpriteSheet('/assets/weapon/dokkabi-fire.png', 48, 48, 30, 6);
+      await orbital.loadSpriteSheet(
+        `${CDN_BASE_URL}/assets/weapon/dokkabi-fire.png`,
+        48,
+        48,
+        30,
+        6
+      );
 
       this.orbitals.push(orbital);
       gameLayer.addChild(orbital);

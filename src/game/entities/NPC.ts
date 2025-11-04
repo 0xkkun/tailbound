@@ -1,10 +1,9 @@
 /**
  * NPC - 경계 맵의 NPC 엔티티
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { GAME_CONFIG } from '@config/game.config';
 import { Container, Sprite, Text } from 'pixi.js';
-
-import { GAME_CONFIG } from '@/config/game.config';
 
 export interface NPCData {
   id: string;
@@ -40,7 +39,7 @@ export class NPC extends Container {
    */
   private createNPCSprite(): Sprite {
     // NPC별 portraitPath 사용, 없으면 기본값
-    const spritePath = this.data.portraitPath || '/assets/npc/monk.png';
+    const spritePath = this.data.portraitPath || `${CDN_BASE_URL}/assets/npc/monk.png`;
     const sprite = Sprite.from(spritePath);
 
     // 원본 크기 사용 (스케일 없음)

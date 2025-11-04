@@ -1,9 +1,9 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 수귀 적 - 물속에서 나온 유령형
  */
-
-import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
-import type { FieldEnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
+import type { FieldEnemyTier } from '@game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -12,21 +12,21 @@ export class WaterGhostEnemy extends BaseEnemy {
   // 수귀 스프라이트 설정 (티어별 - 크기만 변경)
   private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
     low: {
-      assetPath: '/assets/enemy/water-ghost-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/water-ghost-walk.png`,
       totalWidth: 256, // 32 * 8 frames
       height: 32,
       frameCount: 8,
       scale: 2.5, // 기본 크기
     },
     medium: {
-      assetPath: '/assets/enemy/water-ghost-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/water-ghost-walk.png`,
       totalWidth: 256, // 32 * 8 frames
       height: 32,
       frameCount: 8,
       scale: 3.0, // 20% 크게
     },
     high: {
-      assetPath: '/assets/enemy/water-ghost-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/water-ghost-walk.png`,
       totalWidth: 256, // 32 * 8 frames
       height: 32,
       frameCount: 8,

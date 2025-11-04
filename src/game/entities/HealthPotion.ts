@@ -4,11 +4,10 @@
  * 몬스터 처치 시 10% 확률로 드랍
  * 플레이어가 획득 시 최대 체력의 50% 회복
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { POTION_BALANCE } from '@config/balance.config';
+import { GAME_CONFIG } from '@config/game.config';
 import { Assets, Container, Sprite, Text } from 'pixi.js';
-
-import { POTION_BALANCE } from '@/config/balance.config';
-import { GAME_CONFIG } from '@/config/game.config';
 
 import type { Player } from './Player';
 
@@ -52,7 +51,7 @@ export class HealthPotion extends Container {
    */
   private async loadSprite(): Promise<void> {
     try {
-      const texture = await Assets.load('/assets/power-up/health-plus.png');
+      const texture = await Assets.load(`${CDN_BASE_URL}/assets/power-up/health-plus.png`);
 
       // 기존 이모지 제거
       this.removeChild(this.visual);

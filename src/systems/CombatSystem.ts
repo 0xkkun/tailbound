@@ -2,11 +2,11 @@
  * 전투 시스템 (충돌 감지 및 데미지 처리)
  */
 
-import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@/config/balance.config';
-import type { BaseEnemy } from '@/game/entities/enemies';
-import type { Player } from '@/game/entities/Player';
-import type { Projectile } from '@/game/entities/Projectile';
-import { checkCircleCollision } from '@/game/utils/collision';
+import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
+import type { BaseEnemy } from '@game/entities/enemies';
+import type { Player } from '@game/entities/Player';
+import type { Projectile } from '@game/entities/Projectile';
+import { checkCircleCollision } from '@game/utils/collision';
 
 // 적 처치 결과
 export interface KillResult {

@@ -6,7 +6,7 @@
  * - 죽음: error (오류 패턴)
  */
 
-import { type HapticFeedbackType, safeGenerateHapticFeedback } from '@/utils/tossAppBridge';
+import { type HapticFeedbackType, safeGenerateHapticFeedback } from '@utils/tossAppBridge';
 
 export class HapticManager {
   private static instance: HapticManager;

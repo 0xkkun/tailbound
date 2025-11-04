@@ -1,9 +1,9 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 도깨비 적 - 높은 체력의 탱커형
  */
-
-import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
-import type { FieldEnemyTier } from '@/game/data/enemies';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
+import type { FieldEnemyTier } from '@game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -12,21 +12,21 @@ export class DokkaebiEnemy extends BaseEnemy {
   // 도깨비 스프라이트 설정 (티어별)
   private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
     low: {
-      assetPath: '/assets/enemy/dokkaebi-green-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/dokkaebi-green-walk.png`,
       totalWidth: 352, // 32 * 11 frames
       height: 32,
       frameCount: 11,
       scale: 2.5, // 기본 크기
     },
     medium: {
-      assetPath: '/assets/enemy/dokkaebi-blue-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/dokkaebi-blue-walk.png`,
       totalWidth: 352, // 32 * 11 frames
       height: 32,
       frameCount: 11,
       scale: 3.0, // 20% 크게
     },
     high: {
-      assetPath: '/assets/enemy/dokkaebi-red-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/dokkaebi-red-walk.png`,
       totalWidth: 352, // 32 * 11 frames
       height: 32,
       frameCount: 11,

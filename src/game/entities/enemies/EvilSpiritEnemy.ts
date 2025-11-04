@@ -3,11 +3,10 @@
  *
  * 플레이어와 일정 거리를 유지하며 투사체를 발사
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
+import type { FieldEnemyTier } from '@game/data/enemies';
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
-
-import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
-import type { FieldEnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -16,21 +15,21 @@ export class EvilSpiritEnemy extends BaseEnemy {
   // 악령 스프라이트 설정 (티어별 - 크기만 변경)
   private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
     low: {
-      assetPath: '/assets/enemy/evil-spirit.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/evil-spirit.png`,
       totalWidth: 192, // 32 * 6 frames
       height: 32,
       frameCount: 6,
       scale: 2.5, // 기본 크기
     },
     medium: {
-      assetPath: '/assets/enemy/evil-spirit.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/evil-spirit.png`,
       totalWidth: 192, // 32 * 6 frames
       height: 32,
       frameCount: 6,
       scale: 3.0, // 20% 크게
     },
     high: {
-      assetPath: '/assets/enemy/evil-spirit.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/evil-spirit.png`,
       totalWidth: 192, // 32 * 6 frames
       height: 32,
       frameCount: 6,
@@ -106,7 +105,7 @@ export class EvilSpiritEnemy extends BaseEnemy {
    * 공격 애니메이션 로드
    */
   private async loadAttackAnimation(): Promise<void> {
-    const assetPath = '/assets/enemy/evil-spirit-attack.png';
+    const assetPath = `${CDN_BASE_URL}/assets/enemy/evil-spirit-attack.png`;
 
     // 텍스처 로드
     const texture = await Assets.load(assetPath);

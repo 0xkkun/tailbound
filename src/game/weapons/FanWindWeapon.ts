@@ -1,13 +1,13 @@
+import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 부채바람 무기
  *
  * 뱀파이어 서바이벌의 도끼처럼 일정 거리까지 몬스터를 무제한 관통하며 날아감
  * 레벨업 시 투사체 수량이 증가하고 데미지가 증가
  */
-
-import { WEAPON_BALANCE } from '@/config/balance.config';
-import { calculateWeaponStats, getWeaponData } from '@/game/data/weapons';
-import type { Vector2 } from '@/types/game.types';
+import { WEAPON_BALANCE } from '@config/balance.config';
+import { calculateWeaponStats, getWeaponData } from '@game/data/weapons';
+import type { Vector2 } from '@type/game.types';
 
 import type { BaseEnemy } from '../entities/enemies/BaseEnemy';
 import type { Player } from '../entities/Player';
@@ -68,8 +68,7 @@ export class FanWindWeapon extends Weapon {
 
       projectile.speed = this.weaponData.projectileSpeed || 350;
       projectile.lifeTime = this.weaponData.projectileLifetime || 1.2;
-      projectile.radius =
-        (this.weaponData.projectileRadius || 15) * (player?.areaMultiplier ?? 1.0);
+      projectile.radius = this.weaponData.projectileRadius || 15;
       projectile.piercing = Infinity; // 무제한 관통
 
       // 관통 시 데미지 감소 활성화
@@ -77,7 +76,7 @@ export class FanWindWeapon extends Weapon {
       projectile.damageDecayMin = WEAPON_BALANCE.fan_wind.damageDecayMin;
 
       // wind.png 스프라이트 애니메이션 로드
-      projectile.loadSpriteSheet('/assets/weapon/wind.png', 96, 96, 12, 12);
+      projectile.loadSpriteSheet(`${CDN_BASE_URL}/assets/weapon/wind.png`, 96, 96, 12, 12);
 
       projectiles.push(projectile);
     }

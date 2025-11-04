@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useApplication } from '@pixi/react';
-import { Assets } from 'pixi.js';
 
 import { BoundaryGameScene } from '../game/scenes/game/BoundaryGameScene';
 import { OverworldGameScene } from '../game/scenes/game/OverworldGameScene';
@@ -108,24 +107,20 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
   useEffect(() => {
     const preloadAssets = async () => {
       try {
-        // 주요 에셋 미리 로드
-        await Assets.load([
-          '/assets/gui/bg-button.png',
-          '/assets/gui/settings.png',
+        // Import assetLoader
+        const { assetLoader } = await import('../services/assetLoader');
 
-          '/assets/power-up/kill.png',
+        // 필수 에셋 로드 (critical)
+        await assetLoader.loadCritical();
 
-          '/assets/npc/monk.png',
+        // 높은 우선순위 에셋 로드 (high)
+        await assetLoader.loadHigh();
 
-          '/assets/player/shaman.png',
-
-          '/assets/weapon/talisman.png',
-          '/assets/weapon/dokkabi-fire.png',
-          '/assets/weapon/mocktak.png',
-          '/assets/weapon/jakdu.png',
-        ]);
-
+        // 로딩 완료 콜백
         onAssetsLoaded?.();
+
+        // 백그라운드에서 나머지 에셋 로드 (medium, low)
+        assetLoader.loadInBackground(['medium', 'low']);
       } catch (error) {
         console.error('에셋 로딩 실패:', error);
         // 에러가 발생해도 게임은 시작

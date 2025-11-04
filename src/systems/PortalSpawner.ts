@@ -2,9 +2,9 @@
  * PortalSpawner - 포탈 생성 시스템
  */
 
-import { GAME_CONFIG } from '@/config/game.config';
-import type { Player } from '@/game/entities/Player';
-import { Portal } from '@/game/entities/Portal';
+import { GAME_CONFIG } from '@config/game.config';
+import type { Player } from '@game/entities/Player';
+import { Portal } from '@game/entities/Portal';
 
 export class PortalSpawner {
   private portal: Portal | null = null;

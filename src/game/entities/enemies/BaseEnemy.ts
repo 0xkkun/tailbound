@@ -3,6 +3,16 @@
  */
 
 import {
+  BOSS_BALANCE,
+  FIELD_ENEMY_BALANCE,
+  KNOCKBACK_BALANCE,
+  NAMED_ENEMY_BALANCE,
+} from '@config/balance.config';
+import { GAME_CONFIG } from '@config/game.config';
+import type { EnemyCategory, FieldEnemyTier, NamedEnemyType } from '@game/data/enemies';
+import { getDirection } from '@game/utils/collision';
+import type { Vector2 } from '@type/game.types';
+import {
   AnimatedSprite,
   Assets,
   Container,
@@ -12,17 +22,6 @@ import {
   Texture,
   Ticker,
 } from 'pixi.js';
-
-import {
-  BOSS_BALANCE,
-  FIELD_ENEMY_BALANCE,
-  KNOCKBACK_BALANCE,
-  NAMED_ENEMY_BALANCE,
-} from '@/config/balance.config';
-import { GAME_CONFIG } from '@/config/game.config';
-import type { EnemyCategory, FieldEnemyTier, NamedEnemyType } from '@/game/data/enemies';
-import { getDirection } from '@/game/utils/collision';
-import type { Vector2 } from '@/types/game.types';
 
 import type { EnemySpriteCache, EnemySpriteConfig } from './EnemySprite';
 

@@ -2,9 +2,9 @@
  * 적 스폰 시스템
  */
 
-import { SPAWN_BALANCE } from '@/config/balance.config';
-import { selectFieldEnemyTier } from '@/game/data/enemies';
-import type { BaseEnemy } from '@/game/entities/enemies';
+import { SPAWN_BALANCE } from '@config/balance.config';
+import { selectFieldEnemyTier } from '@game/data/enemies';
+import type { BaseEnemy } from '@game/entities/enemies';
 import {
   DokkaebiEnemy,
   EvilSpiritEnemy,
@@ -15,8 +15,8 @@ import {
   SkeletonEnemy,
   TotemEnemy,
   WaterGhostEnemy,
-} from '@/game/entities/enemies';
-import type { Vector2 } from '@/types/game.types';
+} from '@game/entities/enemies';
+import type { Vector2 } from '@type/game.types';
 
 export class SpawnSystem {
   private spawnTimer: number = 0;

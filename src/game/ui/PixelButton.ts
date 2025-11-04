@@ -1,6 +1,6 @@
+import { CDN_BASE_URL } from '@config/assets.config';
+import { audioManager } from '@services/audioManager';
 import { Assets, Container, Graphics, NineSliceSprite, Text, Texture } from 'pixi.js';
-
-import { audioManager } from '@/services/audioManager';
 
 export class PixelButton extends Container {
   private background!: NineSliceSprite | Graphics;
@@ -51,7 +51,7 @@ export class PixelButton extends Container {
     try {
       // 텍스처 로딩 (싱글톤 패턴으로 한 번만 로드)
       if (!PixelButton.buttonTexture && !PixelButton.textureLoading) {
-        PixelButton.textureLoading = Assets.load('/assets/gui/bg-button.png').then(
+        PixelButton.textureLoading = Assets.load(`${CDN_BASE_URL}/assets/gui/bg-button.png`).then(
           (texture: Texture) => {
             // 픽셀 아트 렌더링 설정
             if (texture.baseTexture) {

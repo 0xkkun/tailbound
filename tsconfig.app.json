@@ -21,7 +21,17 @@
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
       "@i18n/*": ["./src/i18n/*"],
-      "@test/*": ["./src/test/*"]
+      "@test/*": ["./src/test/*"],
+      "@config/*": ["./src/config/*"],
+      "@services/*": ["./src/services/*"],
+      "@systems/*": ["./src/systems/*"],
+      "@type/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@game/*": ["./src/game/*"],
+      "@ui/*": ["./src/ui/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@data/*": ["./src/data/*"]
     },
 
     /* Linting */

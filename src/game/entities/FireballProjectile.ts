@@ -3,7 +3,7 @@
  *
  * 보스가 발사하는 불꽃 속성 투사체
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
 import type { Player } from './Player';
@@ -26,7 +26,7 @@ export class FireballProjectile extends Container {
   private sprite: AnimatedSprite | null = null;
 
   // 스프라이트 설정
-  private static readonly SPRITE_PATH = '/assets/boss/boss-soulball.png';
+  private static readonly SPRITE_PATH = `${CDN_BASE_URL}/assets/boss/boss-soulball.png`;
   private static readonly FRAME_WIDTH = 128;
   private static readonly FRAME_HEIGHT = 128;
   private static readonly FRAME_COUNT = 8; // 전체 8프레임 (1줄 8열)

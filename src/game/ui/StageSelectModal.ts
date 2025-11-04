@@ -1,8 +1,8 @@
+import { CDN_BASE_URL } from '@config/assets.config';
+import { audioManager } from '@services/audioManager';
+import { safeGetSafeAreaInsets } from '@utils/tossAppBridge';
 import gsap from 'gsap';
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
-
-import { audioManager } from '@/services/audioManager';
-import { safeGetSafeAreaInsets } from '@/utils/tossAppBridge';
 
 import { PixelButton } from './PixelButton';
 
@@ -38,9 +38,24 @@ export class StageSelectModal extends Container {
   private cards: StageCard[] = [];
   private currentIndex: number = 0;
   private cardData: StageData[] = [
-    { id: 'stage1', name: '흑혈백호', locked: false, bossImage: '/assets/boss/boss-tiger.png' },
-    { id: 'stage2', name: '????', locked: true, bossImage: '/assets/boss/boss-dragon.png' },
-    { id: 'stage3', name: '????', locked: true, bossImage: '/assets/boss/boss-fire.png' },
+    {
+      id: 'stage1',
+      name: '흑혈백호',
+      locked: false,
+      bossImage: `${CDN_BASE_URL}/assets/boss/boss-tiger.png`,
+    },
+    {
+      id: 'stage2',
+      name: '????',
+      locked: true,
+      bossImage: `${CDN_BASE_URL}/assets/boss/boss-dragon.png`,
+    },
+    {
+      id: 'stage3',
+      name: '????',
+      locked: true,
+      bossImage: `${CDN_BASE_URL}/assets/boss/boss-fire.png`,
+    },
   ];
   private confirmButton!: PixelButton;
   private backButton!: Container;
@@ -70,7 +85,7 @@ export class StageSelectModal extends Container {
   private async loadAndCreateBackground(): Promise<void> {
     try {
       // bg-stage 이미지 로드
-      const texture = await Assets.load('/assets/gui/bg-stage.png');
+      const texture = await Assets.load(`${CDN_BASE_URL}/assets/gui/bg-stage.png`);
 
       // 픽셀 아트 렌더링 설정
       if (texture.source) {
@@ -472,7 +487,7 @@ export class StageSelectModal extends Container {
     backButtonContainer.cursor = 'pointer';
 
     // 백 버튼 아이콘 비동기 로드 (32px 크기)
-    Assets.load('/assets/gui/back.png').then((texture) => {
+    Assets.load(`${CDN_BASE_URL}/assets/gui/back.png`).then((texture) => {
       // 픽셀 아트 렌더링 설정
       if (texture.source) {
         texture.source.scaleMode = 'nearest';

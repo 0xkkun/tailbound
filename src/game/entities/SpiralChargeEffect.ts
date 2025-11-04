@@ -3,7 +3,7 @@
  *
  * 보스가 나선형 공격을 준비할 때 보스를 감싸는 이펙트
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { AnimatedSprite, Assets, Container, Graphics, Texture } from 'pixi.js';
 
 import type { WhiteTigerBoss } from './enemies/WhiteTigerBoss';
@@ -15,7 +15,7 @@ export class SpiralChargeEffect extends Container {
   private boss: WhiteTigerBoss;
 
   // 스프라이트 설정
-  private static readonly SPRITE_PATH = '/assets/boss/boss-skill-effect.png';
+  private static readonly SPRITE_PATH = `${CDN_BASE_URL}/assets/boss/boss-skill-effect.png`;
   private static readonly FRAME_WIDTH = 59;
   private static readonly FRAME_HEIGHT = 49;
   private static readonly FRAME_COUNT = 15;

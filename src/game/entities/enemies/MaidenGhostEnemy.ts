@@ -3,11 +3,10 @@
  *
  * 플레이어와 일정 거리를 유지하며 투사체를 발사
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
+import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
+import type { FieldEnemyTier } from '@game/data/enemies';
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
-
-import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@/config/balance.config';
-import type { FieldEnemyTier } from '@/game/data/enemies';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -16,21 +15,21 @@ export class MaidenGhostEnemy extends BaseEnemy {
   // 처녀귀신 스프라이트 설정 (티어별)
   private static readonly SPRITE_CONFIGS: Record<FieldEnemyTier, EnemySpriteConfig> = {
     low: {
-      assetPath: '/assets/enemy/woman-ghost-white-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/woman-ghost-white-walk.png`,
       totalWidth: 224,
       height: 32,
       frameCount: 7,
       scale: 2.5, // 기본 크기
     },
     medium: {
-      assetPath: '/assets/enemy/woman-ghost-red-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/woman-ghost-red-walk.png`,
       totalWidth: 224,
       height: 32,
       frameCount: 7,
       scale: 3.0, // 20% 크게
     },
     high: {
-      assetPath: '/assets/enemy/woman-ghost-red-walk.png',
+      assetPath: `${CDN_BASE_URL}/assets/enemy/woman-ghost-red-walk.png`,
       totalWidth: 224,
       height: 32,
       frameCount: 7,
@@ -110,8 +109,8 @@ export class MaidenGhostEnemy extends BaseEnemy {
     const tier = this.getFieldTier();
     const assetPath =
       tier === 'low'
-        ? '/assets/enemy/woman-ghost-white-attack.png'
-        : '/assets/enemy/woman-ghost-red-attack.png';
+        ? `${CDN_BASE_URL}/assets/enemy/woman-ghost-white-attack.png`
+        : `${CDN_BASE_URL}/assets/enemy/woman-ghost-red-attack.png`;
 
     // 텍스처 로드
     const texture = await Assets.load(assetPath);

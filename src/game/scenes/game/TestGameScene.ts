@@ -4,9 +4,8 @@
  * 보스와 무기를 빠르게 테스트하기 위한 씬
  */
 
+import type { PlayerSnapshot } from '@hooks/useGameState';
 import { Container, Graphics, Text } from 'pixi.js';
-
-import type { PlayerSnapshot } from '@/hooks/useGameState';
 
 import { OverworldGameScene } from './OverworldGameScene';
 
@@ -547,12 +546,11 @@ export class TestGameScene extends OverworldGameScene {
   }
 
   /**
-   * 치트: 범위 증가
+   * 치트: 범위 증가 (현재 미구현)
    */
   private cheatIncreaseArea(): void {
     if (!this.player) return;
-    this.player.areaMultiplier = Math.min(this.player.areaMultiplier + 0.25, 3.0);
-    console.log(`[치트] 범위: ${(this.player.areaMultiplier * 100).toFixed(0)}%`);
+    console.log(`[치트] 범위 증가 기능은 현재 미구현입니다.`);
   }
 
   /**
@@ -594,7 +592,7 @@ export class TestGameScene extends OverworldGameScene {
   /**
    * 정리
    */
-  public destroy(): void {
+  public async destroy(): Promise<void> {
     if (this.debugPanel) {
       this.uiLayer.removeChild(this.debugPanel);
       this.debugPanel.destroy();
@@ -607,6 +605,6 @@ export class TestGameScene extends OverworldGameScene {
       this.debugToggleButton = null;
     }
 
-    super.destroy();
+    await super.destroy();
   }
 }

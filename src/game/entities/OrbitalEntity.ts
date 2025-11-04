@@ -5,9 +5,8 @@
  * 사용: 도깨비불, 방어막 등
  */
 
+import { TICK_DAMAGE_BALANCE } from '@config/balance.config';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Sprite, Texture } from 'pixi.js';
-
-import { TICK_DAMAGE_BALANCE } from '@/config/balance.config';
 
 import type { Player } from './Player';
 

@@ -3,7 +3,7 @@
  *
  * 보스 처치 시 드롭되는 금색 상자
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { Assets, Container, Graphics, Sprite } from 'pixi.js';
 
 import type { Player } from './Player';
@@ -14,7 +14,7 @@ const REWARD_CHEST_CONSTANTS = {
   PICKUP_RANGE: 100,
   ROTATION_SPEED: 1.0, // 라디안/초
   SPRITE: {
-    PATH: '/assets/power-up/giftbox.png',
+    PATH: `${CDN_BASE_URL}/assets/power-up/giftbox.png`,
     SCALE: 2.5,
   },
   GLOW: {

@@ -5,7 +5,7 @@
  * 1. 번개 탄막 발사 (8방향 → 12방향)
  * 2. 번개 돌진 (경고선 → 돌진)
  */
-
+import { CDN_BASE_URL } from '@config/assets.config';
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
 import type { BossProjectile } from '../BossProjectile';
@@ -17,7 +17,7 @@ import type { EnemySpriteConfig } from './EnemySprite';
 export class WhiteTigerBoss extends BaseEnemy {
   // 백호 스프라이트 설정
   private static readonly SPRITE_CONFIG: EnemySpriteConfig = {
-    assetPath: '/assets/boss/wt.png',
+    assetPath: `${CDN_BASE_URL}/assets/boss/wt.png`,
     totalWidth: 768, // 16프레임 × 48px
     height: 48,
     frameCount: 16,
@@ -26,7 +26,7 @@ export class WhiteTigerBoss extends BaseEnemy {
 
   // Idle 스프라이트 설정
   private static readonly IDLE_SPRITE_CONFIG = {
-    assetPath: '/assets/boss/wt-idle.png',
+    assetPath: `${CDN_BASE_URL}/assets/boss/wt-idle.png`,
     totalWidth: 336, // 7프레임 × 48px
     height: 48,
     frameCount: 7,
