@@ -158,17 +158,17 @@ export const WEAPON_BALANCE = {
   // 도깨비불
   dokkaebi_fire: {
     name: '도깨비불',
-    baseDamage: 8,
+    baseDamage: 4, // 틱 데미지가 빨라지므로 데미지 감소 (8 -> 4)
     baseCooldown: 0.5,
     projectileSpeed: 300,
-    projectileRadius: 12,
+    projectileRadius: 36, // 도깨비불 크기 증가 (12 -> 36, 3배)
     projectileLifetime: 2,
     piercing: 0,
     projectileCount: 3,
     // 궤도 설정
     orbitalRadius: 120, // 기본 궤도 반경 (80 -> 120)
-    baseAngularSpeed: 3.5, // 기본 회전 속도 (rad/s)
-    maxAngularSpeed: 5.5, // 최대 회전 속도
+    baseAngularSpeed: 5.0, // 기본 회전 속도 증가 (3.5 -> 5.0)
+    maxAngularSpeed: 7.5, // 최대 회전 속도 증가 (5.5 -> 7.5)
     maxOrbitalCount: 5, // 최대 궤도 개수
     // 깜박임 설정
     blinkOnDurationBase: 5.0, // 켜짐 시간 기본값
@@ -176,10 +176,10 @@ export const WEAPON_BALANCE = {
     blinkOffDurationBase: 3.0, // 꺼짐 시간 기본값
     blinkOffDurationMin: 1.2, // 꺼짐 시간 최소값
     levelScaling: {
-      damage: 3,
+      damage: 2, // 레벨당 데미지 증가량 감소 (3 -> 2)
       cooldownReduction: 0.03,
       piercingPerLevel: 0,
-      angularSpeedPerLevel: 0.1, // 레벨당 회전속도 증가
+      angularSpeedPerLevel: 0.15, // 레벨당 회전속도 증가량 상승 (0.1 -> 0.15)
       radiusPerLevel: 10, // 3레벨마다 반경 증가량
       radiusIncreaseInterval: 3, // 반경 증가 주기
       blinkOnReductionPerLevel: 1.0, // 레벨당 켜짐 시간 감소
@@ -210,13 +210,13 @@ export const WEAPON_BALANCE = {
     projectileLifetime: 7, // 사거리 증가 (5 -> 7, 2000px -> 2800px)
     piercing: 5,
     projectileCount: 1,
-    attackRadius: 120, // 작두날 공격 범위 (80 -> 120으로 증가, 50% 증가)
+    attackRadius: 80, // 작두날 공격 범위 (실제 날 부분만 맞도록 축소)
     offsetDistance: 60, // 플레이어로부터의 거리
     levelScaling: {
       damage: 6,
       cooldownReduction: 0.1,
       piercingPerLevel: 1,
-      radiusPerLevel: 8, // 레벨당 범위 +8
+      radiusPerLevel: 5, // 레벨당 범위 +5 (8에서 감소)
     },
   },
   // 부채바람
@@ -400,13 +400,16 @@ export const KNOCKBACK_BALANCE = {
   // 넉백 물리
   friction: 8.0, // 감속 속도
   minVelocity: 1.0, // 이 값 이하면 완전히 정지
+
+  // 넉백 무적 시간 (초)
+  immunityDuration: 2.0, // 넉백 후 2초 동안 다시 넉백되지 않음
 } as const;
 
 /**
  * 틱 데미지 밸런스 (지속 데미지용)
  */
 export const TICK_DAMAGE_BALANCE = {
-  orbital: 0.25, // 궤도 무기 (0.25초 = 초당 4회)
+  orbital: 0.15, // 궤도 무기 (0.15초 = 초당 약 6.7회, 더 빠르게)
   aoe: 0.0, // AoE는 일회성 (틱 없음)
 } as const;
 
