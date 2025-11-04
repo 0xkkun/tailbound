@@ -16,19 +16,24 @@ export interface AttachedEntityConfig {
   offsetDistance: number;
   damage?: number;
   radius?: number;
+  radiusX?: number; // 타원형 히트박스의 가로 반지름
+  radiusY?: number; // 타원형 히트박스의 세로 반지름
   color?: number;
 }
 
 export class AttachedEntity extends Container {
   public active: boolean = true;
   public damage: number = 10;
-  public radius: number = 64; // 충돌 판정 크기
+  public radius: number = 64; // 충돌 판정 크기 (원형, 하위 호환)
+  public radiusX: number = 64; // 타원형 히트박스의 가로 반지름
+  public radiusY: number = 64; // 타원형 히트박스의 세로 반지름
 
   protected attachmentPosition: AttachmentPosition;
   protected offsetDistance: number;
 
   // 시각화
   protected visual: Graphics | AnimatedSprite;
+  private hitboxGraphic?: Graphics; // 히트박스 시각화 (디버그용)
 
   // 공격 애니메이션 상태
   private isAttacking: boolean = false;
@@ -42,15 +47,43 @@ export class AttachedEntity extends Container {
     this.attachmentPosition = config.position;
     this.offsetDistance = config.offsetDistance;
     this.damage = config.damage ?? 10;
-    this.radius = config.radius ?? 64;
+
+    // 타원형 히트박스 설정
+    if (config.radiusX !== undefined && config.radiusY !== undefined) {
+      this.radiusX = config.radiusX;
+      this.radiusY = config.radiusY;
+      this.radius = Math.max(config.radiusX, config.radiusY); // 하위 호환용
+    } else {
+      this.radius = config.radius ?? 64;
+      this.radiusX = this.radius;
+      this.radiusY = this.radius;
+    }
 
     const color = config.color ?? 0xff0000;
 
     // 플레이스홀더 그래픽 (이미지 없을 때)
     this.visual = new Graphics();
-    (this.visual as Graphics).circle(0, 0, this.radius);
+    (this.visual as Graphics).ellipse(0, 0, this.radiusX, this.radiusY);
     (this.visual as Graphics).fill(color);
     this.addChild(this.visual);
+
+    // 히트박스 시각화 추가 (테스트 모드에서만)
+    const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true';
+    if (isTestMode) {
+      this.createHitboxGraphic();
+    }
+  }
+
+  /**
+   * 히트박스 시각화 생성 (디버그용)
+   */
+  private createHitboxGraphic(): void {
+    this.hitboxGraphic = new Graphics();
+    this.hitboxGraphic.ellipse(0, 0, this.radiusX, this.radiusY);
+    this.hitboxGraphic.stroke({ width: 2, color: 0xff0000, alpha: 0.6 }); // 빨간색 테두리
+    this.hitboxGraphic.ellipse(0, 0, this.radiusX, this.radiusY);
+    this.hitboxGraphic.fill({ color: 0xff0000, alpha: 0.15 }); // 반투명 빨간색 채우기
+    this.addChild(this.hitboxGraphic);
   }
 
   /**
@@ -175,6 +208,8 @@ export class AttachedEntity extends Container {
       flipX?: boolean;
       flipY?: boolean;
       rotation?: number; // 라디안 단위
+      scale?: number; // 스프라이트 크기 배율
+      reverse?: boolean; // 프레임 역순 재생
     }
   ): Promise<void> {
     try {
@@ -191,6 +226,11 @@ export class AttachedEntity extends Container {
           frame: new Rectangle(x, y, frameWidth, frameHeight),
         });
         frames.push(frame);
+      }
+
+      // 역순 재생 옵션
+      if (options?.reverse) {
+        frames.reverse();
       }
 
       // Graphics 제거하고 AnimatedSprite로 교체
@@ -210,13 +250,13 @@ export class AttachedEntity extends Container {
         this.isAttacking = false;
       };
 
-      // 좌우/상하 반전
-      if (options?.flipX) {
-        this.visual.scale.x = -1;
-      }
-      if (options?.flipY) {
-        this.visual.scale.y = -1;
-      }
+      // 스케일 적용 (기본값 1)
+      const baseScale = options?.scale ?? 1;
+
+      // 좌우/상하 반전 (스케일 값에 방향 적용)
+      const scaleX = (options?.flipX ? -1 : 1) * baseScale;
+      const scaleY = (options?.flipY ? -1 : 1) * baseScale;
+      this.visual.scale.set(scaleX, scaleY);
 
       // 회전 (라디안)
       if (options?.rotation !== undefined) {

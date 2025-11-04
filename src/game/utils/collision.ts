@@ -25,6 +25,28 @@ export function checkCircleCollision(
 }
 
 /**
+ * 타원과 원 간의 충돌 감지
+ * ellipse: 타원 객체 (x, y, radiusX, radiusY)
+ * circle: 원 객체 (x, y, radius)
+ */
+export function checkEllipseCircleCollision(
+  ellipse: { x: number; y: number; radiusX: number; radiusY: number },
+  circle: { x: number; y: number; radius: number }
+): boolean {
+  // 타원의 중심을 원점으로 이동
+  const dx = circle.x - ellipse.x;
+  const dy = circle.y - ellipse.y;
+
+  // 타원 방정식에 정규화: (dx/radiusX)^2 + (dy/radiusY)^2 <= 1
+  // 원의 반지름을 고려하여 확장된 타원으로 계산
+  const normalizedX = dx / (ellipse.radiusX + circle.radius);
+  const normalizedY = dy / (ellipse.radiusY + circle.radius);
+
+  // 정규화된 거리가 1 이하면 충돌
+  return normalizedX * normalizedX + normalizedY * normalizedY <= 1;
+}
+
+/**
  * 두 점 사이의 거리 계산
  */
 export function getDistance(pos1: Vector2, pos2: Vector2): number {

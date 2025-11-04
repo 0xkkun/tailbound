@@ -65,7 +65,8 @@ export class JakduBladeWeapon extends Weapon {
         position,
         offsetDistance: this.offsetDistance,
         damage: this.damage,
-        radius: this.attackRadius,
+        radiusX: this.attackRadius * 1.5, // 가로로 1.5배 더 길게
+        radiusY: this.attackRadius * 1.0, // 세로는 기본 크기 (하단 포함)
         color: 0xff0000,
       });
 
@@ -80,6 +81,7 @@ export class JakduBladeWeapon extends Weapon {
             : position === 'left'
               ? -Math.PI / 2 // 왼쪽 -90도
               : 0, // forward는 방향에 따라 동적으로 회전 (나중에 업데이트에서 처리)
+        scale: 2, // 스프라이트 크기 2배
       });
 
       this.blades.push(blade);
@@ -108,14 +110,16 @@ export class JakduBladeWeapon extends Weapon {
     this.damage = stats.damage;
     this.cooldown = stats.cooldown;
 
-    // 범위 증가 (레벨당 +8)
-    const radiusPerLevel = WEAPON_BALANCE.jakdu_blade.levelScaling.radiusPerLevel || 8;
+    // 범위 증가
+    const radiusPerLevel = WEAPON_BALANCE.jakdu_blade.levelScaling.radiusPerLevel || 5;
     this.attackRadius = WEAPON_BALANCE.jakdu_blade.attackRadius + radiusPerLevel * (this.level - 1);
 
-    // 모든 작두의 데미지와 범위 업데이트
+    // 모든 작두의 데미지와 범위 업데이트 (타원형)
     for (const blade of this.blades) {
       blade.damage = this.damage;
-      blade.radius = this.attackRadius;
+      blade.radiusX = this.attackRadius * 1.5; // 가로로 1.5배 더 길게
+      blade.radiusY = this.attackRadius * 1.0; // 세로는 기본 크기
+      blade.radius = Math.max(blade.radiusX, blade.radiusY); // 하위 호환용
     }
 
     // 레벨업 효과: 레벨 2부터 오른쪽 작두 추가
