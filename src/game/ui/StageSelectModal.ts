@@ -138,7 +138,7 @@ export class StageSelectModal extends Container {
     // 선택 버튼이 screenHeight - 80에 위치하므로
     // 카드는 버튼보다 16px 위 + 카드 높이의 절반만큼 위로
     const buttonY = this.screenHeight - 80;
-    const cardCenterY = buttonY - 16 - this.CARD_HEIGHT - 16;
+    const cardCenterY = buttonY - 16 - this.CARD_HEIGHT - 48;
 
     this.cardsContainer = new Container();
     // modalContainer의 중심이 (screenWidth/2, screenHeight/2)이므로
@@ -278,42 +278,33 @@ export class StageSelectModal extends Container {
       (bossImage) => {
         if (bossImage) {
           contentContainer.addChild(bossImage);
-
-          // 잠긴 스테이지: 보스 이미지 위에 80% dimmed + "Coming Soon!!!" 텍스트
-          if (data.locked) {
-            // 보스 이미지 영역(112px)만 dimmed 처리
-            const bossImageWidth = 112;
-            const bossAreaOverlay = new Graphics();
-            // 보스 이미지 위치 기준으로 오버레이 생성
-            bossAreaOverlay.rect(
-              bossImage.x - bossImageWidth / 2,
-              bossImage.y - bossImage.height / 2,
-              bossImageWidth,
-              bossImage.height
-            );
-            bossAreaOverlay.fill({ color: 0x000000, alpha: 0.8 });
-            contentContainer.addChild(bossAreaOverlay);
-
-            // "Coming Soon!!!" 텍스트 (#F7A74F, 12px) - 보스 이미지 시각적 중앙
-            const comingSoonText = new Text({
-              text: 'Coming Soon!!!',
-              style: {
-                fontFamily: 'NeoDunggeunmo',
-                fontSize: 12,
-                fill: 0xf7a74f,
-              },
-            });
-            comingSoonText.resolution = 2;
-            comingSoonText.anchor.set(0.5); // 중앙 정렬
-            // 보스 이미지가 우측으로 12px overflow, 하단으로 height/8 offset되어 있으므로
-            // 텍스트를 왼쪽(-6px)과 위쪽(-height/8)으로 조정하여 시각적 중앙에 배치
-            comingSoonText.x = bossImage.x - 6;
-            comingSoonText.y = bossImage.y - bossImage.height / 8;
-            contentContainer.addChild(comingSoonText);
-          }
         }
       }
     );
+
+    // 잠긴 스테이지: 카드 전체에 80% dimmed + "Coming Soon!!!" 텍스트
+    if (data.locked) {
+      // 카드 전체 영역에 dimmed 처리
+      const lockedOverlay = new Graphics();
+      lockedOverlay.rect(0, 0, contentWidth, contentHeight);
+      lockedOverlay.fill({ color: 0x000000, alpha: 0.8 });
+      contentContainer.addChild(lockedOverlay);
+
+      // "Coming Soon!!!" 텍스트 (#F7A74F, 12px) - 카드 중앙 정렬
+      const comingSoonText = new Text({
+        text: 'Coming Soon!!!',
+        style: {
+          fontFamily: 'NeoDunggeunmo',
+          fontSize: 12,
+          fill: 0xf7a74f,
+        },
+      });
+      comingSoonText.resolution = 2;
+      comingSoonText.anchor.set(0.5); // 중앙 정렬
+      comingSoonText.x = contentWidth / 2;
+      comingSoonText.y = contentHeight / 2;
+      contentContainer.addChild(comingSoonText);
+    }
 
     card.addChild(contentContainer);
 

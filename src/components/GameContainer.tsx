@@ -1,11 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { BoundaryGameScene } from '@game/scenes/game/BoundaryGameScene';
+import { OverworldGameScene } from '@game/scenes/game/OverworldGameScene';
+import { TestGameScene } from '@game/scenes/game/TestGameScene';
+import { LobbyScene } from '@game/scenes/LobbyScene';
+import { LoadingSpriteUI } from '@game/ui/LoadingSpriteUI';
+import { StageSelectModal } from '@game/ui/StageSelectModal';
 import { useApplication } from '@pixi/react';
+import { assetLoader } from '@services/assetLoader';
 
-import { BoundaryGameScene } from '../game/scenes/game/BoundaryGameScene';
-import { OverworldGameScene } from '../game/scenes/game/OverworldGameScene';
-import { TestGameScene } from '../game/scenes/game/TestGameScene';
-import { LobbyScene } from '../game/scenes/LobbyScene';
-import { StageSelectModal } from '../game/ui/StageSelectModal';
 import { useGameState } from '../hooks/useGameState';
 
 interface GameContainerProps {
@@ -32,6 +34,8 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
   const overworldSceneRef = useRef<OverworldGameScene | null>(null);
   const boundarySceneRef = useRef<BoundaryGameScene | null>(null);
   const testSceneRef = useRef<TestGameScene | null>(null);
+  const loadingUIRef = useRef<LoadingSpriteUI | null>(null);
+  const checkIntervalRef = useRef<number | null>(null);
 
   // URL 파라미터로 테스트 모드 자동 진입
   useEffect(() => {
@@ -107,9 +111,6 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
   useEffect(() => {
     const preloadAssets = async () => {
       try {
-        // Import assetLoader
-        const { assetLoader } = await import('../services/assetLoader');
-
         // 필수 에셋 로드 (critical)
         await assetLoader.loadCritical();
 
@@ -131,11 +132,97 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
     preloadAssets();
   }, [onAssetsLoaded]);
 
+  // 로딩 체크 후 stage-select로 전환하는 함수
+  const handleShowStageSelect = useCallback(async () => {
+    if (!app) return;
+
+    // Medium/Low 에셋이 이미 로드되었는지 확인
+    const mediumLoaded = assetLoader.isPhaseLoaded('medium');
+    const lowLoaded = assetLoader.isPhaseLoaded('low');
+
+    // 이미 모두 로드되었다면 바로 stage-select로 전환
+    if (mediumLoaded && lowLoaded) {
+      showStageSelect();
+      return;
+    }
+
+    // 로딩 UI 생성
+    const ui = new LoadingSpriteUI(app.screen.width, app.screen.height);
+
+    // stage의 sortableChildren 활성화 (z-index가 작동하도록)
+    app.stage.sortableChildren = true;
+
+    app.stage.addChild(ui);
+    loadingUIRef.current = ui;
+
+    // z-index 정렬 (로딩 UI가 최상위에 표시되도록)
+    app.stage.sortChildren();
+
+    // 로딩 UI 초기화 (패턴 + 스프라이트 로드)
+    await ui.initialize();
+
+    // 로딩 UI를 숨기는 함수
+    const hideLoadingUI = async () => {
+      // 페이드아웃
+      await ui.fadeOut(300);
+      // UI 제거
+      app.stage.removeChild(ui);
+      ui.destroy();
+      loadingUIRef.current = null;
+    };
+
+    // Medium/Low 에셋 로딩 상태 확인
+    const checkLoadingComplete = () => {
+      const mediumLoaded = assetLoader.isPhaseLoaded('medium');
+      const lowLoaded = assetLoader.isPhaseLoaded('low');
+
+      if (mediumLoaded && lowLoaded && ui) {
+        ui.notifyAssetsLoaded();
+
+        // 최소 표시 시간이 지났는지 확인
+        if (ui.canHide()) {
+          clearInterval(checkIntervalRef.current!);
+          hideLoadingUI();
+        }
+      }
+    };
+
+    // 100ms마다 체크
+    checkIntervalRef.current = setInterval(checkLoadingComplete, 100);
+
+    // 초기 체크
+    checkLoadingComplete();
+  }, [app, showStageSelect]);
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+      }
+      if (loadingUIRef.current && app) {
+        app.stage.removeChild(loadingUIRef.current);
+        loadingUIRef.current.destroy();
+        loadingUIRef.current = null;
+      }
+    };
+  }, [app]);
+
   useEffect(() => {
     if (!app) return;
 
-    // Clear existing stage children
-    app.stage.removeChildren();
+    // Clear existing stage children (but preserve loading UI if it exists)
+    const loadingUI = loadingUIRef.current;
+    if (loadingUI && app.stage.children.includes(loadingUI)) {
+      // 로딩 UI를 제외한 나머지 제거
+      app.stage.children.forEach((child) => {
+        if (child !== loadingUI) {
+          app.stage.removeChild(child);
+        }
+      });
+    } else {
+      app.stage.removeChildren();
+    }
 
     if (gamePhase === 'lobby') {
       // Create and add lobby scene
@@ -153,6 +240,8 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
 
       // Connect stage select callback
       lobbyScene.onShowStageSelect = () => {
+        handleShowStageSelect();
+        // 로딩 완료 후 스테이지 선택 화면으로 전환
         showStageSelect();
       };
 
@@ -306,6 +395,7 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
     restartGame,
     showStageSelect,
     startGameWithStage,
+    handleShowStageSelect,
     app,
   ]);
 

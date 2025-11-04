@@ -106,6 +106,8 @@ export const CDN_ASSETS = {
     titleFan: `${CDN_BASE_URL}/assets/gui/title-fan.png`,
     bgStage: `${CDN_BASE_URL}/assets/gui/bg-stage.png`,
     shamanSignature: `${CDN_BASE_URL}/assets/gui/shaman-signature.png`,
+    loadingSprite: `${CDN_BASE_URL}/assets/gui/loading-sprite.png`,
+    pattern: `${CDN_BASE_URL}/assets/gui/pattern.png`,
   },
 
   // Power-ups
@@ -160,6 +162,8 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.tile.tile3,
     CDN_ASSETS.gui.bgButton,
     CDN_ASSETS.gui.settings,
+    CDN_ASSETS.gui.loadingSprite,
+    CDN_ASSETS.gui.pattern,
   ],
 
   // 높음: 초반 스테이지에서 사용
