@@ -49,6 +49,9 @@ export class LobbyScene extends Container {
     this.createButtons(screenWidth, screenHeight);
     this.createSettingsButton();
     this.createCopyright(screenWidth, screenHeight);
+
+    // 로비 BGM 시작 (인게임에서 돌아왔을 때도 재생)
+    audioManager.playBGMByTrack('main');
   }
 
   private async loadAndCreateBackground(width: number, height: number): Promise<void> {
@@ -163,7 +166,8 @@ export class LobbyScene extends Container {
       buttonX,
       startButtonY,
       () => {
-        console.log('스테이지 선택 화면 표시');
+        // 사용자 인터랙션 발생 - 대기 중인 BGM 재시도
+        audioManager.retryPendingBGM();
         this.onShowStageSelect?.();
       },
       false,
@@ -206,6 +210,8 @@ export class LobbyScene extends Container {
         buttonX,
         testButtonY,
         () => {
+          // 사용자 인터랙션 발생 - 대기 중인 BGM 재시도
+          audioManager.retryPendingBGM();
           console.log('테스트 모드 시작!');
           this.onStartTestMode?.();
         },
@@ -255,6 +261,8 @@ export class LobbyScene extends Container {
 
     // 클릭 시 설정 모달 토글
     buttonContainer.on('pointerdown', () => {
+      // 사용자 인터랙션 발생 - 대기 중인 BGM 재시도
+      audioManager.retryPendingBGM();
       this.toggleSettingsModal();
     });
 

@@ -32,6 +32,9 @@ export class AudioManager {
   private isAlternatingMode: boolean = false;
   private bgmWasPausedManually: boolean = false; // 수동 일시정지 여부 추적
 
+  // 재생 대기 중인 BGM (autoplay 차단 시 사용)
+  private pendingBGM: { track: BGMTrack; loop: boolean } | null = null;
+
   private constructor() {
     this.loadSettings();
     this.setupVisibilityHandler();
@@ -387,12 +390,13 @@ export class AudioManager {
 
     if (this.currentBGM) {
       if (fadeOut && this.currentBGM.playing()) {
-        // 페이드 아웃 후 중지
-        this.currentBGM.fade(this.bgmVolume, 0, 500);
+        // 페이드 아웃 후 중지 (참조 저장하여 다른 BGM과 충돌 방지)
+        const bgmToStop = this.currentBGM;
+        bgmToStop.fade(this.bgmVolume, 0, 500);
+        this.currentBGM = null; // 즉시 null로 설정하여 새 BGM 재생 가능
         setTimeout(() => {
-          this.currentBGM?.stop();
-          this.currentBGM?.unload();
-          this.currentBGM = null;
+          bgmToStop.stop();
+          bgmToStop.unload();
         }, 500);
         console.log('[Audio] BGM fading out');
       } else {
@@ -422,6 +426,31 @@ export class AudioManager {
   playBGMByTrack(track: BGMTrack, loop: boolean = true): void {
     const path = BGM_PATHS[track];
     this.playBGM(path, loop);
+    // autoplay 차단 시 재시도를 위해 트랙 정보 저장
+    this.pendingBGM = { track, loop };
+  }
+
+  /**
+   * 대기 중인 BGM 재생 시도 (사용자 인터랙션 발생 시 호출)
+   */
+  retryPendingBGM(): boolean {
+    if (!this.pendingBGM) {
+      return false;
+    }
+
+    // 현재 BGM이 재생 중이면 재시도 불필요
+    if (this.currentBGM && this.currentBGM.playing()) {
+      this.pendingBGM = null;
+      return false;
+    }
+
+    const { track, loop } = this.pendingBGM;
+    this.pendingBGM = null; // 먼저 클리어하여 재귀 방지
+
+    // playBGM 직접 호출 (playBGMByTrack 대신)
+    const path = BGM_PATHS[track];
+    this.playBGM(path, loop);
+    return true;
   }
 
   /**
