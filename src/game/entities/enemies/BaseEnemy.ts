@@ -55,6 +55,7 @@ export abstract class BaseEnemy extends Container {
   // 넉백 시스템
   protected knockbackVelocity: Vector2 = { x: 0, y: 0 };
   protected knockbackResistance: number = 1.0; // 넉백 저항 (1.0 = 정상, 0.5 = 절반만 밀림)
+  protected knockbackImmunityTimer: number = 0; // 넉백 무적 타이머 (deltaTime으로 감소)
 
   // 타임아웃 관리 (메모리 누수 방지)
   private flashTimeoutId?: ReturnType<typeof setTimeout>;
@@ -419,6 +420,11 @@ export abstract class BaseEnemy extends Container {
    * 넉백 적용 (방향 벡터와 힘)
    */
   public applyKnockback(direction: Vector2, force: number): void {
+    // 넉백 무적 시간 체크
+    if (this.knockbackImmunityTimer > 0) {
+      return; // 넉백 무적 시간 동안은 넉백 무시
+    }
+
     // 넉백 저항 적용
     const actualForce = force * this.knockbackResistance;
 
@@ -432,6 +438,9 @@ export abstract class BaseEnemy extends Container {
     // 넉백 속도 설정
     this.knockbackVelocity.x = normalizedX * actualForce;
     this.knockbackVelocity.y = normalizedY * actualForce;
+
+    // 넉백 무적 타이머 시작
+    this.knockbackImmunityTimer = KNOCKBACK_BALANCE.immunityDuration;
   }
 
   /**
@@ -439,6 +448,14 @@ export abstract class BaseEnemy extends Container {
    * @returns 넉백 중이면 true (AI 동작을 스킵해야 함)
    */
   protected updateKnockback(deltaTime: number): boolean {
+    // 넉백 무적 타이머 감소
+    if (this.knockbackImmunityTimer > 0) {
+      this.knockbackImmunityTimer -= deltaTime;
+      if (this.knockbackImmunityTimer < 0) {
+        this.knockbackImmunityTimer = 0;
+      }
+    }
+
     if (this.knockbackVelocity.x === 0 && this.knockbackVelocity.y === 0) {
       return false; // 넉백 중이 아님
     }
