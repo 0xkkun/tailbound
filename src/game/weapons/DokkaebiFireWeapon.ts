@@ -17,7 +17,7 @@ import { Weapon } from './Weapon';
 
 export class DokkaebiFireWeapon extends Weapon {
   private orbitals: OrbitalEntity[] = [];
-  private orbitalCount: number = 1;
+  private orbitalCount: number = 2; // 초기 개수 2개로 증가
   private orbitalRadius: number = WEAPON_BALANCE.dokkaebi_fire.orbitalRadius;
   private angularSpeed: number = WEAPON_BALANCE.dokkaebi_fire.baseAngularSpeed;
 
@@ -69,11 +69,13 @@ export class DokkaebiFireWeapon extends Weapon {
         0x00ffff // 청록색 (도깨비불)
       );
       orbital.damage = this.damage;
+      orbital.radius = config.projectileRadius; // 히트박스 크기 설정 (스프라이트 로드 전에 설정)
       orbital.blinkEnabled = !isMaxCount; // 5개 이상이면 깜박임 비활성화
       orbital.blinkOnDuration = blinkOnDuration; // 레벨에 따라 조정된 간격
       orbital.blinkOffDuration = blinkOffDuration;
 
       // 도깨비불 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 48x48)
+      // radius 설정 후 로드하므로 스프라이트 크기가 radius에 맞춰짐
       await orbital.loadSpriteSheet(
         `${CDN_BASE_URL}/assets/weapon/dokkabi-fire.png`,
         48,

@@ -202,9 +202,15 @@ export class OrbitalEntity extends Container {
       this.orb.anchor.set(0.5);
       (this.orb as AnimatedSprite).animationSpeed = 0.3; // 애니메이션 속도
       (this.orb as AnimatedSprite).play();
+
+      // 스프라이트 크기를 radius에 맞춰 조정
+      const spriteSize = Math.max(frameWidth, frameHeight);
+      const scale = (this.radius * 2) / spriteSize; // radius는 반지름이므로 지름으로 변환
+      this.orb.scale.set(scale);
+
       this.addChild(this.orb);
 
-      console.log(`궤도 엔티티 스프라이트 시트 로드: ${path}`);
+      console.log(`궤도 엔티티 스프라이트 시트 로드: ${path}, 크기: ${this.radius * 2}px`);
     } catch (error) {
       console.warn('궤도 엔티티 스프라이트 시트 로드 실패:', error);
     }
