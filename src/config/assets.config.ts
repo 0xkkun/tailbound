@@ -4,8 +4,10 @@
 
 /**
  * CDN 기본 URL
+ * - 빈 문자열: 로컬 에셋 사용 (앱인토스 환경)
+ * - CDN URL: 외부 CDN 사용 (예: 'https://cdn.tailbound.xyz')
  */
-export const CDN_BASE_URL = 'https://cdn.tailbound.xyz';
+export const CDN_BASE_URL = '';
 
 /**
  * 로컬 에셋 경로 (번들에 포함)

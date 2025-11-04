@@ -1,4 +1,6 @@
-import { CDN_BASE_URL } from '@config/assets.config';
+import { CDN_ASSETS } from '@config/assets.config';
+
+import { PLAYER_BALANCE, POWERUP_BALANCE } from './balance.config';
 
 /**
  * 파워업 시스템 설정
@@ -9,7 +11,6 @@ import { CDN_BASE_URL } from '@config/assets.config';
  * 주의: 실제 밸런스 값은 balance.config.ts의 POWERUP_BALANCE에서 관리됩니다.
  * 이 파일은 메타데이터(아이콘, 카테고리 등)만 정의합니다.
  */
-import { PLAYER_BALANCE, POWERUP_BALANCE } from './balance.config';
 
 /**
  * 파워업 카테고리
@@ -65,7 +66,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'damage',
     name: 'Damage',
     category: 'attack',
-    icon: `${CDN_BASE_URL}/assets/power-up/attack-power.png`,
+    icon: CDN_ASSETS.powerUp.attackPower,
     increment: POWERUP_BALANCE.damage,
     max: PLAYER_BALANCE.maxStats.damageMultiplier,
   },
@@ -74,7 +75,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'cooldown',
     name: 'Cooldown',
     category: 'attack',
-    icon: `${CDN_BASE_URL}/assets/power-up/attack-speed.png`,
+    icon: CDN_ASSETS.powerUp.attackSpeed,
     increment: POWERUP_BALANCE.cooldown,
     min: PLAYER_BALANCE.minStats.cooldownMultiplier,
   },
@@ -83,7 +84,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'crit_rate',
     name: 'Critical Rate',
     category: 'attack',
-    icon: `${CDN_BASE_URL}/assets/power-up/critical-chance.png`,
+    icon: CDN_ASSETS.powerUp.criticalChance,
     increment: POWERUP_BALANCE.crit_rate,
     max: PLAYER_BALANCE.maxStats.criticalRate,
   },
@@ -92,7 +93,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'crit_damage',
     name: 'Critical Damage',
     category: 'attack',
-    icon: `${CDN_BASE_URL}/assets/power-up/critical-damage.png`,
+    icon: CDN_ASSETS.powerUp.criticalDamage,
     increment: POWERUP_BALANCE.crit_damage,
     max: PLAYER_BALANCE.maxStats.criticalDamage,
   },
@@ -102,7 +103,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'health',
     name: 'Health',
     category: 'defense',
-    icon: `${CDN_BASE_URL}/assets/power-up/health-plus.png`,
+    icon: CDN_ASSETS.powerUp.healthPlus,
     increment: POWERUP_BALANCE.health,
     max: PLAYER_BALANCE.maxStats.maxHealth,
   },
@@ -111,7 +112,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'damage_reduction',
     name: 'Damage Reduction',
     category: 'defense',
-    icon: `${CDN_BASE_URL}/assets/power-up/damage-reduction.png`,
+    icon: CDN_ASSETS.powerUp.damageReduction,
     increment: POWERUP_BALANCE.damage_reduction,
     max: PLAYER_BALANCE.maxStats.damageReduction,
   },
@@ -120,7 +121,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'breathing',
     name: 'Breathing',
     category: 'defense',
-    icon: `${CDN_BASE_URL}/assets/power-up/health-generate.png`,
+    icon: CDN_ASSETS.powerUp.healthGenerate,
     increment: POWERUP_BALANCE.breathing,
   },
 
@@ -129,7 +130,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'speed',
     name: 'Speed',
     category: 'utility',
-    icon: `${CDN_BASE_URL}/assets/power-up/move-speed.png`,
+    icon: CDN_ASSETS.powerUp.moveSpeed,
     increment: POWERUP_BALANCE.speed,
     max: PLAYER_BALANCE.maxStats.speedMultiplier,
   },
@@ -138,7 +139,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'pickup',
     name: 'Pickup Range',
     category: 'utility',
-    icon: `${CDN_BASE_URL}/assets/power-up/magnetic.png`,
+    icon: CDN_ASSETS.powerUp.magnetic,
     increment: POWERUP_BALANCE.pickup,
     max: PLAYER_BALANCE.maxStats.pickupRangeMultiplier,
   },
@@ -147,7 +148,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     id: 'xp_gain',
     name: 'XP Gain',
     category: 'utility',
-    icon: `${CDN_BASE_URL}/assets/power-up/experience-boost.png`,
+    icon: CDN_ASSETS.powerUp.experienceBoost,
     increment: POWERUP_BALANCE.xp_gain,
     max: PLAYER_BALANCE.maxStats.xpMultiplier,
   },
