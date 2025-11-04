@@ -32,7 +32,7 @@ import { StageTransitionScene } from '@game/scenes/StageTransitionScene';
 import { LevelUpUI } from '@game/ui/LevelUpUI';
 import { PixelButton } from '@game/ui/PixelButton';
 import { PortalIndicator } from '@game/ui/PortalIndicator';
-import { checkCircleCollision } from '@game/utils/collision';
+import { checkCircleCollision, checkEllipseCircleCollision } from '@game/utils/collision';
 import { DokkaebiFireWeapon } from '@game/weapons/DokkaebiFireWeapon';
 import { FanWindWeapon } from '@game/weapons/FanWindWeapon';
 import { JakduBladeWeapon } from '@game/weapons/JakduBladeWeapon';
@@ -814,7 +814,7 @@ export class OverworldGameScene extends BaseGameScene {
 
           if (distance <= aoe.radius) {
             enemy.takeDamage(aoe.damage, aoe.isCritical);
-            aoe.markEnemyHit(enemy.id); // 이 적을 맞힌 것으로 기록
+            aoe.recordEnemyHit(enemy.id); // 틱 데미지용 기록
 
             // 넉백 적용 (AoE 중심에서 바깥쪽으로)
             enemy.applyKnockback({ x: dx, y: dy }, KNOCKBACK_BALANCE.aoe);
@@ -891,7 +891,7 @@ export class OverworldGameScene extends BaseGameScene {
       if (weapon instanceof DokkaebiFireWeapon) {
         const orbitals = weapon.getOrbitals();
         for (const orbital of orbitals) {
-          if (!orbital.active) continue;
+          if (!orbital.active || !orbital.visible) continue; // 깜박임 중 숨겨졌을 때는 데미지 없음
 
           for (const enemy of this.enemies) {
             if (!enemy.active || !enemy.isAlive()) continue;
@@ -950,8 +950,13 @@ export class OverworldGameScene extends BaseGameScene {
             // 이미 최대 타격 횟수에 도달한 적은 스킵
             if (!blade.canHitEnemy(enemy.id)) continue;
 
-            // 작두와 적 충돌 체크 (원형 충돌)
-            if (checkCircleCollision(blade, enemy)) {
+            // 작두와 적 충돌 체크 (타원형 충돌)
+            if (
+              checkEllipseCircleCollision(
+                { x: blade.x, y: blade.y, radiusX: blade.radiusX, radiusY: blade.radiusY },
+                { x: enemy.x, y: enemy.y, radius: enemy.radius }
+              )
+            ) {
               // 플레이어 데미지 배율 적용 (치명타 포함)
               const critResult = this.player.rollCritical();
               const finalDamage = blade.damage * critResult.damageMultiplier;

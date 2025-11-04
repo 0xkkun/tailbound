@@ -50,6 +50,9 @@ export class AoEEffect extends Container {
     // 처음에는 숨김
     this.visible = false;
 
+    // 기본적으로 즉시 시작 (스프라이트 로드 여부와 무관하게 데미지 적용)
+    this.isStarted = true;
+
     this.render();
   }
 
@@ -58,6 +61,10 @@ export class AoEEffect extends Container {
    */
   public setStartDelay(delay: number): void {
     this.startDelay = delay;
+    // 지연이 설정되면 시작 상태를 false로 변경
+    if (delay > 0) {
+      this.isStarted = false;
+    }
   }
 
   /**
