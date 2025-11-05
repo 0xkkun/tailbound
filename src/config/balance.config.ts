@@ -242,14 +242,14 @@ export const WEAPON_BALANCE = {
  * 스폰 밸런스
  */
 export const SPAWN_BALANCE = {
-  initialInterval: 3.0, // 초기 웨이브 간격 (초)
-  minInterval: 1.0, // 최소 웨이브 간격
-  intervalReduction: 0.15, // 난이도 증가 시 감소량
+  initialInterval: 2.5, // 초기 웨이브 간격 (초)
+  minInterval: 1.2, // 최소 웨이브 간격 (1.0 -> 1.2로 약간 증가)
+  intervalReduction: 0.1, // 난이도 증가 시 감소량 (0.15 -> 0.1로 약간 감소)
   spawnMargin: 100, // 화면 밖 스폰 마진
 
   // 그룹 스폰 설정
-  minGroupSize: 1, // 그룹당 최소 적 수
-  maxGroupSize: 2, // 그룹당 최대 적 수
+  minGroupSize: 2, // 그룹당 최소 적 수
+  maxGroupSize: 3, // 그룹당 최대 적 수
   minGroups: 1, // 최소 그룹 수
   maxGroups: 2, // 최대 그룹 수
   clusterRadius: 200, // 그룹 내 적들의 퍼짐 정도
