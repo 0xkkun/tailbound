@@ -168,10 +168,52 @@ export class LevelSystem {
   }
 
   /**
-   * 레벨업 선택지 생성 (완전 랜덤)
+   * 가중치 기반 랜덤 선택 (중복 없음)
+   * Weighted Random Sampling without Replacement
+   */
+  private weightedRandomSelect(
+    items: LevelUpChoice[],
+    weights: number[],
+    count: number
+  ): LevelUpChoice[] {
+    const selected: LevelUpChoice[] = [];
+    const availableIndices = Array.from({ length: items.length }, (_, i) => i);
+    const availableWeights = [...weights];
+
+    for (let i = 0; i < count && availableIndices.length > 0; i++) {
+      // 가중치 합계 계산
+      const totalWeight = availableWeights.reduce((sum, w) => sum + w, 0);
+
+      // 가중치 기반 랜덤 선택
+      let random = Math.random() * totalWeight;
+      let selectedIndex = -1;
+
+      for (let j = 0; j < availableIndices.length; j++) {
+        random -= availableWeights[j];
+        if (random <= 0) {
+          selectedIndex = j;
+          break;
+        }
+      }
+
+      // 선택된 아이템 추가
+      if (selectedIndex >= 0) {
+        const itemIndex = availableIndices[selectedIndex];
+        selected.push(items[itemIndex]);
+
+        // 선택된 항목 제거 (중복 방지)
+        availableIndices.splice(selectedIndex, 1);
+        availableWeights.splice(selectedIndex, 1);
+      }
+    }
+
+    return selected;
+  }
+
+  /**
+   * 레벨업 선택지 생성 (중복 없음, 최적화됨)
    */
   private generateLevelUpChoices(): LevelUpChoice[] {
-    const allPossibleChoices: LevelUpChoice[] = [];
 
     // TODO: 실제 플레이어의 무기 보유 상태 확인 필요
     // TODO: 더 많은 무기 추가 필요 (현재 4개 -> 목표 10개+)
@@ -451,31 +493,40 @@ export class LevelSystem {
       },
     ];
 
-    // 선택지 풀 구성 (가중치 적용)
-    // - 무기: 레벨 3 이하일 때 6배, 이후 3배 가중치 (빠른 무기 확보 유도)
-    // - 기존 스탯: 2배 가중치 (기본 빌드)
-    // - 공격/방어/유틸: 1배 (새로운 파워업)
-    const weaponWeight = this.level <= 3 ? 6 : 3; // 레벨 3 이하일 때 무기 확률 2배 증가
-    for (let i = 0; i < weaponWeight; i++) {
-      allPossibleChoices.push(...weapons);
-    }
-    allPossibleChoices.push(...statUpgrades);
-    allPossibleChoices.push(...statUpgrades); // 2번째
-    allPossibleChoices.push(...combatPowerups);
-    allPossibleChoices.push(...defensePowerups);
-    allPossibleChoices.push(...utilityPowerups);
-
-    // Fisher-Yates 셔플 알고리즘으로 완전한 랜덤 보장
-    for (let i = allPossibleChoices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allPossibleChoices[i], allPossibleChoices[j]] = [
-        allPossibleChoices[j],
-        allPossibleChoices[i],
-      ];
+    // 레벨 4 이하일 때는 3개 전부 무기 (초반 빌드 구성 보장)
+    if (this.level <= 4) {
+      // 무기는 동일 가중치로 3개 선택 (중복 없음)
+      const weaponWeights = Array(weapons.length).fill(1);
+      return this.weightedRandomSelect(weapons, weaponWeights, 3);
     }
 
-    // 3개의 랜덤 선택지 반환
-    return allPossibleChoices.slice(0, 3);
+    // 레벨 5 이상: 가중치 기반 선택 (중복 없음)
+    // 모든 선택지를 unique 배열로 구성
+    const allChoices: LevelUpChoice[] = [];
+    const allWeights: number[] = [];
+
+    // 무기: 3배 가중치
+    allChoices.push(...weapons);
+    allWeights.push(...Array(weapons.length).fill(3));
+
+    // 기존 스탯: 2배 가중치
+    allChoices.push(...statUpgrades);
+    allWeights.push(...Array(statUpgrades.length).fill(2));
+
+    // 공격 파워업: 1배 가중치
+    allChoices.push(...combatPowerups);
+    allWeights.push(...Array(combatPowerups.length).fill(1));
+
+    // 방어 파워업: 1배 가중치
+    allChoices.push(...defensePowerups);
+    allWeights.push(...Array(defensePowerups.length).fill(1));
+
+    // 유틸 파워업: 1배 가중치
+    allChoices.push(...utilityPowerups);
+    allWeights.push(...Array(utilityPowerups.length).fill(1));
+
+    // 가중치 기반 랜덤 선택 (중복 없음)
+    return this.weightedRandomSelect(allChoices, allWeights, 3);
   }
 
   /**
