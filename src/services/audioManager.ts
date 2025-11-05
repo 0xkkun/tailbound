@@ -184,12 +184,13 @@ export class AudioManager {
         volume: this.sfxVolume,
         preload: true,
         onloaderror: (_id, error) => {
-          console.error(`[Audio] SFX load error (${soundName}):`, error);
+          console.warn(`[Audio] SFX not found (${soundName}):`, error);
           // 실패한 SFX는 pool에서 제거
           this.sfxPool.delete(soundName);
         },
         onplayerror: (_id, error) => {
-          console.error(`[Audio] SFX play error (${soundName}):`, error);
+          // 사용자 인터랙션 없이 재생 시도 시 발생하는 에러는 조용히 무시
+          console.debug(`[Audio] SFX play skipped (${soundName}):`, error);
         },
       });
       this.sfxPool.set(soundName, sfx);
@@ -264,7 +265,7 @@ export class AudioManager {
         this.currentBGM.stop();
         this.currentBGM.unload();
       } catch (error) {
-        console.error('[Audio] Failed to cleanup previous BGM:', error);
+        console.warn('[Audio] Failed to cleanup previous BGM:', error);
       }
     }
 
@@ -280,10 +281,11 @@ export class AudioManager {
         }
       },
       onloaderror: (id, error) => {
-        console.error(`[Audio] BGM load error: ${id}`, error);
+        console.warn(`[Audio] BGM load failed: ${id}`, error);
       },
       onplayerror: (id, error) => {
-        console.error(`[Audio] BGM play error: ${id}`, error);
+        // 사용자 인터랙션 없이 재생 시도 시 발생하는 에러는 조용히 무시
+        console.debug(`[Audio] BGM play skipped: ${id}`, error);
       },
     });
   }
@@ -324,7 +326,7 @@ export class AudioManager {
         this.currentBGM.stop();
         this.currentBGM.unload();
       } catch (error) {
-        console.error('[Audio] Failed to cleanup previous BGM:', error);
+        console.warn('[Audio] Failed to cleanup previous BGM:', error);
       }
     }
 
@@ -350,29 +352,30 @@ export class AudioManager {
         this.playNextAlternatingTrack();
       },
       onloaderror: (id, error) => {
-        console.error(
-          `[Audio] Alternating BGM load error (${this.currentTrackIndex + 1}/${this.alternatingTracks.length}): ${id}`,
+        console.warn(
+          `[Audio] Alternating BGM load failed (${this.currentTrackIndex + 1}/${this.alternatingTracks.length}): ${id}`,
           error
         );
         // 에러 발생 시 다음 트랙으로 스킵 (무한 루프 방지)
-        console.warn('[Audio] 로드 실패한 트랙 건너뛰기, 다음 트랙으로 이동');
+        console.debug('[Audio] 로드 실패한 트랙 건너뛰기, 다음 트랙으로 이동');
         this.currentTrackIndex = (this.currentTrackIndex + 1) % this.alternatingTracks.length;
         // 모든 트랙이 실패하면 중단
         const nextTrack = this.alternatingTracks[this.currentTrackIndex];
         if (nextTrack !== currentTrack) {
           this.playNextAlternatingTrack();
         } else {
-          console.error('[Audio] 모든 교차 재생 트랙 로드 실패');
+          console.warn('[Audio] 모든 교차 재생 트랙 로드 실패');
           this.isAlternatingMode = false;
         }
       },
       onplayerror: (id, error) => {
-        console.error(
-          `[Audio] Alternating BGM play error (${this.currentTrackIndex + 1}/${this.alternatingTracks.length}): ${id}`,
+        // 사용자 인터랙션 없이 재생 시도 시 발생하는 에러는 조용히 무시
+        console.debug(
+          `[Audio] Alternating BGM play skipped (${this.currentTrackIndex + 1}/${this.alternatingTracks.length}): ${id}`,
           error
         );
         // 재생 에러 발생 시 다음 트랙으로 스킵
-        console.warn('[Audio] 재생 실패한 트랙 건너뛰기, 다음 트랙으로 이동');
+        console.debug('[Audio] 재생 실패한 트랙 건너뛰기, 다음 트랙으로 이동');
         this.currentTrackIndex = (this.currentTrackIndex + 1) % this.alternatingTracks.length;
         this.playNextAlternatingTrack();
       },
