@@ -19,12 +19,7 @@ export class VirtualJoystick {
   private joystickX: number = 0;
   private joystickY: number = 0;
   private maxDistance: number = 120; // 스틱이 움직일 수 있는 최대 거리 (80 -> 120으로 증가)
-  private deadzone: number = 0.15; // 데드존: 15% 이하의 입력은 무시
-
-  // 입력 스무딩을 위한 변수
-  private targetX: number = 0;
-  private targetY: number = 0;
-  private smoothFactor: number = 1.0; // 스무딩 강도 (0~1, 낮을수록 부드러움)
+  private deadzone: number = 0.02; // 데드존: 2% 이하의 입력은 무시 (터치 노이즈 방지용)
 
   private touchStartX: number = 0;
   private touchStartY: number = 0;
@@ -66,6 +61,7 @@ export class VirtualJoystick {
       this.touchStartX = pos.x;
       this.touchStartY = pos.y;
 
+      // 이전 터치 상태 완전히 초기화
       this.joystickX = 0;
       this.joystickY = 0;
     });
@@ -108,9 +104,9 @@ export class VirtualJoystick {
         normalizedY = (normalizedY / magnitude) * scale;
       }
 
-      // 타겟 값 설정 (스무딩에 사용)
-      this.targetX = normalizedX;
-      this.targetY = normalizedY;
+      // 조이스틱 값 즉시 업데이트 (스무딩 없음)
+      this.joystickX = normalizedX;
+      this.joystickY = normalizedY;
     });
 
     // 터치 종료
@@ -133,19 +129,13 @@ export class VirtualJoystick {
   }
 
   /**
-   * 조이스틱 업데이트 (스무딩 적용)
+   * 조이스틱 업데이트
    */
   public update(): void {
+    // 활성 상태가 아니면 즉시 0으로 리셋
     if (!this.isActive) {
-      // 비활성 상태일 때는 빠르게 0으로 복귀
-      this.joystickX *= 0.5;
-      this.joystickY *= 0.5;
-      if (Math.abs(this.joystickX) < 0.01) this.joystickX = 0;
-      if (Math.abs(this.joystickY) < 0.01) this.joystickY = 0;
-    } else {
-      // 활성 상태일 때는 타겟 값으로 부드럽게 이동 (lerp)
-      this.joystickX += (this.targetX - this.joystickX) * this.smoothFactor;
-      this.joystickY += (this.targetY - this.joystickY) * this.smoothFactor;
+      this.joystickX = 0;
+      this.joystickY = 0;
     }
   }
 
@@ -191,8 +181,6 @@ export class VirtualJoystick {
     this.isActive = false;
     this.joystickX = 0;
     this.joystickY = 0;
-    this.targetX = 0;
-    this.targetY = 0;
 
     // 터치 영역 이벤트 리스너 명시적으로 재활성화
     // (다른 UI가 오버레이되었다가 사라진 후에도 동작하도록)
