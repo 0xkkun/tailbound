@@ -11,6 +11,7 @@ export const WEAPON_IDS = {
   MOKTAK: 'weapon_moktak',
   JAKDU: 'weapon_jakdu',
   DOKKAEBI_FIRE: 'weapon_dokkaebi_fire',
+  PURIFYING_WATER: 'weapon_purifying_water',
 } as const;
 
 // 스탯 ID 접두사
@@ -75,6 +76,13 @@ export const WEAPON_SPRITE_INFO = {
     path: CDN_ASSETS.weapon.dokkabiFire,
     frameWidth: 48,
     frameHeight: 48,
+    frameCol: 0,
+    frameRow: 0,
+  },
+  [WEAPON_IDS.PURIFYING_WATER]: {
+    path: CDN_ASSETS.weapon.purifyingWater,
+    frameWidth: 32,
+    frameHeight: 32,
     frameCol: 0,
     frameRow: 0,
   },

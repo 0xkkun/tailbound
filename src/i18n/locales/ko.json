@@ -43,6 +43,10 @@
     "fanWind": {
       "name": "부채바람",
       "description": "부채 모양으로 바람을 날려 사거리 내 모든 적을 관통합니다."
+    },
+    "purifyingWater": {
+      "name": "정화수",
+      "description": "적을 향해 정화수 물병을 던져 범위 피해를 입힙니다."
     }
   },
   "stats": {

@@ -7,10 +7,12 @@ import type { BaseEnemy } from '@game/entities/enemies';
 import type { MeleeSwing } from '@game/entities/MeleeSwing';
 import type { Player } from '@game/entities/Player';
 import type { Projectile } from '@game/entities/Projectile';
+import type { WaterBottle } from '@game/entities/WaterBottle';
+import type { WaterSplash } from '@game/entities/WaterSplash';
 import type { Vector2 } from '@type/game.types';
 
 // 무기가 발사할 수 있는 엔티티 타입들
-export type WeaponEntity = Projectile | AoEEffect | MeleeSwing;
+export type WeaponEntity = Projectile | AoEEffect | MeleeSwing | WaterSplash | WaterBottle;
 
 export abstract class Weapon {
   // 무기 정보

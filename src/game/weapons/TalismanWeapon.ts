@@ -6,7 +6,8 @@ import { calculateWeaponStats } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
 import { Projectile } from '@game/entities/Projectile';
-import { getDirection, getDistance } from '@game/utils/collision';
+import { getDirection } from '@game/utils/collision';
+import { findClosestEnemies } from '@game/utils/targeting';
 import type { Vector2 } from '@type/game.types';
 
 import { Weapon } from './Weapon';
@@ -36,7 +37,7 @@ export class TalismanWeapon extends Weapon {
     const projectiles: Projectile[] = [];
 
     // 가까운 적 N개 찾기 (투사체 개수만큼)
-    const targets = this.findClosestEnemies(playerPos, enemies, this.projectileCount);
+    const targets = findClosestEnemies(playerPos, enemies, this.projectileCount, this.MAX_FIRE_RANGE);
 
     if (targets.length === 0) {
       // 적이 없으면 발사하지 않음
@@ -86,25 +87,6 @@ export class TalismanWeapon extends Weapon {
     this.resetCooldown();
 
     return projectiles;
-  }
-
-  /**
-   * 가까운 적 N개 찾기 (범위 내에서만)
-   */
-  private findClosestEnemies(playerPos: Vector2, enemies: BaseEnemy[], count: number): BaseEnemy[] {
-    // 범위 내 적들을 거리 순으로 정렬
-    const enemiesWithDistance = enemies
-      .filter((enemy) => enemy.active && enemy.isAlive())
-      .map((enemy) => {
-        const enemyPos = { x: enemy.x, y: enemy.y };
-        const distance = getDistance(playerPos, enemyPos);
-        return { enemy, distance };
-      })
-      .filter((item) => item.distance <= this.MAX_FIRE_RANGE)
-      .sort((a, b) => a.distance - b.distance);
-
-    // 가까운 적 N개 반환
-    return enemiesWithDistance.slice(0, count).map((item) => item.enemy);
   }
 
   /**

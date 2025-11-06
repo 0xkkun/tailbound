@@ -46,6 +46,8 @@ export const CDN_ASSETS = {
     talisman: `${CDN_BASE_URL}/assets/weapon/talisman.png`,
     jakdu: `${CDN_BASE_URL}/assets/weapon/jakdu.png`,
     wind: `${CDN_BASE_URL}/assets/weapon/wind.png`,
+    purifyingWater: `${CDN_BASE_URL}/assets/weapon/purifying-water.png`,
+    purifyingWaterSpike: `${CDN_BASE_URL}/assets/weapon/purifying-water-spike.png`,
   },
 
   // Enemies
@@ -166,15 +168,25 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.gui.settings,
     CDN_ASSETS.gui.loadingSprite,
     CDN_ASSETS.gui.pattern,
+    CDN_ASSETS.gui.bgStage,
+    CDN_ASSETS.gui.shamanSignature,
   ],
 
-  // 높음: 초반 스테이지에서 사용
-  high: [
+  // 높음: 초반 스테이지에서 사용 (높음까지 로드해야 Press to Start 표시)
+  high: [CDN_ASSETS.gui.back, CDN_ASSETS.gui.resume, CDN_ASSETS.gui.restart, CDN_ASSETS.gui.sound],
+
+  // 중간: 중반 스테이지에서 사용 (여기부터 로오오딩중 표시)
+  medium: [
     CDN_ASSETS.enemy.skeletonWalk,
     CDN_ASSETS.enemy.dokkaebiGreenWalk,
     CDN_ASSETS.enemy.foxOrangeWalk,
     CDN_ASSETS.weapon.talisman,
     CDN_ASSETS.weapon.mocktak,
+    CDN_ASSETS.weapon.jakdu,
+    CDN_ASSETS.weapon.dokkabiFire,
+    CDN_ASSETS.weapon.wind,
+    CDN_ASSETS.weapon.purifyingWater,
+    CDN_ASSETS.weapon.purifyingWaterSpike,
     CDN_ASSETS.drop.spiritEnergy1,
     CDN_ASSETS.drop.spiritEnergy2,
     CDN_ASSETS.drop.spiritEnergy3,
@@ -183,14 +195,6 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.powerUp.attackSpeed,
     CDN_ASSETS.powerUp.moveSpeed,
     CDN_ASSETS.powerUp.healthPlus,
-    CDN_ASSETS.gui.back,
-    CDN_ASSETS.gui.resume,
-    CDN_ASSETS.gui.restart,
-    CDN_ASSETS.gui.sound,
-  ],
-
-  // 중간: 중반 스테이지에서 사용
-  medium: [
     CDN_ASSETS.enemy.dokkaebiBlueWalk,
     CDN_ASSETS.enemy.dokkaebiRedWalk,
     CDN_ASSETS.enemy.foxWhiteWalk,
@@ -201,17 +205,12 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.enemy.womanGhostRedAttack,
     CDN_ASSETS.enemy.womanGhostWhiteAttack,
     CDN_ASSETS.enemy.womanGhostProjectile,
-    CDN_ASSETS.weapon.jakdu,
-    CDN_ASSETS.weapon.dokkabiFire,
-    CDN_ASSETS.weapon.wind,
     CDN_ASSETS.powerUp.healthGenerate,
     CDN_ASSETS.powerUp.magnetic,
     CDN_ASSETS.powerUp.drain,
     CDN_ASSETS.powerUp.kill,
     CDN_ASSETS.powerUp.criticalChance,
     CDN_ASSETS.powerUp.criticalDamage,
-    CDN_ASSETS.gui.bgStage,
-    CDN_ASSETS.gui.shamanSignature,
   ],
 
   // 낮음: 후반 스테이지/보스전에서 사용
@@ -241,7 +240,6 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.tile.outlineLeft,
     CDN_ASSETS.tile.outlineRight,
     CDN_ASSETS.npc.monk,
-    CDN_ASSETS.gui.titleFan,
   ],
 } as const;
 

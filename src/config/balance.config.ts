@@ -236,6 +236,38 @@ export const WEAPON_BALANCE = {
       piercingPerLevel: 0, // 무제한 관통이므로 0
     },
   },
+  // 정화수
+  purifying_water: {
+    name: '정화수',
+    baseDamage: 8, // 틱당 데미지 (DoT)
+    baseCooldown: 1.5, // 투척 쿨다운
+    projectileRadius: 20, // 사용 안 함 (투척형)
+    projectileSpeed: 100, // 물병 투사체 속도
+    piercing: 0,
+    projectileCount: 1, // 초기 투척 개수
+    // 투척 설정
+    maxThrowRange: 500, // 최대 투척 거리
+    maxThrowCount: 4, // 최대 동시 투척 개수
+    throwSpreadAngle: Math.PI / 3, // 투척 시 퍼짐 각도 (60도)
+    // 포물선 설정
+    arcHeight: 150, // 포물선 높이
+    // 스플래시 설정 (설치형 DoT 구역)
+    aoeRadius: 80, // 스플래시 범위
+    splashLifetime: 5.0, // 스플래시 지속 시간
+    damageInterval: 1, // 피해 주기 (초) - N초마다 피해
+    knockbackForce: 50, // 넉백 힘
+    // 충돌 감지 설정
+    enemyRadiusEstimate: 50, // 적 반지름 추정값 (성능 최적화용)
+    bottleArrivalThreshold: 10, // 물병 도착 판정 거리 (픽셀)
+    levelScaling: {
+      damage: 2, // 레벨당 데미지 증가 (틱당)
+      cooldownReduction: 0.03, // 레벨당 쿨타임 감소
+      piercingPerLevel: 0,
+      throwCountInterval: 2, // N레벨마다 투척 개수 +1
+      aoeRadiusPerLevel: 10, // N레벨마다 범위 증가
+      aoeRadiusIncreaseInterval: 3, // 범위 증가 주기
+    },
+  },
 } as const;
 
 /**

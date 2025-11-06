@@ -3,6 +3,7 @@
  */
 
 import { GAME_CONFIG } from '@config/game.config';
+import { WEAPON_IDS } from '@config/levelup.config';
 import i18n from '@i18n/config';
 
 /**
@@ -214,48 +215,55 @@ export class LevelSystem {
    * 레벨업 선택지 생성 (중복 없음, 최적화됨)
    */
   private generateLevelUpChoices(): LevelUpChoice[] {
-
-    // TODO: 실제 플레이어의 무기 보유 상태 확인 필요
-    // TODO: 더 많은 무기 추가 필요 (현재 4개 -> 목표 10개+)
-
     // === 무기 선택지 ===
-    const weapons = [
-      {
-        id: 'weapon_talisman',
+    // Record 타입으로 모든 무기 ID가 정의되었는지 컴파일 타임에 체크
+    // 새로운 무기가 WEAPON_IDS에 추가되면 여기서 타입 에러가 발생해서 누락 방지
+    type WeaponId = (typeof WEAPON_IDS)[keyof typeof WEAPON_IDS];
+
+    const weaponChoices: Record<WeaponId, Omit<LevelUpChoice, 'id'>> = {
+      [WEAPON_IDS.TALISMAN]: {
         type: 'weapon' as const,
         name: i18n.t('weapons.talisman.name'),
         description: i18n.t('weapons.talisman.description'),
         rarity: 'epic' as const,
       },
-      {
-        id: 'weapon_dokkaebi_fire',
+      [WEAPON_IDS.DOKKAEBI_FIRE]: {
         type: 'weapon' as const,
         name: i18n.t('weapons.dokkaebi.name'),
         description: i18n.t('weapons.dokkaebi.description'),
         rarity: 'epic' as const,
       },
-      {
-        id: 'weapon_moktak',
+      [WEAPON_IDS.MOKTAK]: {
         type: 'weapon' as const,
         name: i18n.t('weapons.moktak.name'),
         description: i18n.t('weapons.moktak.description'),
         rarity: 'epic' as const,
       },
-      {
-        id: 'weapon_jakdu',
+      [WEAPON_IDS.JAKDU]: {
         type: 'weapon' as const,
         name: i18n.t('weapons.jakdu.name'),
         description: i18n.t('weapons.jakdu.description'),
         rarity: 'epic' as const,
       },
-      {
-        id: 'weapon_fan_wind',
+      [WEAPON_IDS.FAN_WIND]: {
         type: 'weapon' as const,
         name: i18n.t('weapons.fanWind.name'),
         description: i18n.t('weapons.fanWind.description'),
         rarity: 'epic' as const,
       },
-    ];
+      [WEAPON_IDS.PURIFYING_WATER]: {
+        type: 'weapon' as const,
+        name: i18n.t('weapons.purifyingWater.name'),
+        description: i18n.t('weapons.purifyingWater.description'),
+        rarity: 'epic' as const,
+      },
+    };
+
+    // Record를 배열로 변환
+    const weapons = Object.entries(weaponChoices).map(([id, choice]) => ({
+      id,
+      ...choice,
+    }));
 
     // === 기존 스탯 업그레이드 (무력, 신속, 시간왜곡, 생명력, 영혼흡인) ===
     const statUpgrades = [

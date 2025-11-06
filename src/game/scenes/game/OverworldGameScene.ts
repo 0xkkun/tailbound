@@ -28,6 +28,8 @@ import { Player } from '@game/entities/Player';
 import { Portal } from '@game/entities/Portal';
 import { Projectile } from '@game/entities/Projectile';
 import { SpiralChargeEffect } from '@game/entities/SpiralChargeEffect';
+import { WaterBottle } from '@game/entities/WaterBottle';
+import { WaterSplash } from '@game/entities/WaterSplash';
 import { StageTransitionScene } from '@game/scenes/StageTransitionScene';
 import { LevelUpUI } from '@game/ui/LevelUpUI';
 import { PixelButton } from '@game/ui/PixelButton';
@@ -37,6 +39,7 @@ import { DokkaebiFireWeapon } from '@game/weapons/DokkaebiFireWeapon';
 import { FanWindWeapon } from '@game/weapons/FanWindWeapon';
 import { JakduBladeWeapon } from '@game/weapons/JakduBladeWeapon';
 import { MoktakSoundWeapon } from '@game/weapons/MoktakSoundWeapon';
+import { PurifyingWaterWeapon } from '@game/weapons/PurifyingWaterWeapon';
 import { TalismanWeapon } from '@game/weapons/TalismanWeapon';
 import type { Weapon } from '@game/weapons/Weapon';
 import type { PlayerSnapshot } from '@hooks/useGameState';
@@ -61,6 +64,7 @@ export class OverworldGameScene extends BaseGameScene {
   private healthPotions: HealthPotion[] = [];
   private aoeEffects: AoEEffect[] = [];
   private meleeSwings: MeleeSwing[] = [];
+  private waterSplashes: WaterSplash[] = []; // 정화수 스플래시
 
   // 스프라이트시트
   private spiritEnergySpritesheet1!: Spritesheet;
@@ -741,6 +745,36 @@ export class OverworldGameScene extends BaseGameScene {
         weapon.updateBlades(deltaTime, this.player);
       }
 
+      // 투척형 무기 (PurifyingWaterWeapon) 물병 업데이트
+      if (weapon instanceof PurifyingWaterWeapon) {
+        weapon.updateBottles(deltaTime);
+
+        // 착탄한 물병에서 스플래시 생성
+        const reachedBottles = weapon.getReachedBottles();
+        for (const bottleInfo of reachedBottles) {
+          const splash = new WaterSplash(
+            bottleInfo.x,
+            bottleInfo.y,
+            bottleInfo.aoeRadius,
+            0x00bfff
+          );
+          splash.damage = bottleInfo.damage;
+          splash.isCritical = bottleInfo.isCritical;
+
+          // 스플래시 스프라이트 로드 (purifying-water-spike.png: 64x48, 16프레임, 1024x48 horizontal strip)
+          splash.loadSpriteSheet(
+            `${CDN_BASE_URL}/assets/weapon/purifying-water-spike.png`,
+            64,
+            48,
+            16,
+            16
+          );
+
+          this.waterSplashes.push(splash);
+          this.gameLayer.addChild(splash);
+        }
+      }
+
       // 발사 (투사체형, AoE형, 근접형)
       const playerPos = { x: this.player.x, y: this.player.y };
       // 보스가 있으면 타겟 배열에 포함 (무기가 보스를 공격할 수 있도록)
@@ -766,6 +800,13 @@ export class OverworldGameScene extends BaseGameScene {
           // 근접 휘두르기
           entity.damage *= this.player.damageMultiplier;
           this.meleeSwings.push(entity);
+          this.gameLayer.addChild(entity);
+        } else if (entity instanceof WaterBottle) {
+          // 정화수 물병 투사체 (별도 업데이트 처리됨)
+          this.gameLayer.addChild(entity);
+        } else if (entity instanceof WaterSplash) {
+          // 정화수 스플래시 (발생하지 않음 - 물병 착탄 시 생성됨)
+          entity.damage *= this.player.damageMultiplier;
           this.gameLayer.addChild(entity);
         } else {
           // 일반 투사체 (Projectile)
@@ -840,6 +881,20 @@ export class OverworldGameScene extends BaseGameScene {
         }
       }
     }
+
+    // 6-1. 정화수 스플래시 업데이트 및 충돌 (설치형 DoT)
+    this.waterSplashes = this.waterSplashes.filter((splash) => {
+      if (!splash.active) {
+        if (splash.parent) {
+          splash.parent.removeChild(splash);
+        }
+        splash.destroy();
+        return false;
+      }
+
+      splash.update(deltaTime, this.enemies);
+      return true;
+    });
 
     // 7. 근접 휘두르기 업데이트 및 충돌
     for (const swing of this.meleeSwings) {
@@ -1191,6 +1246,18 @@ export class OverworldGameScene extends BaseGameScene {
     }
     this.meleeSwings = activeSwings;
 
+    // 정화수 스플래시 정리
+    const activeSplashes: WaterSplash[] = [];
+    for (const splash of this.waterSplashes) {
+      if (splash.isComplete()) {
+        this.gameLayer.removeChild(splash);
+        splash.destroy();
+      } else {
+        activeSplashes.push(splash);
+      }
+    }
+    this.waterSplashes = activeSplashes;
+
     // 비활성 경험치 젬 제거
     const activeGems: ExperienceGem[] = [];
     for (const gem of this.experienceGems) {
@@ -1401,6 +1468,19 @@ export class OverworldGameScene extends BaseGameScene {
           const fanWind = new FanWindWeapon();
           this.weapons.push(fanWind);
           console.log('부채바람 무기 추가 완료!');
+        }
+        break;
+      }
+      case 'weapon_purifying_water': {
+        // 이미 정화수가 있으면 업그레이드, 없으면 추가
+        const existingWater = this.weapons.find((w) => w instanceof PurifyingWaterWeapon);
+        if (existingWater) {
+          existingWater.levelUp();
+          console.log(`정화수 레벨업! Lv.${existingWater.level}`);
+        } else {
+          const water = new PurifyingWaterWeapon();
+          this.weapons.push(water);
+          console.log('정화수 무기 추가 완료!');
         }
         break;
       }

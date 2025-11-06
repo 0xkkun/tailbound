@@ -7,7 +7,13 @@ import { WEAPON_BALANCE } from '@config/balance.config';
 /**
  * 무기 타입
  */
-export type WeaponType = 'talisman' | 'dokkaebi_fire' | 'moktak_sound' | 'jakdu_blade' | 'fan_wind';
+export type WeaponType =
+  | 'talisman'
+  | 'dokkaebi_fire'
+  | 'moktak_sound'
+  | 'jakdu_blade'
+  | 'fan_wind'
+  | 'purifying_water';
 
 /**
  * 무기 데이터 인터페이스
@@ -101,6 +107,18 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
     projectileCount: WEAPON_BALANCE.fan_wind.projectileCount,
     piercing: WEAPON_BALANCE.fan_wind.piercing,
     levelScaling: WEAPON_BALANCE.fan_wind.levelScaling,
+  },
+
+  purifying_water: {
+    id: 'purifying_water',
+    name: '정화수',
+    description: '가까운 적의 위치에 정화수를 투척하여 범위 피해를 준다',
+    baseDamage: WEAPON_BALANCE.purifying_water.baseDamage,
+    baseCooldown: WEAPON_BALANCE.purifying_water.baseCooldown,
+    projectileRadius: WEAPON_BALANCE.purifying_water.projectileRadius,
+    projectileCount: WEAPON_BALANCE.purifying_water.projectileCount,
+    piercing: WEAPON_BALANCE.purifying_water.piercing,
+    levelScaling: WEAPON_BALANCE.purifying_water.levelScaling,
   },
 };
 
