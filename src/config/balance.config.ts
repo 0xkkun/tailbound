@@ -274,19 +274,78 @@ export const WEAPON_BALANCE = {
  * 스폰 밸런스
  */
 export const SPAWN_BALANCE = {
-  initialInterval: 2.5, // 초기 웨이브 간격 (초)
-  minInterval: 1.2, // 최소 웨이브 간격 (1.0 -> 1.2로 약간 증가)
-  intervalReduction: 0.1, // 난이도 증가 시 감소량 (0.15 -> 0.1로 약간 감소)
-  spawnMargin: 100, // 화면 밖 스폰 마진
+  initialInterval: 3.5, // 초기 웨이브 간격 (초) - 더 여유 있게 시작
+  minInterval: 1.5, // 최소 웨이브 간격 - 너무 빠르지 않게 조정
+  intervalReduction: 0.1, // 난이도 증가 시 감소량
+  spawnMargin: 600, // 화면 밖 스폰 마진
 
-  // 그룹 스폰 설정
-  minGroupSize: 2, // 그룹당 최소 적 수
-  maxGroupSize: 3, // 그룹당 최대 적 수
-  minGroups: 1, // 최소 그룹 수
-  maxGroups: 2, // 최대 그룹 수
-  clusterRadius: 200, // 그룹 내 적들의 퍼짐 정도
+  // 그룹 스폰 설정 (몰려오는 느낌 강화)
+  minGroupSize: 2, // 그룹당 최소 적 수 - 초반 압박 완화
+  maxGroupSize: 4, // 그룹당 최대 적 수 - 후반 압박 완화
+  minGroups: 1, // 최소 그룹 수 - 초반 1그룹부터 시작
+  maxGroups: 6, // 최대 그룹 수 - 극후반 압박 완화 (12 -> 6)
+  clusterRadius: 180, // 그룹 내 적들의 퍼짐 정도 - 더 뭉쳐서 몰려오는 느낌
   groupIncreaseInterval: 60, // 초 단위, 그룹 수 증가 주기
-  maxActiveEnemies: 150, // 최대 활성 적 개체 수 (성능 최적화)
+  maxActiveEnemies: 120, // 최대 활성 적 개체 수 - 성능 및 압박 완화
+
+  // 시간대별 구간 설정 (초 단위, 1분마다 2종씩 추가)
+  timePhases: {
+    phase0: 0, // 0분: 스켈레톤, 도깨비
+    phase1: 60, // 1분: + 여우, 탈령
+    phase2: 120, // 2분: + 처녀귀신, 악령
+    phase3: 180, // 3분: + 수귀, 저승사자
+    phase4: 240, // 4분: + 토템 (전체 9종)
+    final: 300, // 5분 이후: 전체
+  },
+
+  // 시간대별 티어 확률 (low/medium/high) - 더 점진적으로 증가
+  tierProbabilityByPhase: {
+    phase0: { low: 1.0, medium: 0.0, high: 0.0 }, // 0-1분: 하급만
+    phase1: { low: 0.9, medium: 0.1, high: 0.0 }, // 1-2분: 중급 소량 등장
+    phase2: { low: 0.75, medium: 0.2, high: 0.05 }, // 2-3분: 상급 소량 등장
+    phase3: { low: 0.6, medium: 0.3, high: 0.1 }, // 3-4분: 중급 증가, 상급 소량
+    phase4: { low: 0.45, medium: 0.4, high: 0.15 }, // 4-5분: 중급 비중 증가
+    final: { low: 0.3, medium: 0.45, high: 0.25 }, // 5분 이후: 중급 중심, 상급 적절
+  },
+
+  // 시간대별 등장 적 타입 (1분마다 2종씩 추가)
+  enemyTypesByPhase: {
+    phase0: ['skeleton', 'dokkaebi'], // 2종
+    phase1: ['skeleton', 'dokkaebi', 'fox', 'mask'], // 4종
+    phase2: ['skeleton', 'dokkaebi', 'fox', 'mask', 'maidenGhost', 'evilSpirit'], // 6종
+    phase3: [
+      'skeleton',
+      'dokkaebi',
+      'fox',
+      'mask',
+      'maidenGhost',
+      'evilSpirit',
+      'waterGhost',
+      'grimReaper',
+    ], // 8종
+    phase4: [
+      'skeleton',
+      'dokkaebi',
+      'fox',
+      'mask',
+      'maidenGhost',
+      'evilSpirit',
+      'waterGhost',
+      'grimReaper',
+      'totem',
+    ], // 9종
+    final: [
+      'skeleton',
+      'dokkaebi',
+      'fox',
+      'mask',
+      'maidenGhost',
+      'evilSpirit',
+      'waterGhost',
+      'grimReaper',
+      'totem',
+    ], // 전체
+  },
 
   // 적 스폰 확률 (합계 1.0)
   enemySpawnRates: {

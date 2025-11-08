@@ -78,6 +78,63 @@ export class SpawnSystem {
   }
 
   /**
+   * 게임 시간에 따라 등장 가능한 적 타입 리스트 반환
+   */
+  private getAvailableEnemyTypes(gameTime: number): readonly string[] {
+    const phases = SPAWN_BALANCE.timePhases;
+    const types = SPAWN_BALANCE.enemyTypesByPhase;
+
+    if (gameTime < phases.phase1) {
+      return types.phase0;
+    } else if (gameTime < phases.phase2) {
+      return types.phase1;
+    } else if (gameTime < phases.phase3) {
+      return types.phase2;
+    } else if (gameTime < phases.phase4) {
+      return types.phase3;
+    } else if (gameTime < phases.final) {
+      return types.phase4;
+    } else {
+      return types.final;
+    }
+  }
+
+  /**
+   * 가용 적 타입 중 확률에 따라 선택 (확률 정규화)
+   */
+  private selectEnemyType(availableTypes: readonly string[]): string {
+    const rates = SPAWN_BALANCE.enemySpawnRates;
+
+    // 가용 타입의 확률만 추출
+    let totalRate = 0;
+    const filteredRates: { [key: string]: number } = {};
+
+    for (const type of availableTypes) {
+      filteredRates[type] = rates[type as keyof typeof rates];
+      totalRate += filteredRates[type];
+    }
+
+    // 확률 정규화 (합을 1.0으로)
+    const normalizedRates: { [key: string]: number } = {};
+    for (const type of availableTypes) {
+      normalizedRates[type] = filteredRates[type] / totalRate;
+    }
+
+    // 정규화된 확률로 선택
+    const rand = Math.random();
+    let cumulative = 0;
+
+    for (const type of availableTypes) {
+      cumulative += normalizedRates[type];
+      if (rand < cumulative) {
+        return type;
+      }
+    }
+
+    return availableTypes[0]; // 폴백
+  }
+
+  /**
    * 웨이브 스폰 (여러 방향에서 소규모 그룹으로 생성)
    */
   private spawnWave(playerPos: Vector2, enemies: BaseEnemy[]): void {
@@ -133,31 +190,49 @@ export class SpawnSystem {
         // 게임 시간에 따라 필드몹 티어 선택
         const tier = selectFieldEnemyTier(this.gameTime);
 
-        // 밸런스 설정에 따라 랜덤하게 적 타입 선택
-        const rand = Math.random();
-        const rates = SPAWN_BALANCE.enemySpawnRates;
-        let enemy: BaseEnemy;
-        let cumulative = 0;
+        // 시간대별 등장 가능한 적 타입 필터링
+        const availableTypes = this.getAvailableEnemyTypes(this.gameTime);
 
-        cumulative += rates.skeleton;
-        if (rand < cumulative) {
-          enemy = new SkeletonEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < (cumulative += rates.dokkaebi)) {
-          enemy = new DokkaebiEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < (cumulative += rates.mask)) {
-          enemy = new MaskEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < (cumulative += rates.maidenGhost)) {
-          enemy = new MaidenGhostEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < (cumulative += rates.evilSpirit)) {
-          enemy = new EvilSpiritEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < (cumulative += rates.fox)) {
-          enemy = new FoxEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < (cumulative += rates.grimReaper)) {
-          enemy = new GrimReaperEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else if (rand < (cumulative += rates.totem)) {
-          enemy = new TotemEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
-        } else {
-          enemy = new WaterGhostEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+        // 확률에 따라 적 타입 선택
+        const selectedType = this.selectEnemyType(availableTypes);
+
+        // 선택된 타입에 따라 적 생성
+        let enemy: BaseEnemy;
+        switch (selectedType) {
+          case 'skeleton':
+            enemy = new SkeletonEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+            break;
+          case 'dokkaebi':
+            enemy = new DokkaebiEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+            break;
+          case 'mask':
+            enemy = new MaskEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+            break;
+          case 'maidenGhost':
+            enemy = new MaidenGhostEnemy(
+              `enemy_${this.enemyCount++}`,
+              spawnPos.x,
+              spawnPos.y,
+              tier
+            );
+            break;
+          case 'evilSpirit':
+            enemy = new EvilSpiritEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+            break;
+          case 'fox':
+            enemy = new FoxEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+            break;
+          case 'grimReaper':
+            enemy = new GrimReaperEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+            break;
+          case 'totem':
+            enemy = new TotemEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+            break;
+          case 'waterGhost':
+            enemy = new WaterGhostEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
+            break;
+          default:
+            enemy = new SkeletonEnemy(`enemy_${this.enemyCount++}`, spawnPos.x, spawnPos.y, tier);
         }
 
         enemies.push(enemy);
