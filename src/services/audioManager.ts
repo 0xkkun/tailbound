@@ -18,7 +18,7 @@ export class AudioManager {
   // 설정
   private bgmEnabled: boolean = true;
   private sfxEnabled: boolean = true;
-  private bgmVolume: number = 0.5;
+  private bgmVolume: number = 0.25; // 효과음 대비 절반으로 줄임 (0.5 -> 0.25)
   private sfxVolume: number = 0.7;
 
   // Howler.js 인스턴스들
