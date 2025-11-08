@@ -158,15 +158,14 @@ export const CDN_ASSETS = {
         fanWind: `${CDN_BASE_URL}/assets/audio/weapon/fan-wind.mp3`,
         jakduBlade: `${CDN_BASE_URL}/assets/audio/weapon/jakdu-blade.mp3`,
         talisman: `${CDN_BASE_URL}/assets/audio/weapon/talisman.mp3`,
+        moktakSound: `${CDN_BASE_URL}/assets/audio/weapon/moktak-sound.mp3`,
         // TODO: 아래 무기들의 효과음 파일 추가 필요
-        // moktakSound: `${CDN_BASE_URL}/assets/audio/weapon/moktak-sound.mp3`,
         // purifyingWater: `${CDN_BASE_URL}/assets/audio/weapon/purifying-water.mp3`,
       },
       enemy: {
         common01: `${CDN_BASE_URL}/assets/audio/enemy/common-01.mp3`,
         common02: `${CDN_BASE_URL}/assets/audio/enemy/common-02.mp3`,
         common03: `${CDN_BASE_URL}/assets/audio/enemy/common-03.mp3`,
-        common04: `${CDN_BASE_URL}/assets/audio/enemy/common-04.mp3`,
         ghost01: `${CDN_BASE_URL}/assets/audio/enemy/ghost-01.mp3`,
       },
       boss: {
@@ -197,9 +196,7 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.gui.pattern,
     CDN_ASSETS.gui.bgStage,
     CDN_ASSETS.gui.shamanSignature,
-    // BGM (필수)
-    CDN_ASSETS.audio.bgm.main,
-    CDN_ASSETS.audio.sfx.gui.buttonClick,
+    // 오디오 파일은 Howler.js(audioManager)에서 별도로 로드됨
   ],
 
   // 높음: 초반 스테이지에서 사용 (높음까지 로드해야 Press to Start 표시)
@@ -241,24 +238,7 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.powerUp.kill,
     CDN_ASSETS.powerUp.criticalChance,
     CDN_ASSETS.powerUp.criticalDamage,
-    // BGM
-    CDN_ASSETS.audio.bgm.game01,
-    CDN_ASSETS.audio.bgm.game02,
-    // GUI 효과음
-    CDN_ASSETS.audio.sfx.gui.slideUp,
-    CDN_ASSETS.audio.sfx.gui.slideDown,
-    CDN_ASSETS.audio.sfx.gui.ingameStart,
-    // 무기 효과음
-    CDN_ASSETS.audio.sfx.weapon.dokkabiFire,
-    CDN_ASSETS.audio.sfx.weapon.fanWind,
-    CDN_ASSETS.audio.sfx.weapon.jakduBlade,
-    CDN_ASSETS.audio.sfx.weapon.talisman,
-    // 적 효과음
-    CDN_ASSETS.audio.sfx.enemy.ghost01,
-    CDN_ASSETS.audio.sfx.enemy.common01,
-    CDN_ASSETS.audio.sfx.enemy.common02,
-    CDN_ASSETS.audio.sfx.enemy.common03,
-    CDN_ASSETS.audio.sfx.enemy.common04,
+    // 오디오 파일은 Howler.js(audioManager)에서 별도로 로드됨
   ],
 
   // 낮음: 후반 스테이지/보스전에서 사용
@@ -288,10 +268,7 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.tile.outlineLeft,
     CDN_ASSETS.tile.outlineRight,
     CDN_ASSETS.npc.monk,
-    // 보스 효과음
-    CDN_ASSETS.audio.sfx.boss.whiteTiger.attack,
-    CDN_ASSETS.audio.sfx.boss.whiteTiger.fire,
-    CDN_ASSETS.audio.sfx.boss.whiteTiger.injury,
+    // 오디오 파일은 Howler.js(audioManager)에서 별도로 로드됨
   ],
 } as const;
 
@@ -318,18 +295,17 @@ export const SFX_PATHS = {
   'fan-wind': CDN_ASSETS.audio.sfx.weapon.fanWind,
   'jakdu-blade': CDN_ASSETS.audio.sfx.weapon.jakduBlade,
   talisman: CDN_ASSETS.audio.sfx.weapon.talisman,
+  'moktak-sound': CDN_ASSETS.audio.sfx.weapon.moktakSound,
   // 적 효과음
   'enemy-common-01': CDN_ASSETS.audio.sfx.enemy.common01,
   'enemy-common-02': CDN_ASSETS.audio.sfx.enemy.common02,
   'enemy-common-03': CDN_ASSETS.audio.sfx.enemy.common03,
-  'enemy-common-04': CDN_ASSETS.audio.sfx.enemy.common04,
   'enemy-ghost-01': CDN_ASSETS.audio.sfx.enemy.ghost01,
   // 보스 효과음
   'boss-white-tiger-attack': CDN_ASSETS.audio.sfx.boss.whiteTiger.attack,
   'boss-white-tiger-fire': CDN_ASSETS.audio.sfx.boss.whiteTiger.fire,
   'boss-white-tiger-injury': CDN_ASSETS.audio.sfx.boss.whiteTiger.injury,
   // TODO: 아래 무기들의 효과음 파일 추가 필요
-  // 'moktak-sound': CDN_ASSETS.audio.sfx.weapon.moktakSound,
   // 'purifying-water': CDN_ASSETS.audio.sfx.weapon.purifyingWater,
 } as const;
 

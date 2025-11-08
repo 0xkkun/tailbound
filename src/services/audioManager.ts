@@ -34,6 +34,10 @@ export class AudioManager {
   // 재생 대기 중인 BGM (autoplay 차단 시 사용)
   private pendingBGM: { track: BGMTrack; loop: boolean } | null = null;
 
+  // Preload 상태 추적
+  private audioPreloadComplete: boolean = false;
+  private preloadCallbacks: (() => void)[] = [];
+
   private constructor() {
     this.loadSettings();
     this.setupVisibilityHandler();
@@ -204,16 +208,23 @@ export class AudioManager {
     this.playSFX('talisman');
   }
 
+  playMoktakSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('moktak-sound');
+  }
+
   // === 적 효과음 ===
 
   /**
-   * 일반 적 피격 효과음 재생 (common-01~04 랜덤)
+   * 일반 적 피격 효과음 재생 (common-01~03 랜덤)
    */
   playEnemyHitSound(): void {
     if (!this.sfxEnabled) return;
-    const sounds: Array<
-      'enemy-common-01' | 'enemy-common-02' | 'enemy-common-03' | 'enemy-common-04'
-    > = ['enemy-common-01', 'enemy-common-02', 'enemy-common-03', 'enemy-common-04'];
+    const sounds: Array<'enemy-common-01' | 'enemy-common-02' | 'enemy-common-03'> = [
+      'enemy-common-01',
+      'enemy-common-02',
+      'enemy-common-03',
+    ];
     const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
     this.playSFX(randomSound);
   }
@@ -545,6 +556,149 @@ export class AudioManager {
   playAlternatingBGMByTracks(tracks: BGMTrack[]): void {
     const paths = tracks.map((track) => BGM_PATHS[track]);
     this.playAlternatingBGM(paths);
+  }
+
+  /**
+   * 오디오 파일들을 미리 로드 (preload)
+   * @param sfxNames 미리 로드할 효과음 이름 배열
+   */
+  preloadSFX(sfxNames: SFXType[]): void {
+    sfxNames.forEach((soundName) => {
+      if (this.sfxPool.has(soundName)) {
+        return; // 이미 로드됨
+      }
+
+      const audioPath = SFX_PATHS[soundName];
+      const sfx = new Howl({
+        src: [audioPath],
+        volume: this.sfxVolume,
+        preload: true,
+        onload: () => {
+          console.log(`[Audio] SFX preloaded: ${soundName}`);
+        },
+        onloaderror: (_id, error) => {
+          console.warn(`[Audio] SFX preload failed (${soundName}):`, error);
+          this.sfxPool.delete(soundName);
+        },
+      });
+      this.sfxPool.set(soundName, sfx);
+    });
+  }
+
+  /**
+   * BGM 파일을 미리 로드 (preload) - 재생하지 않음
+   */
+  preloadBGM(track: BGMTrack): void {
+    const path = BGM_PATHS[track];
+    const tempBGM = new Howl({
+      src: [path],
+      volume: 0, // 무음으로 preload
+      preload: true,
+      html5: true,
+      onload: () => {
+        console.log(`[Audio] BGM preloaded: ${track}`);
+        // preload만 하고 메모리에서 해제
+        tempBGM.unload();
+      },
+      onloaderror: (_id, error) => {
+        console.warn(`[Audio] BGM preload failed (${track}):`, error);
+      },
+    });
+  }
+
+  /**
+   * 모든 오디오 파일 preload
+   * @returns Promise that resolves when all audio files are loaded
+   */
+  async preloadAllAudio(): Promise<void> {
+    if (this.audioPreloadComplete) {
+      console.log('[Audio] Audio already preloaded, skipping');
+      return;
+    }
+
+    console.log('[Audio] Starting audio preload...');
+
+    const allSFX = Object.keys(SFX_PATHS) as SFXType[];
+    const allBGM = Object.keys(BGM_PATHS) as BGMTrack[];
+
+    let loadedCount = 0;
+    const totalCount = allSFX.length + allBGM.length;
+
+    return new Promise((resolve) => {
+      const checkComplete = () => {
+        loadedCount++;
+        if (loadedCount >= totalCount) {
+          this.audioPreloadComplete = true;
+          console.log(`[Audio] All audio preloaded (${totalCount} files)`);
+          this.preloadCallbacks.forEach((callback) => callback());
+          this.preloadCallbacks = [];
+          resolve();
+        }
+      };
+
+      // SFX preload with completion tracking
+      allSFX.forEach((soundName) => {
+        if (this.sfxPool.has(soundName)) {
+          checkComplete(); // 이미 로드됨
+          return;
+        }
+
+        const audioPath = SFX_PATHS[soundName];
+        const sfx = new Howl({
+          src: [audioPath],
+          volume: this.sfxVolume,
+          preload: true,
+          onload: () => {
+            console.log(`[Audio] SFX preloaded: ${soundName}`);
+            checkComplete();
+          },
+          onloaderror: (_id, error) => {
+            console.warn(`[Audio] SFX preload failed (${soundName}):`, error);
+            this.sfxPool.delete(soundName);
+            checkComplete(); // 실패해도 카운트
+          },
+        });
+        this.sfxPool.set(soundName, sfx);
+      });
+
+      // BGM preload with completion tracking
+      allBGM.forEach((track) => {
+        const path = BGM_PATHS[track];
+        const tempBGM = new Howl({
+          src: [path],
+          volume: 0,
+          preload: true,
+          html5: true,
+          onload: () => {
+            console.log(`[Audio] BGM preloaded: ${track}`);
+            tempBGM.unload();
+            checkComplete();
+          },
+          onloaderror: (_id, error) => {
+            console.warn(`[Audio] BGM preload failed (${track}):`, error);
+            checkComplete(); // 실패해도 카운트
+          },
+        });
+      });
+    });
+  }
+
+  /**
+   * 오디오 preload 완료 여부 확인
+   */
+  isAudioPreloadComplete(): boolean {
+    return this.audioPreloadComplete;
+  }
+
+  /**
+   * 오디오 preload 완료 시 콜백 등록
+   */
+  onAudioPreloadComplete(callback: () => void): void {
+    if (this.audioPreloadComplete) {
+      callback();
+    } else {
+      this.preloadCallbacks.push(callback);
+    }
   }
 }
 

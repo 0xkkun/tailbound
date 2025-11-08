@@ -7,6 +7,7 @@ import { LoadingSpriteUI } from '@game/ui/LoadingSpriteUI';
 import { StageSelectModal } from '@game/ui/StageSelectModal';
 import { useApplication } from '@pixi/react';
 import { assetLoader } from '@services/assetLoader';
+import { audioManager } from '@services/audioManager';
 
 import { useGameState } from '../hooks/useGameState';
 
@@ -117,11 +118,18 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
         // 높은 우선순위 에셋 로드 (high)
         await assetLoader.loadHigh();
 
-        // 로딩 완료 콜백
+        // 로딩 완료 콜백 (Press to Start 표시)
         onAssetsLoaded?.();
 
-        // 백그라운드에서 나머지 에셋 로드 (medium, low)
-        assetLoader.loadInBackground(['medium', 'low']);
+        // 백그라운드에서 나머지 에셋과 오디오 로드 (병렬 처리)
+        Promise.all([
+          // Medium/Low 에셋 로드
+          assetLoader.loadPhase('medium').then(() => assetLoader.loadPhase('low')),
+          // 오디오 파일 preload (Howler.js)
+          audioManager.preloadAllAudio(),
+        ]).catch((error) => {
+          console.error('백그라운드 에셋 로딩 실패:', error);
+        });
       } catch (error) {
         console.error('에셋 로딩 실패:', error);
         // 에러가 발생해도 게임은 시작
@@ -136,12 +144,13 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
   const handleShowStageSelect = useCallback(async () => {
     if (!app) return;
 
-    // Medium/Low 에셋이 이미 로드되었는지 확인
+    // Medium/Low 에셋과 오디오가 이미 로드되었는지 확인
     const mediumLoaded = assetLoader.isPhaseLoaded('medium');
     const lowLoaded = assetLoader.isPhaseLoaded('low');
+    const audioLoaded = audioManager.isAudioPreloadComplete();
 
     // 이미 모두 로드되었다면 바로 stage-select로 전환
-    if (mediumLoaded && lowLoaded) {
+    if (mediumLoaded && lowLoaded && audioLoaded) {
       showStageSelect();
       return;
     }
@@ -171,12 +180,13 @@ export const GameContainer = ({ onAssetsLoaded }: GameContainerProps) => {
       loadingUIRef.current = null;
     };
 
-    // Medium/Low 에셋 로딩 상태 확인
+    // Medium/Low 에셋 및 오디오 로딩 상태 확인
     const checkLoadingComplete = () => {
       const mediumLoaded = assetLoader.isPhaseLoaded('medium');
       const lowLoaded = assetLoader.isPhaseLoaded('low');
+      const audioLoaded = audioManager.isAudioPreloadComplete();
 
-      if (mediumLoaded && lowLoaded && ui) {
+      if (mediumLoaded && lowLoaded && audioLoaded && ui) {
         ui.notifyAssetsLoaded();
 
         // 최소 표시 시간이 지났는지 확인

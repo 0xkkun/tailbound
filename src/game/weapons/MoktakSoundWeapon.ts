@@ -9,6 +9,7 @@ import { calculateWeaponStats } from '@game/data/weapons';
 import { AoEEffect } from '@game/entities/AoEEffect';
 import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
+import { audioManager } from '@services/audioManager';
 import type { Vector2 } from '@type/game.types';
 
 import { Weapon } from './Weapon';
@@ -46,6 +47,8 @@ export class MoktakSoundWeapon extends Weapon {
     if (!this.canFire()) {
       return [];
     }
+
+    audioManager.playMoktakSound();
 
     // 플레이어 스탯 적용
     let finalDamage = this.damage;
