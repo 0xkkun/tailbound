@@ -103,11 +103,11 @@ export const CDN_ASSETS = {
   gui: {
     back: `${CDN_BASE_URL}/assets/gui/back.png`,
     sound: `${CDN_BASE_URL}/assets/gui/sound.png`,
+    soundOff: `${CDN_BASE_URL}/assets/gui/sound-off.png`,
     resume: `${CDN_BASE_URL}/assets/gui/resume.png`,
     restart: `${CDN_BASE_URL}/assets/gui/restart.png`,
     settings: `${CDN_BASE_URL}/assets/gui/settings.png`,
     bgButton: `${CDN_BASE_URL}/assets/gui/bg-button.png`,
-    titleFan: `${CDN_BASE_URL}/assets/gui/title-fan.png`,
     bgStage: `${CDN_BASE_URL}/assets/gui/bg-stage.png`,
     shamanSignature: `${CDN_BASE_URL}/assets/gui/shaman-signature.png`,
     loadingSprite: `${CDN_BASE_URL}/assets/gui/loading-sprite.png`,
