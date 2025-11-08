@@ -20,6 +20,7 @@ export class SettingsModal extends Container {
 
   // 버튼 참조 (텍스트 업데이트용)
   private bgmButton!: PixelButton;
+  private sfxButton!: PixelButton;
   private hapticButton!: PixelButton;
 
   public onClose?: () => void;
@@ -61,27 +62,54 @@ export class SettingsModal extends Container {
     const buttonWidth = 184;
     const buttonHeight = 56;
 
-    // 소리 켜기/끄기 버튼
+    // 배경음 켜기/끄기 버튼
     const bgmEnabled = audioManager.isBGMEnabled();
     this.createMenuButtonWithIcon(
-      bgmEnabled ? '소리 끄기' : '소리 켜기',
+      bgmEnabled ? '배경음 끄기' : '배경음 켜기',
+      `${CDN_BASE_URL}/assets/gui/sound.png`,
+      centerX,
+      centerY - 80 - buttonGap,
+      buttonWidth,
+      buttonHeight,
+      () => {
+        const newState = audioManager.toggleBGM();
+        // 버튼 텍스트 업데이트 (켜기/끄기)
+        this.updateButtonWithIcon(
+          this.bgmButton,
+          newState ? '배경음 끄기' : '배경음 켜기',
+          `${CDN_BASE_URL}/assets/gui/sound.png`
+        );
+      }
+    ).then((button) => {
+      this.bgmButton = button;
+    });
+
+    // 효과음 켜기/끄기 버튼
+    const sfxEnabled = audioManager.isSFXEnabled();
+    this.createMenuButtonWithIcon(
+      sfxEnabled ? '효과음 끄기' : '효과음 켜기',
       `${CDN_BASE_URL}/assets/gui/sound.png`,
       centerX,
       centerY - 80,
       buttonWidth,
       buttonHeight,
       () => {
-        const newState = audioManager.toggleBGM();
-        audioManager.toggleSFX(); // SFX도 함께 토글
+        const newState = audioManager.toggleSFX();
+        // 토글 후에 버튼 클릭 사운드 재생 (효과음이 켜진 상태에서만)
+        if (newState) {
+          audioManager.playButtonClickSound();
+        }
         // 버튼 텍스트 업데이트 (켜기/끄기)
         this.updateButtonWithIcon(
-          this.bgmButton,
-          newState ? '소리 끄기' : '소리 켜기',
+          this.sfxButton,
+          newState ? '효과음 끄기' : '효과음 켜기',
           `${CDN_BASE_URL}/assets/gui/sound.png`
         );
       }
     ).then((button) => {
-      this.bgmButton = button;
+      this.sfxButton = button;
+      // 효과음 버튼은 자동 클릭 사운드 끄기
+      button.setPlayClickSound(false);
     });
 
     // 진동 켜기/끄기 버튼
