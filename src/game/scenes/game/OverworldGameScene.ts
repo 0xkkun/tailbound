@@ -843,7 +843,11 @@ export class OverworldGameScene extends BaseGameScene {
 
       // AoE 이펙트가 시작된 동안 범위 내 적에게 데미지
       if (aoe.isEffectStarted()) {
-        for (const enemy of this.enemies) {
+        // 보스가 있으면 타겟 배열에 포함
+        const boss = this.bossSystem?.getBoss();
+        const targetEnemies = boss && boss.active ? [...this.enemies, boss] : this.enemies;
+
+        for (const enemy of targetEnemies) {
           // 죽은 적이거나 이번 틱에 데미지를 받을 수 없는 적은 스킵
           if (!enemy.active || !enemy.isAlive() || !aoe.canHitEnemyThisTick(enemy.id)) {
             continue;
@@ -892,7 +896,11 @@ export class OverworldGameScene extends BaseGameScene {
         return false;
       }
 
-      splash.update(deltaTime, this.enemies);
+      // 보스가 있으면 타겟 배열에 포함
+      const boss = this.bossSystem?.getBoss();
+      const targetEnemies = boss && boss.active ? [...this.enemies, boss] : this.enemies;
+
+      splash.update(deltaTime, targetEnemies);
       return true;
     });
 
@@ -900,8 +908,12 @@ export class OverworldGameScene extends BaseGameScene {
     for (const swing of this.meleeSwings) {
       swing.update(deltaTime);
 
+      // 보스가 있으면 타겟 배열에 포함
+      const boss = this.bossSystem?.getBoss();
+      const targetEnemies = boss && boss.active ? [...this.enemies, boss] : this.enemies;
+
       // 각도 범위 내 적에게 데미지
-      for (const enemy of this.enemies) {
+      for (const enemy of targetEnemies) {
         if (!enemy.active || !enemy.isAlive()) continue;
 
         // 이미 이 휘두르기에 맞은 적은 스킵
@@ -948,7 +960,11 @@ export class OverworldGameScene extends BaseGameScene {
         for (const orbital of orbitals) {
           if (!orbital.active || !orbital.visible) continue; // 깜박임 중 숨겨졌을 때는 데미지 없음
 
-          for (const enemy of this.enemies) {
+          // 보스가 있으면 타겟 배열에 포함
+          const boss = this.bossSystem?.getBoss();
+          const targetEnemies = boss && boss.active ? [...this.enemies, boss] : this.enemies;
+
+          for (const enemy of targetEnemies) {
             if (!enemy.active || !enemy.isAlive()) continue;
 
             // 궤도와 적 충돌 체크 (원형 충돌)
@@ -999,7 +1015,11 @@ export class OverworldGameScene extends BaseGameScene {
           // 공격 중일 때만 충돌 처리
           if (!blade.isAttackActive()) continue;
 
-          for (const enemy of this.enemies) {
+          // 보스가 있으면 타겟 배열에 포함
+          const boss = this.bossSystem?.getBoss();
+          const targetEnemies = boss && boss.active ? [...this.enemies, boss] : this.enemies;
+
+          for (const enemy of targetEnemies) {
             if (!enemy.active || !enemy.isAlive()) continue;
 
             // 이미 최대 타격 횟수에 도달한 적은 스킵
@@ -1418,13 +1438,13 @@ export class OverworldGameScene extends BaseGameScene {
         if (existingDokkaebi) {
           existingDokkaebi.levelUp();
           // 레벨업 시 궤도 재생성 (소리 없이)
-          await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.gameLayer, false);
+          await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.gameLayer);
           console.log(`도깨비불 레벨업! Lv.${existingDokkaebi.level}`);
         } else {
           const dokkaebi = new DokkaebiFireWeapon();
           this.weapons.push(dokkaebi);
           // 최초 생성 시 궤도 생성 (소리와 함께)
-          await dokkaebi.spawnOrbitals(this.gameLayer, true);
+          await dokkaebi.spawnOrbitals(this.gameLayer);
           console.log('도깨비불 무기 추가 완료!');
         }
         break;
