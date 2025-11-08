@@ -197,6 +197,9 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.gui.pattern,
     CDN_ASSETS.gui.bgStage,
     CDN_ASSETS.gui.shamanSignature,
+    // BGM (필수)
+    CDN_ASSETS.audio.bgm.main,
+    CDN_ASSETS.audio.sfx.gui.buttonClick,
   ],
 
   // 높음: 초반 스테이지에서 사용 (높음까지 로드해야 Press to Start 표시)
@@ -238,6 +241,24 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.powerUp.kill,
     CDN_ASSETS.powerUp.criticalChance,
     CDN_ASSETS.powerUp.criticalDamage,
+    // BGM
+    CDN_ASSETS.audio.bgm.game01,
+    CDN_ASSETS.audio.bgm.game02,
+    // GUI 효과음
+    CDN_ASSETS.audio.sfx.gui.slideUp,
+    CDN_ASSETS.audio.sfx.gui.slideDown,
+    CDN_ASSETS.audio.sfx.gui.ingameStart,
+    // 무기 효과음
+    CDN_ASSETS.audio.sfx.weapon.dokkabiFire,
+    CDN_ASSETS.audio.sfx.weapon.fanWind,
+    CDN_ASSETS.audio.sfx.weapon.jakduBlade,
+    CDN_ASSETS.audio.sfx.weapon.talisman,
+    // 적 효과음
+    CDN_ASSETS.audio.sfx.enemy.ghost01,
+    CDN_ASSETS.audio.sfx.enemy.common01,
+    CDN_ASSETS.audio.sfx.enemy.common02,
+    CDN_ASSETS.audio.sfx.enemy.common03,
+    CDN_ASSETS.audio.sfx.enemy.common04,
   ],
 
   // 낮음: 후반 스테이지/보스전에서 사용
@@ -267,6 +288,10 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.tile.outlineLeft,
     CDN_ASSETS.tile.outlineRight,
     CDN_ASSETS.npc.monk,
+    // 보스 효과음
+    CDN_ASSETS.audio.sfx.boss.whiteTiger.attack,
+    CDN_ASSETS.audio.sfx.boss.whiteTiger.fire,
+    CDN_ASSETS.audio.sfx.boss.whiteTiger.injury,
   ],
 } as const;
 
