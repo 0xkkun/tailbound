@@ -374,8 +374,14 @@ export class StageSelectModal extends Container {
   private selectCard(targetIndex: number): void {
     if (targetIndex === this.currentIndex) return;
 
-    // 효과음 재생
-    audioManager.playButtonClickSound();
+    // 슬라이드 방향에 따른 효과음 재생
+    if (targetIndex > this.currentIndex) {
+      // 다음 카드로 이동 (위로 슬라이드)
+      audioManager.playSlideUpSound();
+    } else {
+      // 이전 카드로 이동 (아래로 슬라이드)
+      audioManager.playSlideDownSound();
+    }
 
     this.currentIndex = targetIndex;
 
@@ -454,9 +460,8 @@ export class StageSelectModal extends Container {
       () => {
         const selectedStage = this.cardData[this.currentIndex];
         if (!selectedStage.locked) {
-          // TODO: 로비 BGM 페이드아웃
-          // audioManager.stopBGM(true);
-          audioManager.stopBGM(false);
+          audioManager.playIngameStartSound();
+          audioManager.stopBGM(true);
           this.onStageSelect?.(selectedStage.id);
         }
       },

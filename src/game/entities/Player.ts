@@ -6,7 +6,6 @@ import { PLAYER_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
 import { parsePowerupId, POWERUPS_CONFIG } from '@config/powerups.config';
 import { PLAYER_SPRITE_CONFIG } from '@config/sprite.config';
-import { audioManager } from '@services/audioManager';
 import { hapticManager } from '@services/hapticManager';
 import { LevelSystem, type LevelUpChoice } from '@systems/LevelSystem';
 import type { InputState } from '@type/game.types';
@@ -234,11 +233,9 @@ export class Player extends Container {
       this.health = 0;
       // 사망 시 햅틱/오디오 피드백
       hapticManager.onPlayerDeath();
-      audioManager.playDeathSound();
     } else {
       // 피격 시 햅틱/오디오 피드백
       hapticManager.onPlayerHit();
-      audioManager.playHitSound();
     }
 
     // 무적 시간 활성화
@@ -425,8 +422,6 @@ export class Player extends Container {
   private playLevelUpEffect(): void {
     // TODO: 파티클 효과 추가
     console.log('✨ 레벨업 효과!');
-    // 레벨업 사운드 재생
-    audioManager.playLevelUpSound();
   }
 
   /**

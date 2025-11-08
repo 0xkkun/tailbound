@@ -8,9 +8,8 @@
  * - 설정 영구 저장 (LocalStorage)
  */
 
-import { CDN_BASE_URL } from '@config/assets.config';
+import { BGM_PATHS, SFX_PATHS } from '@config/assets.config';
 import type { BGMTrack, SFXType } from '@type/audio.types';
-import { BGM_PATHS } from '@type/audio.types';
 import { Howl } from 'howler';
 
 export class AudioManager {
@@ -137,31 +136,7 @@ export class AudioManager {
     });
   }
 
-  // === 게임 이벤트별 사운드 ===
-
-  /**
-   * 피격 효과음 재생
-   */
-  playHitSound(): void {
-    if (!this.sfxEnabled) return;
-    this.playSFX('hit');
-  }
-
-  /**
-   * 죽음 효과음 재생
-   */
-  playDeathSound(): void {
-    if (!this.sfxEnabled) return;
-    this.playSFX('death');
-  }
-
-  /**
-   * 레벨업 효과음 재생
-   */
-  playLevelUpSound(): void {
-    if (!this.sfxEnabled) return;
-    this.playSFX('levelup');
-  }
+  // === GUI 효과음 ===
 
   /**
    * 버튼 클릭 효과음 재생
@@ -172,15 +147,41 @@ export class AudioManager {
   }
 
   /**
+   * 슬라이드 업 효과음 재생
+   */
+  playSlideUpSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('slide-up');
+  }
+
+  /**
+   * 슬라이드 다운 효과음 재생
+   */
+  playSlideDownSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('slide-down');
+  }
+
+  /**
+   * 인게임 시작 효과음 재생
+   */
+  playIngameStartSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('ingame-start');
+  }
+
+  /**
    * 효과음 재생 (내부 헬퍼 메서드)
    */
   private playSFX(soundName: SFXType): void {
     let sfx = this.sfxPool.get(soundName);
 
     if (!sfx) {
-      // 첫 재생 시 로드 (CDN)
+      // 첫 재생 시 로드 (경로 매핑 사용)
+      const audioPath = SFX_PATHS[soundName];
+
       sfx = new Howl({
-        src: [`${CDN_BASE_URL}/audio/${soundName}.mp3`],
+        src: [audioPath],
         volume: this.sfxVolume,
         preload: true,
         onloaderror: (_id, error) => {

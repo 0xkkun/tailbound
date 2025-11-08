@@ -147,8 +147,12 @@ export const CDN_ASSETS = {
       game02: `${CDN_BASE_URL}/audio/bgm-game-02.mp3`,
     },
     sfx: {
-      // SFX는 동적으로 로드되므로 베이스 경로만 제공
-      base: `${CDN_BASE_URL}/audio/`,
+      gui: {
+        buttonClick: `${CDN_BASE_URL}/assets/audio/gui/button-click.mp3`,
+        slideUp: `${CDN_BASE_URL}/assets/audio/gui/slide-up.mp3`,
+        slideDown: `${CDN_BASE_URL}/assets/audio/gui/slide-down.mp3`,
+        ingameStart: `${CDN_BASE_URL}/assets/audio/gui/ingame-start.wav`,
+      },
     },
   },
 } as const;
@@ -244,14 +248,20 @@ export const ASSET_LOADING_GROUPS = {
 } as const;
 
 /**
- * 헬퍼 함수: 경로 기반으로 에셋 별칭 생성
+ * BGM 파일 경로 매핑
  */
-export function getAssetAlias(url: string): string {
-  // CDN URL에서 파일명만 추출
-  const filename =
-    url
-      .split('/')
-      .pop()
-      ?.replace(/\.[^/.]+$/, '') || '';
-  return filename;
-}
+export const BGM_PATHS = {
+  main: CDN_ASSETS.audio.bgm.main,
+  'game-01': CDN_ASSETS.audio.bgm.game01,
+  'game-02': CDN_ASSETS.audio.bgm.game02,
+} as const;
+
+/**
+ * SFX 파일 경로 매핑
+ */
+export const SFX_PATHS = {
+  'button-click': CDN_ASSETS.audio.sfx.gui.buttonClick,
+  'slide-up': CDN_ASSETS.audio.sfx.gui.slideUp,
+  'slide-down': CDN_ASSETS.audio.sfx.gui.slideDown,
+  'ingame-start': CDN_ASSETS.audio.sfx.gui.ingameStart,
+} as const;
