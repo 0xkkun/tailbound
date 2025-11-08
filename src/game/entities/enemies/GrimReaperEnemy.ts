@@ -4,6 +4,7 @@ import { CDN_BASE_URL } from '@config/assets.config';
  */
 import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
 import type { FieldEnemyTier } from '@game/data/enemies';
+import { audioManager } from '@services/audioManager';
 
 import { BaseEnemy } from './BaseEnemy';
 import type { EnemySpriteConfig } from './EnemySprite';
@@ -66,6 +67,13 @@ export class GrimReaperEnemy extends BaseEnemy {
     this.shadow.clear();
     this.shadow.ellipse(0, this.radius * 1.1, this.radius * 0.65, this.radius * 0.24);
     this.shadow.fill({ color: 0x000000, alpha: 0.38 });
+  }
+
+  /**
+   * 유령 전용 사망 사운드 재생
+   */
+  protected playDeathSound(): void {
+    audioManager.playEnemyGhostDeathSound();
   }
 
   /**
