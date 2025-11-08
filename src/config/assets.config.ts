@@ -104,6 +104,8 @@ export const CDN_ASSETS = {
     back: `${CDN_BASE_URL}/assets/gui/back.png`,
     sound: `${CDN_BASE_URL}/assets/gui/sound.png`,
     soundOff: `${CDN_BASE_URL}/assets/gui/sound-off.png`,
+    haptic: `${CDN_BASE_URL}/assets/gui/haptic.png`,
+    hapticOff: `${CDN_BASE_URL}/assets/gui/haptic-off.png`,
     resume: `${CDN_BASE_URL}/assets/gui/resume.png`,
     restart: `${CDN_BASE_URL}/assets/gui/restart.png`,
     settings: `${CDN_BASE_URL}/assets/gui/settings.png`,
@@ -199,7 +201,15 @@ export const ASSET_LOADING_GROUPS = {
   ],
 
   // 높음: 초반 스테이지에서 사용 (높음까지 로드해야 Press to Start 표시)
-  high: [CDN_ASSETS.gui.back, CDN_ASSETS.gui.resume, CDN_ASSETS.gui.restart, CDN_ASSETS.gui.sound],
+  high: [
+    CDN_ASSETS.gui.back,
+    CDN_ASSETS.gui.resume,
+    CDN_ASSETS.gui.restart,
+    CDN_ASSETS.gui.sound,
+    CDN_ASSETS.gui.soundOff,
+    CDN_ASSETS.gui.haptic,
+    CDN_ASSETS.gui.hapticOff,
+  ],
 
   // 중간: 중반 스테이지에서 사용 (여기부터 로오오딩중 표시)
   medium: [

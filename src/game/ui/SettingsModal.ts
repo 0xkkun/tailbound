@@ -116,7 +116,7 @@ export class SettingsModal extends Container {
     const hapticEnabled = hapticManager.isEnabled();
     this.createMenuButtonWithIcon(
       hapticEnabled ? '진동 끄기' : '진동 켜기',
-      CDN_ASSETS.gui.resume,
+      hapticEnabled ? CDN_ASSETS.gui.hapticOff : CDN_ASSETS.gui.haptic,
       centerX,
       centerY - 80 + buttonGap,
       buttonWidth,
@@ -127,7 +127,7 @@ export class SettingsModal extends Container {
         this.updateButtonWithIcon(
           this.hapticButton,
           newState ? '진동 끄기' : '진동 켜기',
-          CDN_ASSETS.gui.resume
+          newState ? CDN_ASSETS.gui.hapticOff : CDN_ASSETS.gui.haptic
         );
       }
     ).then((button) => {
