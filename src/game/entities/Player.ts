@@ -2,7 +2,7 @@
  * 플레이어 엔티티
  */
 import { CDN_BASE_URL } from '@config/assets.config';
-import { PLAYER_BALANCE } from '@config/balance.config';
+import { PLAYER_BALANCE, POWERUP_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
 import { parsePowerupId, POWERUPS_CONFIG } from '@config/powerups.config';
 import { PLAYER_SPRITE_CONFIG } from '@config/sprite.config';
@@ -37,8 +37,10 @@ export class Player extends Container {
   // 새로운 파워업 스탯 (⚙️ 유틸)
   public xpMultiplier: number = PLAYER_BALANCE.initialStats.xpMultiplier;
 
-  // 호흡 파워업 (초당 최대 체력 % 회복)
+  // 호흡 파워업 (N초 동안 피격 없을 때 초당 최대 체력 % 회복)
   public healthRegenRate: number = 0; // 초당 회복률 (0.01 = 1%)
+  private lastHitTime: number = 0; // 마지막 피격 시간 (초)
+  private totalElapsedTime: number = 0; // 게임 시작 이후 경과 시간 (초)
 
   // 스탯 상한선 (balance.config.ts에서 관리)
   private readonly MAX_DAMAGE_MULTIPLIER = PLAYER_BALANCE.maxStats.damageMultiplier;
@@ -228,6 +230,9 @@ export class Player extends Container {
 
     // 최종 피해 적용
     this.health -= finalDamage;
+
+    // 피격 시간 기록 (호흡 파워업용)
+    this.lastHitTime = this.totalElapsedTime;
 
     if (this.health <= 0) {
       this.health = 0;
@@ -536,6 +541,9 @@ export class Player extends Container {
    * 업데이트
    */
   public update(deltaTime: number): void {
+    // 경과 시간 업데이트
+    this.totalElapsedTime += deltaTime;
+
     // 무적 시간 감소
     const wasInvincible = this.invincibleTime > 0;
     if (this.invincibleTime > 0) {
@@ -588,10 +596,15 @@ export class Player extends Container {
 
     // ===== 파워업 시스템 업데이트 =====
 
-    // 호흡 시스템 (초당 % 기반 체력 재생)
+    // 호흡 시스템 (피격 후 N초 이상 경과 시 초당 % 기반 체력 재생)
     if (this.healthRegenRate > 0) {
-      const regenAmount = this.maxHealth * this.healthRegenRate * deltaTime;
-      this.heal(regenAmount);
+      const timeSinceLastHit = this.totalElapsedTime - this.lastHitTime;
+      const regenDelay = POWERUP_BALANCE.breathing.regenDelay;
+
+      if (timeSinceLastHit >= regenDelay) {
+        const regenAmount = this.maxHealth * this.healthRegenRate * deltaTime;
+        this.heal(regenAmount);
+      }
     }
 
     // 체력바 업데이트

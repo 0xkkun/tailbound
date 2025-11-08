@@ -170,15 +170,15 @@
       "breathing": {
         "common": {
           "name": "호흡 (呼吸)",
-          "description": "초당 최대 체력의 0.5% 회복"
+          "description": "4초간 피격 없을 시 초당 최대 체력의 0.5% 회복"
         },
         "rare": {
           "name": "조식 (調息)",
-          "description": "초당 최대 체력의 1.2% 회복"
+          "description": "4초간 피격 없을 시 초당 최대 체력의 1.2% 회복"
         },
         "epic": {
           "name": "태식 (胎息)",
-          "description": "초당 최대 체력의 2.5% 회복"
+          "description": "4초간 피격 없을 시 초당 최대 체력의 2.5% 회복"
         }
       }
     },

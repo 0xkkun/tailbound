@@ -550,6 +550,7 @@ export const POWERUP_BALANCE = {
     common: 0.005, // 0.5%/초
     rare: 0.012, // 1.2%/초
     epic: 0.025, // 2.5%/초
+    regenDelay: 4.0, // 피격 후 회복 시작까지 대기 시간 (초)
   },
 
   // ⚙️ 유틸리티 파워업
