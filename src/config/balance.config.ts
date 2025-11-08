@@ -68,9 +68,9 @@ export const FIELD_ENEMY_BALANCE = {
     animationSpeed: 0.15,
   },
   high: {
-    health: 450, // 30 * 15
+    health: 450,
     speed: 100,
-    damage: 150, // 10 * 15
+    damage: 75,
     radius: 30,
     xpDrop: 100,
     animationSpeed: 0.2,
