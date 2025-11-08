@@ -59,8 +59,10 @@ export class Player extends Container {
 
   // 그래픽스
   private graphics?: Graphics;
-  private sprite?: AnimatedSprite;
-  private frames: Texture[] = [];
+  private idleSprite?: AnimatedSprite;
+  private walkSprite?: AnimatedSprite;
+  private idleFrames: Texture[] = [];
+  private walkFrames: Texture[] = [];
   private shadow: Graphics; // 그림자
   private healthBarBg: Graphics; // 체력바 배경
   private healthBarFill: Graphics; // 체력바 채움
@@ -159,7 +161,8 @@ export class Player extends Container {
    */
   private async loadSprite(): Promise<void> {
     try {
-      const texture = await Assets.load(`${CDN_BASE_URL}/assets/player/shaman-walk.png`);
+      // Idle 스프라이트 로드
+      const idleTexture = await Assets.load('/assets/mu-idle.png');
 
       // 로드 중 destroy될 수 있으므로 체크
       if (this.destroyed) {
@@ -167,35 +170,60 @@ export class Player extends Container {
         return;
       }
 
-      // 스프라이트시트를 프레임으로 분할 (가로로 나열됨)
-      const frameCount = PLAYER_SPRITE_CONFIG.walk.frameCount;
-      const frameWidth = texture.width / frameCount;
-      const frameHeight = texture.height;
+      // Idle 스프라이트시트를 프레임으로 분할
+      const idleFrameCount = PLAYER_SPRITE_CONFIG.idle.frameCount;
+      const idleFrameWidth = idleTexture.width / idleFrameCount;
+      const idleFrameHeight = idleTexture.height;
 
-      for (let i = 0; i < frameCount; i++) {
+      for (let i = 0; i < idleFrameCount; i++) {
         const frame = new Texture({
-          source: texture.source,
-          frame: new Rectangle(i * frameWidth, 0, frameWidth, frameHeight),
+          source: idleTexture.source,
+          frame: new Rectangle(i * idleFrameWidth, 0, idleFrameWidth, idleFrameHeight),
         });
-        this.frames.push(frame);
+        this.idleFrames.push(frame);
       }
 
-      // AnimatedSprite 생성
-      this.sprite = new AnimatedSprite(this.frames);
-      // 이미지가 왼쪽으로 치우쳐 있어서 앵커를 조정 (0.5에서 0.4로)
-      this.sprite.anchor.set(0.4, 0.5); // x축 앵커를 왼쪽으로 이동
-      this.sprite.animationSpeed = PLAYER_SPRITE_CONFIG.walk.animationSpeed;
-      this.sprite.loop = true;
-      this.sprite.visible = true;
-      this.sprite.alpha = 1.0;
+      // Idle AnimatedSprite 생성
+      this.idleSprite = new AnimatedSprite(this.idleFrames);
+      this.idleSprite.anchor.set(0.5, 0.5);
+      this.idleSprite.animationSpeed = PLAYER_SPRITE_CONFIG.idle.animationSpeed;
+      this.idleSprite.loop = true;
+      this.idleSprite.play();
+      this.idleSprite.alpha = 1.0;
+
+      // Walk 스프라이트 로드
+      const walkTexture = await Assets.load(`${CDN_BASE_URL}/assets/player/shaman-walk.png`);
+
+      if (this.destroyed) {
+        console.log('Player destroyed during sprite load');
+        return;
+      }
+
+      // Walk 스프라이트시트를 프레임으로 분할
+      const walkFrameCount = PLAYER_SPRITE_CONFIG.walk.frameCount;
+      const walkFrameWidth = walkTexture.width / walkFrameCount;
+      const walkFrameHeight = walkTexture.height;
+
+      for (let i = 0; i < walkFrameCount; i++) {
+        const frame = new Texture({
+          source: walkTexture.source,
+          frame: new Rectangle(i * walkFrameWidth, 0, walkFrameWidth, walkFrameHeight),
+        });
+        this.walkFrames.push(frame);
+      }
+
+      // Walk AnimatedSprite 생성
+      this.walkSprite = new AnimatedSprite(this.walkFrames);
+      this.walkSprite.anchor.set(0.4, 0.5); // x축 앵커를 왼쪽으로 이동
+      this.walkSprite.animationSpeed = PLAYER_SPRITE_CONFIG.walk.animationSpeed;
+      this.walkSprite.loop = true;
+      this.walkSprite.visible = false; // 초기에는 숨김
+      this.walkSprite.alpha = 1.0;
 
       // graphics 아래에 추가되도록 보장
-      if (this.graphics) {
-        const graphicsIndex = this.getChildIndex(this.graphics);
-        this.addChildAt(this.sprite, Math.max(0, graphicsIndex));
-      } else {
-        this.addChildAt(this.sprite, 0);
-      }
+      const insertIndex = this.graphics ? Math.max(0, this.getChildIndex(this.graphics)) : 0;
+      this.addChildAt(this.idleSprite, insertIndex);
+      this.addChildAt(this.walkSprite, insertIndex);
 
       // graphics 정리 (스프라이트가 로드되었으므로)
       this.renderDebug();
@@ -574,17 +602,34 @@ export class Player extends Container {
       this.lastDirection = { x: directionX, y: directionY };
 
       // 스프라이트 좌우 반전 (왼쪽: scale.x = -1, 오른쪽: scale.x = 1)
-      if (this.sprite && directionX !== 0) {
-        this.sprite.scale.x = directionX < 0 ? -1 : 1;
+      if (directionX !== 0) {
+        const scaleX = directionX < 0 ? -1 : 1;
+        if (this.idleSprite) this.idleSprite.scale.x = scaleX;
+        if (this.walkSprite) this.walkSprite.scale.x = scaleX;
       }
     }
 
-    // 애니메이션 상태 변경 시에만 play/stop
+    // 애니메이션 상태 변경 시 스프라이트 전환
     if (isMoving !== this.lastMovingState) {
-      if (isMoving && this.sprite) {
-        this.sprite.play();
-      } else if (this.sprite) {
-        this.sprite.gotoAndStop(0);
+      if (isMoving) {
+        // 이동 시작: walk 스프라이트 표시, idle 숨김
+        if (this.walkSprite) {
+          this.walkSprite.visible = true;
+          this.walkSprite.play();
+        }
+        if (this.idleSprite) {
+          this.idleSprite.visible = false;
+        }
+      } else {
+        // 정지: idle 스프라이트 표시, walk 숨김
+        if (this.idleSprite) {
+          this.idleSprite.visible = true;
+          this.idleSprite.play();
+        }
+        if (this.walkSprite) {
+          this.walkSprite.visible = false;
+          this.walkSprite.gotoAndStop(0);
+        }
       }
       this.lastMovingState = isMoving;
     }
@@ -633,13 +678,10 @@ export class Player extends Container {
    * 무적 시각 효과 업데이트
    */
   private updateInvincibilityVisuals(): void {
-    if (!this.sprite) return;
+    const alpha = this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0 ? 0.5 : 1.0;
 
-    if (this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0) {
-      this.sprite.alpha = 0.5; // 깜빡임
-    } else {
-      this.sprite.alpha = 1.0; // 정상
-    }
+    if (this.idleSprite) this.idleSprite.alpha = alpha;
+    if (this.walkSprite) this.walkSprite.alpha = alpha;
   }
 
   /**
@@ -696,7 +738,7 @@ export class Player extends Container {
     }
 
     // 스프라이트가 없으면 폴백 그래픽 표시
-    if (!this.sprite && this.graphics) {
+    if (!this.idleSprite && !this.walkSprite && this.graphics) {
       this.graphics.clear();
 
       // 무적 시간이면 깜빡임 효과
@@ -728,8 +770,10 @@ export class Player extends Container {
    */
   public destroy(): void {
     // 텍스처 정리
-    this.frames.forEach((frame) => frame.destroy(true));
-    this.frames = [];
+    this.idleFrames.forEach((frame) => frame.destroy(true));
+    this.walkFrames.forEach((frame) => frame.destroy(true));
+    this.idleFrames = [];
+    this.walkFrames = [];
 
     // 그래픽 요소 정리
     this.graphics?.destroy();
@@ -737,7 +781,8 @@ export class Player extends Container {
     this.healthBarBg.destroy();
     this.healthBarFill.destroy();
     this.levelText.destroy();
-    this.sprite?.destroy({ texture: false });
+    this.idleSprite?.destroy({ texture: false });
+    this.walkSprite?.destroy({ texture: false });
 
     super.destroy({ children: true });
   }

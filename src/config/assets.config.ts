@@ -32,6 +32,7 @@ export const CDN_ASSETS = {
   player: {
     shaman: `${CDN_BASE_URL}/assets/player/shaman.png`,
     shamanWalk: `${CDN_BASE_URL}/assets/player/shaman-walk.png`,
+    muIdle: '/assets/mu-idle.png',
   },
 
   // NPC
@@ -188,6 +189,7 @@ export const ASSET_LOADING_GROUPS = {
   critical: [
     CDN_ASSETS.player.shaman,
     CDN_ASSETS.player.shamanWalk,
+    CDN_ASSETS.player.muIdle,
     CDN_ASSETS.tile.tile1,
     CDN_ASSETS.tile.tile2,
     CDN_ASSETS.tile.tile3,

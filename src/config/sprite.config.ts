@@ -6,6 +6,11 @@
  * 플레이어 스프라이트 설정
  */
 export const PLAYER_SPRITE_CONFIG = {
+  // 대기 애니메이션
+  idle: {
+    frameCount: 6, // 스프라이트시트 프레임 수
+    animationSpeed: 0.1, // 애니메이션 재생 속도
+  },
   // 걷기 애니메이션
   walk: {
     frameCount: 8, // 스프라이트시트 프레임 수
