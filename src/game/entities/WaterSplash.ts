@@ -22,6 +22,7 @@ export class WaterSplash extends Container {
   private damageInterval: number; // 피해 주기
   private damageTimer: number = 0; // 피해 타이머
   private knockbackForce: number;
+  private hasDealtInitialDamage: boolean = false; // 착지 즉시 데미지 처리 여부
 
   private visual: Graphics | AnimatedSprite;
   private color: number;
@@ -61,9 +62,14 @@ export class WaterSplash extends Container {
 
     this.damageTimer += deltaTime;
 
-    // 피해 주기가 되었을 때만 적 순회 (성능 최적화)
-    if (this.damageTimer >= this.damageInterval) {
-      this.damageTimer = 0; // 타이머 리셋
+    // 착지 즉시 데미지 처리 또는 피해 주기가 되었을 때 적 순회
+    const shouldDealDamage = !this.hasDealtInitialDamage || this.damageTimer >= this.damageInterval;
+
+    if (shouldDealDamage) {
+      if (this.damageTimer >= this.damageInterval) {
+        this.damageTimer = 0; // 타이머 리셋
+      }
+      this.hasDealtInitialDamage = true; // 초기 데미지 처리 완료 표시
 
       // 반지름 제곱 (Math.sqrt 연산 최소화)
       // NOTE: 원형 충돌 감지 사용. 복잡한 적 형태는 추후 AABB/Polygon 충돌로 업그레이드 가능
