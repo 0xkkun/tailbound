@@ -226,6 +226,32 @@ export class AudioManager {
     this.playSFX('enemy-ghost-01');
   }
 
+  // === 보스 효과음 ===
+
+  /**
+   * 백호 보스 공격 효과음 재생
+   */
+  playBossWhiteTigerAttackSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('boss-white-tiger-attack');
+  }
+
+  /**
+   * 백호 보스 설치형 공격 효과음 재생 (불 스킬)
+   */
+  playBossWhiteTigerFireSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('boss-white-tiger-fire');
+  }
+
+  /**
+   * 백호 보스 피격 효과음 재생
+   */
+  playBossWhiteTigerInjurySound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('boss-white-tiger-injury');
+  }
+
   /**
    * 효과음 재생 (내부 헬퍼 메서드)
    */

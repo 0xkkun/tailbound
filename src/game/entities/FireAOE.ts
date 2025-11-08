@@ -33,7 +33,14 @@ export class FireAOE extends Container {
   private static readonly VISUAL_SIZE = 288; // 시각적 크기 (픽셀, 지름) - radius 144 기준 원래 크기
   private static textures: Texture[] | null = null;
 
-  constructor(id: string, x: number, y: number, radius: number, damage: number = 40) {
+  constructor(
+    id: string,
+    x: number,
+    y: number,
+    radius: number,
+    damage: number = 40,
+    onSpawn?: () => void
+  ) {
     super();
 
     this.id = id;
@@ -43,6 +50,9 @@ export class FireAOE extends Container {
     this.damage = damage;
 
     console.log('[FireAOE] Creating at', { x, y, radius });
+
+    // 생성 시 콜백 호출 (의존성 주입)
+    onSpawn?.();
 
     // 스프라이트 생성
     if (!FireAOE.textures) {

@@ -169,6 +169,13 @@ export const CDN_ASSETS = {
         common04: `${CDN_BASE_URL}/assets/audio/enemy/common-04.mp3`,
         ghost01: `${CDN_BASE_URL}/assets/audio/enemy/ghost-01.mp3`,
       },
+      boss: {
+        whiteTiger: {
+          attack: `${CDN_BASE_URL}/assets/audio/boss/white-tiger/attack.mp3`,
+          fire: `${CDN_BASE_URL}/assets/audio/boss/white-tiger/fire.mp3`,
+          injury: `${CDN_BASE_URL}/assets/audio/boss/white-tiger/injury.mp3`,
+        },
+      },
     },
   },
 } as const;
@@ -292,7 +299,27 @@ export const SFX_PATHS = {
   'enemy-common-03': CDN_ASSETS.audio.sfx.enemy.common03,
   'enemy-common-04': CDN_ASSETS.audio.sfx.enemy.common04,
   'enemy-ghost-01': CDN_ASSETS.audio.sfx.enemy.ghost01,
+  // 보스 효과음
+  'boss-white-tiger-attack': CDN_ASSETS.audio.sfx.boss.whiteTiger.attack,
+  'boss-white-tiger-fire': CDN_ASSETS.audio.sfx.boss.whiteTiger.fire,
+  'boss-white-tiger-injury': CDN_ASSETS.audio.sfx.boss.whiteTiger.injury,
   // TODO: 아래 무기들의 효과음 파일 추가 필요
   // 'moktak-sound': CDN_ASSETS.audio.sfx.weapon.moktakSound,
   // 'purifying-water': CDN_ASSETS.audio.sfx.weapon.purifyingWater,
+} as const;
+
+/**
+ * 오디오 쿨다운 설정 (초 단위)
+ *
+ * 효과음이 너무 자주 재생되는 것을 방지하기 위한 쿨다운 시간
+ */
+export const AUDIO_COOLDOWNS = {
+  /** 보스 피격 효과음 쿨다운 */
+  BOSS_INJURY: 0.3,
+
+  /** 무기 글로벌 효과음 쿨다운 */
+  WEAPON_GLOBAL: 0.15,
+
+  /** 적 사망 효과음 쿨다운 */
+  ENEMY_DEATH: 0.1,
 } as const;

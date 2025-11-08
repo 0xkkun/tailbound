@@ -5,7 +5,8 @@
  * 1. 번개 탄막 발사 (8방향 → 12방향)
  * 2. 번개 돌진 (경고선 → 돌진)
  */
-import { CDN_BASE_URL } from '@config/assets.config';
+import { AUDIO_COOLDOWNS, CDN_BASE_URL } from '@config/assets.config';
+import { audioManager } from '@services/audioManager';
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
 import type { BossProjectile } from '../BossProjectile';
@@ -82,6 +83,10 @@ export class WhiteTigerBoss extends BaseEnemy {
   private entryTimer: number = 0;
   private readonly ENTRY_DURATION: number = 3.0; // 3초간 진입 (천천히 등장)
 
+  // 피격 효과음 쿨다운
+  private lastInjurySoundTime: number = 0;
+  private readonly injurySoundCooldown = AUDIO_COOLDOWNS.BOSS_INJURY;
+
   constructor(id: string, x: number, y: number) {
     // 보스 카테고리로 생성 (initBoss()가 자동 호출됨)
     super(id, x, y, 'boss');
@@ -104,6 +109,9 @@ export class WhiteTigerBoss extends BaseEnemy {
   public setEntryDirection(direction: 'fromTop' | 'fromBottom'): void {
     this.entryDirection = direction;
     this.entryTimer = 0;
+
+    // 보스 등장 효과음
+    audioManager.playBossWhiteTigerAttackSound();
   }
 
   /**
@@ -222,6 +230,13 @@ export class WhiteTigerBoss extends BaseEnemy {
     super.takeDamage(amount, isCritical);
 
     console.log(`[Boss] Taking damage: ${amount}, Health: ${this.health}/${this.maxHealth}`);
+
+    // 피격 효과음 재생 (쿨다운 체크)
+    const currentTime = performance.now() / 1000;
+    if (currentTime - this.lastInjurySoundTime >= this.injurySoundCooldown) {
+      audioManager.playBossWhiteTigerInjurySound();
+      this.lastInjurySoundTime = currentTime;
+    }
 
     // 보스가 죽은 경우 패턴을 실행하지 않음
     if (this.health <= 0) {
@@ -422,6 +437,9 @@ export class WhiteTigerBoss extends BaseEnemy {
       return;
     }
 
+    // 공격 효과음 재생
+    audioManager.playBossWhiteTigerAttackSound();
+
     // Phase에 따라 탄막 개수 결정
     const bulletCount = this.health / this.maxHealth > 0.5 ? 8 : 12;
     const angleStep = (Math.PI * 2) / bulletCount;
@@ -499,6 +517,9 @@ export class WhiteTigerBoss extends BaseEnemy {
             y: this.dashDirection.y * 800,
           };
           this.lightningTrailTimer = 0;
+
+          // 실제 돌진 시작 시 효과음 재생
+          audioManager.playBossWhiteTigerAttackSound();
         }
         break;
 

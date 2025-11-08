@@ -17,6 +17,7 @@ import { WarningLine } from '@game/entities/warnings/WarningLine';
 import { BossHealthBar } from '@game/ui/BossHealthBar';
 import { StageClearUI } from '@game/ui/StageClearUI';
 import { checkCircleCollision } from '@game/utils/collision';
+import { audioManager } from '@services/audioManager';
 import type { LevelUpChoice } from '@systems/LevelSystem';
 import { Container, type Spritesheet } from 'pixi.js';
 
@@ -185,7 +186,14 @@ export class BossSystem {
 
       // 경고 완료 시 장판 생성
       warning.onSpawnAOE = () => {
-        const aoe = new FireAOE(`fire_aoe_${Date.now()}_${Math.random()}`, x, y, radius);
+        const aoe = new FireAOE(
+          `fire_aoe_${Date.now()}_${Math.random()}`,
+          x,
+          y,
+          radius,
+          40,
+          () => audioManager.playBossWhiteTigerFireSound() // 의존성 주입
+        );
         this.fireAOEs.push(aoe);
         this.gameLayer.addChild(aoe);
       };

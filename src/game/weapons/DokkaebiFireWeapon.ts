@@ -4,7 +4,7 @@
  * 타입: 궤도형 (Orbital)
  * 플레이어 주변을 맴도는 푸른 불꽃
  */
-import { CDN_BASE_URL } from '@config/assets.config';
+import { AUDIO_COOLDOWNS, CDN_BASE_URL } from '@config/assets.config';
 import { WEAPON_BALANCE } from '@config/balance.config';
 import { calculateWeaponStats } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies';
@@ -24,7 +24,7 @@ export class DokkaebiFireWeapon extends Weapon {
 
   // 글로벌 효과음 쿨다운 (모든 orbital 공유)
   private lastGlobalSoundTime: number = 0;
-  private globalSoundCooldown: number = 0.15; // 150ms (여러 orbital이 있어도 시끄럽지 않게)
+  private readonly globalSoundCooldown = AUDIO_COOLDOWNS.WEAPON_GLOBAL;
 
   constructor() {
     const stats = calculateWeaponStats('dokkaebi_fire', 1);

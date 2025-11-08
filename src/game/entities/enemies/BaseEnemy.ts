@@ -2,6 +2,7 @@
  * 베이스 적 엔티티 (추상 클래스)
  */
 
+import { AUDIO_COOLDOWNS } from '@config/assets.config';
 import {
   BOSS_BALANCE,
   FIELD_ENEMY_BALANCE,
@@ -32,7 +33,7 @@ export abstract class BaseEnemy extends Container {
 
   // Static 글로벌 효과음 쿨다운 (모든 적이 공유)
   private static lastHitSoundTime: number = 0;
-  private static hitSoundCooldown: number = 0.1; // 100ms
+  private static readonly hitSoundCooldown = AUDIO_COOLDOWNS.ENEMY_DEATH;
 
   public id: string;
   public active: boolean = true;
