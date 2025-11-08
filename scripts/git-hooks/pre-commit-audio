@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Git Pre-commit Hook: 오디오 파일 자동 노멀라이징
+#
+# 설치 방법:
+#   ln -s ../../scripts/git-hooks/pre-commit-audio .git/hooks/pre-commit
+#
+# 또는:
+#   cp scripts/git-hooks/pre-commit-audio .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+
+# Hook 비활성화 옵션: SKIP_AUDIO_NORMALIZE=1 git commit
+if [ "${SKIP_AUDIO_NORMALIZE}" = "1" ]; then
+    echo "⏭️  오디오 노멀라이징 스킵 (SKIP_AUDIO_NORMALIZE=1)"
+    exit 0
+fi
+
+# 오디오 노멀라이징 스크립트 실행
+GIT_HOOK=true ./scripts/auto-normalize-audio.sh
+
+exit $?
