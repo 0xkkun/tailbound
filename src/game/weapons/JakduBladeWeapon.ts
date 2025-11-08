@@ -10,6 +10,7 @@ import { calculateWeaponStats } from '@game/data/weapons';
 import { AttachedEntity } from '@game/entities/AttachedEntity';
 import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
+import { audioManager } from '@services/audioManager';
 import type { Vector2 } from '@type/game.types';
 import type { Container } from 'pixi.js';
 
@@ -36,7 +37,12 @@ export class JakduBladeWeapon extends Weapon {
     }
 
     // 모든 작두 애니메이션 재생
-    for (const blade of this.blades) {
+    for (let i = 0; i < this.blades.length; i++) {
+      const blade = this.blades[i];
+      // 효과음 재생 (작두 개수만큼, 간격을 두고)
+      setTimeout(() => {
+        audioManager.playJakduBladeSound();
+      }, i * 50); // 50ms 간격
       blade.startAttack(1.0); // 1.0초 동안 공격 애니메이션 (느리게)
     }
 

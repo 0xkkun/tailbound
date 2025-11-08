@@ -24,6 +24,9 @@ export class OrbitalEntity extends Container {
   private enemyLastHitTime: Map<string, number> = new Map(); // 각 적의 마지막 피해 시간
   private lifetime: number = 0; // 누적 시간
 
+  // 효과음 콜백
+  private onHitSoundCallback?: () => void;
+
   // 깜박임 시스템 (최대 개수 전까지)
   public blinkEnabled: boolean = true; // 깜박임 활성화 여부
   public blinkOnDuration: number = 5.0; // 켜져있는 시간 (초) - 더 길게 조정
@@ -143,6 +146,18 @@ export class OrbitalEntity extends Container {
    */
   public recordEnemyHit(enemyId: string): void {
     this.enemyLastHitTime.set(enemyId, this.lifetime);
+
+    // 효과음 재생 (visible 체크 - 보일 때만 재생)
+    if (this.visible && this.onHitSoundCallback) {
+      this.onHitSoundCallback();
+    }
+  }
+
+  /**
+   * 적 충돌 시 효과음 콜백 설정
+   */
+  public setOnHitSound(callback: () => void): void {
+    this.onHitSoundCallback = callback;
   }
 
   /**
@@ -220,6 +235,12 @@ export class OrbitalEntity extends Container {
    * 정리
    */
   public destroy(): void {
+    // 메모리 누수 방지: 콜백 참조 정리
+    this.onHitSoundCallback = undefined;
+
+    // 적 히트 기록 정리
+    this.enemyLastHitTime.clear();
+
     if (this.orb) {
       this.orb.destroy();
     }

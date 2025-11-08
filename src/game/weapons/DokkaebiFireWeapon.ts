@@ -10,6 +10,7 @@ import { calculateWeaponStats } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies';
 import { OrbitalEntity } from '@game/entities/OrbitalEntity';
 import type { Player } from '@game/entities/Player';
+import { audioManager } from '@services/audioManager';
 import type { Vector2 } from '@type/game.types';
 import type { Container } from 'pixi.js';
 
@@ -20,6 +21,10 @@ export class DokkaebiFireWeapon extends Weapon {
   private orbitalCount: number = 2; // 초기 개수 2개로 증가
   private orbitalRadius: number = WEAPON_BALANCE.dokkaebi_fire.orbitalRadius;
   private angularSpeed: number = WEAPON_BALANCE.dokkaebi_fire.baseAngularSpeed;
+
+  // 글로벌 효과음 쿨다운 (모든 orbital 공유)
+  private lastGlobalSoundTime: number = 0;
+  private globalSoundCooldown: number = 0.15; // 150ms (여러 orbital이 있어도 시끄럽지 않게)
 
   constructor() {
     const stats = calculateWeaponStats('dokkaebi_fire', 1);
@@ -83,6 +88,15 @@ export class DokkaebiFireWeapon extends Weapon {
         30,
         6
       );
+
+      // 적 충돌 시 효과음 콜백 설정 (글로벌 쿨다운 적용)
+      orbital.setOnHitSound(() => {
+        const currentTime = performance.now() / 1000;
+        if (currentTime - this.lastGlobalSoundTime >= this.globalSoundCooldown) {
+          audioManager.playDokkaebiFireSound();
+          this.lastGlobalSoundTime = currentTime;
+        }
+      });
 
       this.orbitals.push(orbital);
       gameLayer.addChild(orbital);

@@ -170,6 +170,40 @@ export class AudioManager {
     this.playSFX('ingame-start');
   }
 
+  // === 무기 효과음 ===
+
+  /**
+   * 도깨비불 무기 효과음 재생
+   */
+  playDokkaebiFireSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('dokkabi-fire');
+  }
+
+  /**
+   * 부채바람 무기 효과음 재생
+   */
+  playFanWindSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('fan-wind');
+  }
+
+  /**
+   * 작두칼 무기 효과음 재생
+   */
+  playJakduBladeSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('jakdu-blade');
+  }
+
+  /**
+   * 부적 무기 효과음 재생
+   */
+  playTalismanSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('talisman');
+  }
+
   /**
    * 효과음 재생 (내부 헬퍼 메서드)
    */

@@ -153,6 +153,15 @@ export const CDN_ASSETS = {
         slideDown: `${CDN_BASE_URL}/assets/audio/gui/slide-down.mp3`,
         ingameStart: `${CDN_BASE_URL}/assets/audio/gui/ingame-start.wav`,
       },
+      weapon: {
+        dokkabiFire: `${CDN_BASE_URL}/assets/audio/weapon/dokkaebi-fire.mp3`,
+        fanWind: `${CDN_BASE_URL}/assets/audio/weapon/fan-wind.mp3`,
+        jakduBlade: `${CDN_BASE_URL}/assets/audio/weapon/jakdu-blade.mp3`,
+        talisman: `${CDN_BASE_URL}/assets/audio/weapon/talisman.mp3`,
+        // TODO: 아래 무기들의 효과음 파일 추가 필요
+        // moktakSound: `${CDN_BASE_URL}/assets/audio/weapon/moktak-sound.mp3`,
+        // purifyingWater: `${CDN_BASE_URL}/assets/audio/weapon/purifying-water.mp3`,
+      },
     },
   },
 } as const;
@@ -260,8 +269,17 @@ export const BGM_PATHS = {
  * SFX 파일 경로 매핑
  */
 export const SFX_PATHS = {
+  // GUI 효과음
   'button-click': CDN_ASSETS.audio.sfx.gui.buttonClick,
   'slide-up': CDN_ASSETS.audio.sfx.gui.slideUp,
   'slide-down': CDN_ASSETS.audio.sfx.gui.slideDown,
   'ingame-start': CDN_ASSETS.audio.sfx.gui.ingameStart,
+  // 무기 효과음
+  'dokkabi-fire': CDN_ASSETS.audio.sfx.weapon.dokkabiFire,
+  'fan-wind': CDN_ASSETS.audio.sfx.weapon.fanWind,
+  'jakdu-blade': CDN_ASSETS.audio.sfx.weapon.jakduBlade,
+  talisman: CDN_ASSETS.audio.sfx.weapon.talisman,
+  // TODO: 아래 무기들의 효과음 파일 추가 필요
+  // 'moktak-sound': CDN_ASSETS.audio.sfx.weapon.moktakSound,
+  // 'purifying-water': CDN_ASSETS.audio.sfx.weapon.purifyingWater,
 } as const;

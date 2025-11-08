@@ -8,6 +8,7 @@ import {
   STAT_ICON_MAP,
   WEAPON_SPRITE_INFO,
 } from '@config/levelup.config';
+import { audioManager } from '@services/audioManager';
 import type { LevelUpChoice } from '@systems/LevelSystem';
 import { Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 
@@ -50,6 +51,8 @@ export class LevelUpUI extends Container {
    * 선택지 표시
    */
   public async show(choices: LevelUpChoice[]): Promise<void> {
+    // TODO: 파워업 선택지 효과음 적용. 임시로 인게임 시작 효과음
+    audioManager.playIngameStartSound();
     this.choices = choices;
 
     // 기존 카드 제거

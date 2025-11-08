@@ -1372,6 +1372,7 @@ export class OverworldGameScene extends BaseGameScene {
 
     // Player의 선택 처리 호출 (게임 재개)
     this.player.selectLevelUpChoice(choiceId);
+    audioManager.playButtonClickSound();
 
     // 선택 적용
     if (choiceId.startsWith('weapon_')) {
@@ -1416,14 +1417,14 @@ export class OverworldGameScene extends BaseGameScene {
         const existingDokkaebi = this.weapons.find((w) => w instanceof DokkaebiFireWeapon);
         if (existingDokkaebi) {
           existingDokkaebi.levelUp();
-          // 레벨업 시 궤도 재생성
-          await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.gameLayer);
+          // 레벨업 시 궤도 재생성 (소리 없이)
+          await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.gameLayer, false);
           console.log(`도깨비불 레벨업! Lv.${existingDokkaebi.level}`);
         } else {
           const dokkaebi = new DokkaebiFireWeapon();
           this.weapons.push(dokkaebi);
-          // 최초 생성 시 궤도 생성
-          await dokkaebi.spawnOrbitals(this.gameLayer);
+          // 최초 생성 시 궤도 생성 (소리와 함께)
+          await dokkaebi.spawnOrbitals(this.gameLayer, true);
           console.log('도깨비불 무기 추가 완료!');
         }
         break;
@@ -1924,8 +1925,10 @@ export class OverworldGameScene extends BaseGameScene {
     // TODO: Epic 파워업 보상 시스템 구현 필요
     // - 보상 상자에서 Epic 등급 파워업 2개를 선택할 수 있어야 함
     // - LevelSystem에서 Epic 파워업만 필터링하는 로직 추가 필요
+    // 위 내용은 잘못된 주석 및 TODO! 앱인토스 혼백 +1 업뎃해야함
     this.bossSystem.onShowLevelUpUI = (choices) => {
-      void this.levelUpUI.show(choices);
+      console.log('보스 클리어 후 혼백 습득 데이터 저장 필요', choices);
+      // void this.levelUpUI.show(choices);
     };
 
     // 로비 복귀 콜백

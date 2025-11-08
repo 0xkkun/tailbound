@@ -7,6 +7,7 @@ import { CDN_BASE_URL } from '@config/assets.config';
  */
 import { WEAPON_BALANCE } from '@config/balance.config';
 import { calculateWeaponStats, getWeaponData } from '@game/data/weapons';
+import { audioManager } from '@services/audioManager';
 import type { Vector2 } from '@type/game.types';
 
 import type { BaseEnemy } from '../entities/enemies/BaseEnemy';
@@ -40,6 +41,11 @@ export class FanWindWeapon extends Weapon {
 
     // 투사체 개수에 따라 발사
     for (let i = 0; i < this.projectileCount; i++) {
+      // 효과음 재생 (투사체 개수만큼, 간격을 두고)
+      setTimeout(() => {
+        audioManager.playFanWindSound();
+      }, i * 50); // 50ms 간격
+
       // 타겟이 있으면 해당 타겟 방향, 없으면 기본 방향 (오른쪽)
       const target = targets[i] || null;
       const direction = target

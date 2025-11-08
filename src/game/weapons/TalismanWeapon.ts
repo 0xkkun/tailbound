@@ -8,6 +8,7 @@ import type { Player } from '@game/entities/Player';
 import { Projectile } from '@game/entities/Projectile';
 import { getDirection } from '@game/utils/collision';
 import { findClosestEnemies } from '@game/utils/targeting';
+import { audioManager } from '@services/audioManager';
 import type { Vector2 } from '@type/game.types';
 
 import { Weapon } from './Weapon';
@@ -37,7 +38,12 @@ export class TalismanWeapon extends Weapon {
     const projectiles: Projectile[] = [];
 
     // 가까운 적 N개 찾기 (투사체 개수만큼)
-    const targets = findClosestEnemies(playerPos, enemies, this.projectileCount, this.MAX_FIRE_RANGE);
+    const targets = findClosestEnemies(
+      playerPos,
+      enemies,
+      this.projectileCount,
+      this.MAX_FIRE_RANGE
+    );
 
     if (targets.length === 0) {
       // 적이 없으면 발사하지 않음
@@ -48,6 +54,11 @@ export class TalismanWeapon extends Weapon {
     for (let i = 0; i < targets.length; i++) {
       const target = targets[i];
       if (!target) continue;
+
+      // 효과음 재생 (투사체 개수만큼, 간격을 두고)
+      setTimeout(() => {
+        audioManager.playTalismanSound();
+      }, i * 50); // 50ms 간격
 
       // 타겟을 향한 방향 계산
       const targetPos = { x: target.x, y: target.y };
