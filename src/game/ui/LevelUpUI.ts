@@ -13,9 +13,13 @@ import type { LevelUpChoice } from '@systems/LevelSystem';
 import { Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 
 export class LevelUpUI extends Container {
+  // 입력 블록 딜레이 (ms) - 나중에 설정으로 변경 가능
+  private static readonly INPUT_BLOCK_DELAY = 500;
+
   private overlay!: Graphics;
   private choiceCards: Container[] = [];
   private choices: LevelUpChoice[] = [];
+  private isInputBlocked: boolean = false;
 
   // 콜백
   public onChoiceSelected?: (choiceId: string) => void;
@@ -55,6 +59,9 @@ export class LevelUpUI extends Container {
     audioManager.playIngameStartSound();
     this.choices = choices;
 
+    // 입력 블록 활성화 (오선택 방지)
+    this.isInputBlocked = true;
+
     // 기존 카드 제거
     this.clearCards();
 
@@ -63,6 +70,11 @@ export class LevelUpUI extends Container {
 
     // 표시
     this.visible = true;
+
+    // 설정된 시간 후 입력 허용
+    setTimeout(() => {
+      this.isInputBlocked = false;
+    }, LevelUpUI.INPUT_BLOCK_DELAY);
   }
 
   /**
@@ -288,6 +300,11 @@ export class LevelUpUI extends Container {
    * 선택 처리
    */
   private selectChoice(choiceId: string): void {
+    // 입력 블록 중이면 무시 (오선택 방지)
+    if (this.isInputBlocked) {
+      return;
+    }
+
     // 콜백 호출
     this.onChoiceSelected?.(choiceId);
 
