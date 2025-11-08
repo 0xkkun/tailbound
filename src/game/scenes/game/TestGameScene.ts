@@ -217,6 +217,7 @@ export class TestGameScene extends OverworldGameScene {
     const weaponButtons2 = [
       { label: '작두날', action: () => this.cheatAddWeapon('jakdu') },
       { label: '부채바람', action: () => this.cheatAddWeapon('fan_wind') },
+      { label: '정화수', action: () => this.cheatAddWeapon('purifying_water') },
     ];
     yPos = this.addButtonRow(this.debugPanel, weaponButtons2, panelWidth, yPos, padding);
 
@@ -436,7 +437,7 @@ export class TestGameScene extends OverworldGameScene {
    */
   private async cheatAllWeapons(): Promise<void> {
     console.log('[치트] 모든 무기 추가');
-    const weapons = ['talisman', 'dokkaebi_fire', 'moktak', 'jakdu', 'fan_wind'];
+    const weapons = ['talisman', 'dokkaebi_fire', 'moktak', 'jakdu', 'fan_wind', 'purifying_water'];
     for (const weapon of weapons) {
       await this.cheatAddWeapon(weapon);
     }

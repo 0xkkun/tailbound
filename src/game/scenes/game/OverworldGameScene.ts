@@ -900,7 +900,39 @@ export class OverworldGameScene extends BaseGameScene {
       const boss = this.bossSystem?.getBoss();
       const targetEnemies = boss && boss.active ? [...this.enemies, boss] : this.enemies;
 
-      splash.update(deltaTime, targetEnemies);
+      // 스플래시 업데이트 및 처치된 적 확인
+      const killedEnemies = splash.update(deltaTime, targetEnemies);
+
+      // 처치된 적에 대해 경험치 젬 및 포션 드랍
+      for (const enemy of killedEnemies) {
+        this.enemiesKilled++;
+        console.log(
+          `적 처치! (정화수) (남은 적: ${this.enemies.filter((e) => e.isAlive()).length})`
+        );
+
+        // 경험치 양에 따라 적절한 스프라이트시트 선택
+        let spritesheet: Spritesheet;
+        if (enemy.xpDrop >= 100) {
+          spritesheet = this.spiritEnergySpritesheet3;
+        } else if (enemy.xpDrop >= 25) {
+          spritesheet = this.spiritEnergySpritesheet2;
+        } else {
+          spritesheet = this.spiritEnergySpritesheet1;
+        }
+
+        // 경험치 젬 생성
+        const gem = new ExperienceGem(enemy.x, enemy.y, enemy.xpDrop, spritesheet);
+        this.experienceGems.push(gem);
+        this.gameLayer.addChild(gem);
+
+        // 체력 포션 드랍 (확률)
+        if (Math.random() < POTION_BALANCE.dropRate) {
+          const potion = new HealthPotion(enemy.x, enemy.y);
+          this.healthPotions.push(potion);
+          this.gameLayer.addChild(potion);
+        }
+      }
+
       return true;
     });
 

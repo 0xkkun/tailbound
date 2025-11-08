@@ -50,14 +50,16 @@ export class WaterSplash extends Container {
 
   /**
    * 업데이트 (설치형 DoT 구역)
+   * @returns 처치된 적 목록 (경험치 젬 드랍용)
    */
-  public update(deltaTime: number, enemies: BaseEnemy[]): void {
+  public update(deltaTime: number, enemies: BaseEnemy[]): BaseEnemy[] {
+    const killedEnemies: BaseEnemy[] = [];
     this.lifetime += deltaTime;
 
     // 수명 체크 (조기 리턴으로 불필요한 연산 방지)
     if (this.lifetime >= this.maxLifetime) {
       this.active = false;
-      return;
+      return killedEnemies;
     }
 
     this.damageTimer += deltaTime;
@@ -94,6 +96,12 @@ export class WaterSplash extends Container {
             // 피해 적용 (DoT이므로 매 틱마다)
             enemy.takeDamage(this.damage, this.isCritical);
 
+            // 적이 죽었는지 확인
+            if (!enemy.isAlive()) {
+              enemy.active = false;
+              killedEnemies.push(enemy);
+            }
+
             // 넉백 (약하게)
             const angle = Math.atan2(dy, dx);
             const knockbackDir = {
@@ -109,6 +117,8 @@ export class WaterSplash extends Container {
     // 페이드아웃 (설치형이므로 천천히)
     const progress = this.lifetime / this.maxLifetime;
     this.alpha = this.useSprite ? 1 - progress * 0.3 : 1 - progress * 0.5;
+
+    return killedEnemies;
   }
 
   /**
