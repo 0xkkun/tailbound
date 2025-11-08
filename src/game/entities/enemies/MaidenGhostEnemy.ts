@@ -291,4 +291,21 @@ export class MaidenGhostEnemy extends BaseEnemy {
   public setAttackRange(range: number): void {
     this.attackRange = range;
   }
+
+  /**
+   * 정리 - 애니메이션 이벤트 리스너 제거
+   */
+  public destroy(): void {
+    // 공격 애니메이션 이벤트 리스너 정리
+    if (this.attackSprite) {
+      this.attackSprite.onFrameChange = undefined;
+      this.attackSprite.onComplete = undefined;
+      this.attackSprite.stop();
+      this.attackSprite.destroy();
+      this.attackSprite = null;
+    }
+
+    // 부모 클래스 정리
+    super.destroy();
+  }
 }
