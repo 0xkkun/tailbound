@@ -14,8 +14,8 @@ export const GAME_CONFIG = {
   world: {
     // 상계 (Overworld) - 전투 맵
     overworld: {
-      width: 3200, // 맵 너비 (화면의 약 2.5배)
-      height: 2400, // 맵 높이 (화면의 약 3.3배)
+      width: 4800, // 맵 너비 (화면의 약 3.75배)
+      height: 3600, // 맵 높이 (화면의 약 5배)
     },
     // 경계 (Boundary) - NPC 상호작용 맵
     boundary: {
