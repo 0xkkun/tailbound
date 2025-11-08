@@ -11,6 +11,7 @@ import {
 import { GAME_CONFIG } from '@config/game.config';
 import type { EnemyCategory, FieldEnemyTier, NamedEnemyType } from '@game/data/enemies';
 import { getDirection } from '@game/utils/collision';
+import { audioManager } from '@services/audioManager';
 import type { Vector2 } from '@type/game.types';
 import {
   AnimatedSprite,
@@ -28,6 +29,10 @@ import type { EnemySpriteCache, EnemySpriteConfig } from './EnemySprite';
 export abstract class BaseEnemy extends Container {
   // Static 텍스처 캐시 - 모든 적 타입이 공유
   private static spriteCache: Map<string, EnemySpriteCache> = new Map();
+
+  // Static 글로벌 효과음 쿨다운 (모든 적이 공유)
+  private static lastHitSoundTime: number = 0;
+  private static hitSoundCooldown: number = 0.1; // 100ms
 
   public id: string;
   public active: boolean = true;
@@ -342,10 +347,21 @@ export abstract class BaseEnemy extends Container {
    * 데미지 받기
    */
   public takeDamage(amount: number, isCritical: boolean = false): void {
+    const wasDead = this.health <= 0;
     this.health -= amount;
+
     if (this.health <= 0) {
       this.health = 0;
       this.active = false; // 체력이 0이면 비활성화
+
+      // 사망 시 효과음 재생 (글로벌 쿨다운 체크)
+      if (!wasDead) {
+        const currentTime = performance.now() / 1000;
+        if (currentTime - BaseEnemy.lastHitSoundTime >= BaseEnemy.hitSoundCooldown) {
+          this.playDeathSound();
+          BaseEnemy.lastHitSoundTime = currentTime;
+        }
+      }
     }
 
     // 데미지 텍스트 표시
@@ -353,6 +369,13 @@ export abstract class BaseEnemy extends Container {
 
     // 피격 효과 (빨간색으로 잠깐 변경)
     this.flashRed();
+  }
+
+  /**
+   * 사망 시 효과음 재생 (서브클래스에서 오버라이드 가능)
+   */
+  protected playDeathSound(): void {
+    audioManager.playEnemyHitSound();
   }
 
   /**

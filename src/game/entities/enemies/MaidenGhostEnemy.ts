@@ -6,6 +6,7 @@
 import { CDN_BASE_URL } from '@config/assets.config';
 import { ENEMY_TYPE_BALANCE, FIELD_ENEMY_BALANCE } from '@config/balance.config';
 import type { FieldEnemyTier } from '@game/data/enemies';
+import { audioManager } from '@services/audioManager';
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
 import { BaseEnemy } from './BaseEnemy';
@@ -290,6 +291,13 @@ export class MaidenGhostEnemy extends BaseEnemy {
    */
   public setAttackRange(range: number): void {
     this.attackRange = range;
+  }
+
+  /**
+   * 사망 시 효과음 재생 (유령 전용 소리)
+   */
+  protected playDeathSound(): void {
+    audioManager.playEnemyGhostDeathSound();
   }
 
   /**

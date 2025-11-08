@@ -162,6 +162,13 @@ export const CDN_ASSETS = {
         // moktakSound: `${CDN_BASE_URL}/assets/audio/weapon/moktak-sound.mp3`,
         // purifyingWater: `${CDN_BASE_URL}/assets/audio/weapon/purifying-water.mp3`,
       },
+      enemy: {
+        common01: `${CDN_BASE_URL}/assets/audio/enemy/common-01.mp3`,
+        common02: `${CDN_BASE_URL}/assets/audio/enemy/common-02.mp3`,
+        common03: `${CDN_BASE_URL}/assets/audio/enemy/common-03.mp3`,
+        common04: `${CDN_BASE_URL}/assets/audio/enemy/common-04.mp3`,
+        ghost01: `${CDN_BASE_URL}/assets/audio/enemy/ghost-01.mp3`,
+      },
     },
   },
 } as const;
@@ -279,6 +286,12 @@ export const SFX_PATHS = {
   'fan-wind': CDN_ASSETS.audio.sfx.weapon.fanWind,
   'jakdu-blade': CDN_ASSETS.audio.sfx.weapon.jakduBlade,
   talisman: CDN_ASSETS.audio.sfx.weapon.talisman,
+  // 적 효과음
+  'enemy-common-01': CDN_ASSETS.audio.sfx.enemy.common01,
+  'enemy-common-02': CDN_ASSETS.audio.sfx.enemy.common02,
+  'enemy-common-03': CDN_ASSETS.audio.sfx.enemy.common03,
+  'enemy-common-04': CDN_ASSETS.audio.sfx.enemy.common04,
+  'enemy-ghost-01': CDN_ASSETS.audio.sfx.enemy.ghost01,
   // TODO: 아래 무기들의 효과음 파일 추가 필요
   // 'moktak-sound': CDN_ASSETS.audio.sfx.weapon.moktakSound,
   // 'purifying-water': CDN_ASSETS.audio.sfx.weapon.purifyingWater,

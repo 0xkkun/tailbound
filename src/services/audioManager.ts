@@ -204,6 +204,28 @@ export class AudioManager {
     this.playSFX('talisman');
   }
 
+  // === 적 효과음 ===
+
+  /**
+   * 일반 적 피격 효과음 재생 (common-01~04 랜덤)
+   */
+  playEnemyHitSound(): void {
+    if (!this.sfxEnabled) return;
+    const sounds: Array<
+      'enemy-common-01' | 'enemy-common-02' | 'enemy-common-03' | 'enemy-common-04'
+    > = ['enemy-common-01', 'enemy-common-02', 'enemy-common-03', 'enemy-common-04'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    this.playSFX(randomSound);
+  }
+
+  /**
+   * 유령계 적 사망 효과음 재생 (처녀귀신, 악령)
+   */
+  playEnemyGhostDeathSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('enemy-ghost-01');
+  }
+
   /**
    * 효과음 재생 (내부 헬퍼 메서드)
    */
