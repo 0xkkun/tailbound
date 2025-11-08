@@ -719,7 +719,7 @@ export class OverworldGameScene extends BaseGameScene {
     // BGM 시작 (첫 프레임에서 시작 - 씬이 완전히 로드된 후)
     if (!this.bgmStarted) {
       this.bgmStarted = true;
-      audioManager.playAlternatingBGMByTracks(['game-01', 'game-02']);
+      audioManager.playBGMByTrack('game-01', true); // Loop infinitely
       console.log('[Audio] In-game BGM started');
     }
 

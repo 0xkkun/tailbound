@@ -142,9 +142,8 @@ export const CDN_ASSETS = {
   // Audio
   audio: {
     bgm: {
-      main: `${CDN_BASE_URL}/audio/bgm-main.mp3`,
-      game01: `${CDN_BASE_URL}/audio/bgm-game-01.mp3`,
-      game02: `${CDN_BASE_URL}/audio/bgm-game-02.mp3`,
+      main: `${CDN_BASE_URL}/assets/audio/background/bgm-lobby-01.mp3`,
+      game01: `${CDN_BASE_URL}/assets/audio/background/bgm-game-01.mp3`,
     },
     sfx: {
       gui: {
@@ -278,7 +277,6 @@ export const ASSET_LOADING_GROUPS = {
 export const BGM_PATHS = {
   main: CDN_ASSETS.audio.bgm.main,
   'game-01': CDN_ASSETS.audio.bgm.game01,
-  'game-02': CDN_ASSETS.audio.bgm.game02,
 } as const;
 
 /**
