@@ -11,6 +11,7 @@ export class PixelButton extends Container {
   private isDisabled: boolean;
   private static buttonTexture: Texture | null = null;
   private static textureLoading: Promise<Texture> | null = null;
+  private playClickSound: boolean = true;
 
   // 상호작용 이벤트 이름들
   private readonly INTERACTION_EVENTS = ['pointerover', 'pointerout', 'pointerdown', 'pointerup'];
@@ -160,8 +161,10 @@ export class PixelButton extends Container {
 
     this.on('pointerup', () => {
       this.scale.set(1.05);
-      // 버튼 클릭 효과음 재생
-      audioManager.playButtonClickSound();
+      // 버튼 클릭 효과음 재생 (설정에 따라)
+      if (this.playClickSound) {
+        audioManager.playButtonClickSound();
+      }
       this.onClick?.();
     });
   }
@@ -184,6 +187,10 @@ export class PixelButton extends Container {
       this.eventMode = 'static';
       this.setupInteraction();
     }
+  }
+
+  public setPlayClickSound(playSound: boolean): void {
+    this.playClickSound = playSound;
   }
 
   public destroy(): void {
