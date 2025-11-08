@@ -226,7 +226,7 @@ export class BossSystem {
     this.gameLayer.addChild(this.boss);
 
     // 보스 체력바 생성
-    this.bossHealthBar = new BossHealthBar('백호', this.boss.maxHealth, this.screenWidth);
+    this.bossHealthBar = new BossHealthBar('흑혈백호', this.boss.maxHealth, this.screenWidth);
     this.uiLayer.addChild(this.bossHealthBar);
 
     console.log('보스 스폰 완료');
