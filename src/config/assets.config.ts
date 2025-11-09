@@ -147,6 +147,7 @@ export const CDN_ASSETS = {
     bgm: {
       main: `${CDN_BASE_URL}/assets/audio/background/bgm-lobby-01.mp3`,
       game01: `${CDN_BASE_URL}/assets/audio/background/bgm-game-01.mp3`,
+      boss01: `${CDN_BASE_URL}/assets/audio/background/bgm-boss-01.mp3`,
     },
     sfx: {
       gui: {
@@ -161,8 +162,7 @@ export const CDN_ASSETS = {
         jakduBlade: `${CDN_BASE_URL}/assets/audio/weapon/jakdu-blade.mp3`,
         talisman: `${CDN_BASE_URL}/assets/audio/weapon/talisman.mp3`,
         moktakSound: `${CDN_BASE_URL}/assets/audio/weapon/moktak-sound.mp3`,
-        // TODO: 아래 무기들의 효과음 파일 추가 필요
-        // purifyingWater: `${CDN_BASE_URL}/assets/audio/weapon/purifying-water.mp3`,
+        purifyingWater: `${CDN_BASE_URL}/assets/audio/weapon/purifying-water.mp3`,
       },
       enemy: {
         common01: `${CDN_BASE_URL}/assets/audio/enemy/common-01.mp3`,
@@ -289,6 +289,7 @@ export const ASSET_LOADING_GROUPS = {
 export const BGM_PATHS = {
   main: CDN_ASSETS.audio.bgm.main,
   'game-01': CDN_ASSETS.audio.bgm.game01,
+  'boss-01': CDN_ASSETS.audio.bgm.boss01,
 } as const;
 
 /**
@@ -306,6 +307,7 @@ export const SFX_PATHS = {
   'jakdu-blade': CDN_ASSETS.audio.sfx.weapon.jakduBlade,
   talisman: CDN_ASSETS.audio.sfx.weapon.talisman,
   'moktak-sound': CDN_ASSETS.audio.sfx.weapon.moktakSound,
+  'purifying-water': CDN_ASSETS.audio.sfx.weapon.purifyingWater,
   // 적 효과음
   'enemy-common-01': CDN_ASSETS.audio.sfx.enemy.common01,
   'enemy-common-02': CDN_ASSETS.audio.sfx.enemy.common02,
@@ -315,8 +317,6 @@ export const SFX_PATHS = {
   'boss-white-tiger-attack': CDN_ASSETS.audio.sfx.boss.whiteTiger.attack,
   'boss-white-tiger-fire': CDN_ASSETS.audio.sfx.boss.whiteTiger.fire,
   'boss-white-tiger-injury': CDN_ASSETS.audio.sfx.boss.whiteTiger.injury,
-  // TODO: 아래 무기들의 효과음 파일 추가 필요
-  // 'purifying-water': CDN_ASSETS.audio.sfx.weapon.purifyingWater,
 } as const;
 
 /**

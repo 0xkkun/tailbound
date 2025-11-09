@@ -752,6 +752,9 @@ export class OverworldGameScene extends BaseGameScene {
         // 착탄한 물병에서 스플래시 생성
         const reachedBottles = weapon.getReachedBottles();
         for (const bottleInfo of reachedBottles) {
+          // 정화수 효과음 재생
+          audioManager.playPurifyingWaterSound();
+
           const splash = new WaterSplash(
             bottleInfo.x,
             bottleInfo.y,
@@ -1912,6 +1915,9 @@ export class OverworldGameScene extends BaseGameScene {
     this.bossSpawned = true;
 
     console.log('보스 스폰! 10분 경과');
+
+    // 보스 BGM으로 전환
+    audioManager.playBGMByTrack('boss-01', true);
 
     // 플레이어 UI 숨기기
     if (this.xpBarContainer) {

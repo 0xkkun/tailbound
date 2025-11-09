@@ -213,6 +213,14 @@ export class AudioManager {
     this.playSFX('moktak-sound');
   }
 
+  /**
+   * 정화수 무기 효과음 재생
+   */
+  playPurifyingWaterSound(): void {
+    if (!this.sfxEnabled) return;
+    this.playSFX('purifying-water');
+  }
+
   // === 적 효과음 ===
 
   /**
