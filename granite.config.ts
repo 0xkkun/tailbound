@@ -6,7 +6,7 @@ export default defineConfig({
     displayName: '설화',
     primaryColor: '#E39F54',
     icon: 'https://tailbound.vercel.app/favicon.png',
-    bridgeColorMode: 'basic',
+    bridgeColorMode: 'inverted',
   },
   web: {
     host: 'localhost',
