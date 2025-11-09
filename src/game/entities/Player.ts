@@ -1,7 +1,7 @@
 /**
  * 플레이어 엔티티
  */
-import { CDN_BASE_URL } from '@config/assets.config';
+import { CDN_ASSETS, CDN_BASE_URL } from '@config/assets.config';
 import { PLAYER_BALANCE, POWERUP_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
 import { parsePowerupId, POWERUPS_CONFIG } from '@config/powerups.config';
@@ -162,7 +162,7 @@ export class Player extends Container {
   private async loadSprite(): Promise<void> {
     try {
       // Idle 스프라이트 로드
-      const idleTexture = await Assets.load('/assets/mu-idle.png');
+      const idleTexture = await Assets.load(CDN_ASSETS.player.shamanIdle);
 
       // 로드 중 destroy될 수 있으므로 체크
       if (this.destroyed) {
@@ -678,7 +678,8 @@ export class Player extends Container {
    * 무적 시각 효과 업데이트
    */
   private updateInvincibilityVisuals(): void {
-    const alpha = this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0 ? 0.5 : 1.0;
+    const alpha =
+      this.invincibleTime > 0 && Math.floor(this.invincibleTime * 10) % 2 === 0 ? 0.5 : 1.0;
 
     if (this.idleSprite) this.idleSprite.alpha = alpha;
     if (this.walkSprite) this.walkSprite.alpha = alpha;

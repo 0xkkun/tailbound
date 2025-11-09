@@ -32,7 +32,7 @@ export const CDN_ASSETS = {
   player: {
     shaman: `${CDN_BASE_URL}/assets/player/shaman.png`,
     shamanWalk: `${CDN_BASE_URL}/assets/player/shaman-walk.png`,
-    muIdle: '/assets/mu-idle.png',
+    shamanIdle: `${CDN_BASE_URL}/assets/player/shaman-idle.png`,
   },
 
   // NPC
@@ -189,7 +189,6 @@ export const ASSET_LOADING_GROUPS = {
   critical: [
     CDN_ASSETS.player.shaman,
     CDN_ASSETS.player.shamanWalk,
-    CDN_ASSETS.player.muIdle,
     CDN_ASSETS.tile.tile1,
     CDN_ASSETS.tile.tile2,
     CDN_ASSETS.tile.tile3,
@@ -215,6 +214,7 @@ export const ASSET_LOADING_GROUPS = {
 
   // 중간: 중반 스테이지에서 사용 (여기부터 로오오딩중 표시)
   medium: [
+    CDN_ASSETS.player.shamanIdle,
     CDN_ASSETS.enemy.skeletonWalk,
     CDN_ASSETS.enemy.dokkaebiGreenWalk,
     CDN_ASSETS.enemy.foxOrangeWalk,
