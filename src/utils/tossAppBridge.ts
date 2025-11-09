@@ -7,6 +7,7 @@
  */
 
 import {
+  Analytics,
   generateHapticFeedback,
   getSafeAreaInsets,
   getTossAppVersion,
@@ -89,5 +90,46 @@ export function safeGetSafeAreaInsets(): SafeAreaInsets {
   } catch (error) {
     console.error('SafeAreaInsets failed:', error);
     return { top: 0, bottom: 0 };
+  }
+}
+
+/**
+ * Analytics에서 허용하는 Primitive 타입
+ */
+type Primitive = string | number | boolean | null | undefined;
+
+/**
+ * 안전한 Analytics 클릭 이벤트 로깅
+ * 인앱 토스 환경이 아닐 경우 콘솔 로그만 출력합니다.
+ */
+export function safeAnalyticsClick(params: Record<string, Primitive>): void {
+  if (!checkIsInAppToss()) {
+    console.log('[Analytics] Click (not in Toss App):', params);
+    return;
+  }
+
+  try {
+    Analytics.click(params);
+    console.log('[Analytics] Click:', params);
+  } catch (error) {
+    console.error('Analytics.click failed:', error);
+  }
+}
+
+/**
+ * 안전한 Analytics 노출 이벤트 로깅
+ * 인앱 토스 환경이 아닐 경우 콘솔 로그만 출력합니다.
+ */
+export function safeAnalyticsImpression(params: Record<string, Primitive>): void {
+  if (!checkIsInAppToss()) {
+    console.log('[Analytics] Impression (not in Toss App):', params);
+    return;
+  }
+
+  try {
+    Analytics.impression(params);
+    console.log('[Analytics] Impression:', params);
+  } catch (error) {
+    console.error('Analytics.impression failed:', error);
   }
 }

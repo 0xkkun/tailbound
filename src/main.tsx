@@ -2,7 +2,11 @@ import '@i18n/config';
 
 import { createRoot } from 'react-dom/client';
 
+import { GameAnalytics } from './services/gameAnalytics';
 import App from './App';
+
+// GameAnalytics 초기화
+GameAnalytics.initialize();
 
 // 전역 에러 핸들러: Flutter로 전달되지 않도록 모든 에러를 잡아서 처리
 window.addEventListener('error', (event) => {

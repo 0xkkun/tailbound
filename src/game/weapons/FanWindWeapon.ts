@@ -22,7 +22,7 @@ export class FanWindWeapon extends Weapon {
 
   constructor() {
     const stats = calculateWeaponStats('fan_wind', 1);
-    super('부채바람', stats.damage, stats.cooldown);
+    super('weapon_fan_wind', '부채바람', stats.damage, stats.cooldown);
   }
 
   /**

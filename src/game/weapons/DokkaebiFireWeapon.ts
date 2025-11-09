@@ -28,7 +28,7 @@ export class DokkaebiFireWeapon extends Weapon {
 
   constructor() {
     const stats = calculateWeaponStats('dokkaebi_fire', 1);
-    super('도깨비불', stats.damage, stats.cooldown);
+    super('weapon_dokkaebi_fire', '도깨비불', stats.damage, stats.cooldown);
   }
 
   /**

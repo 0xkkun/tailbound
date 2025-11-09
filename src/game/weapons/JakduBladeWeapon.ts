@@ -24,7 +24,7 @@ export class JakduBladeWeapon extends Weapon {
 
   constructor() {
     const stats = calculateWeaponStats('jakdu_blade', 1);
-    super('작두날', stats.damage, stats.cooldown);
+    super('weapon_jakdu', '작두날', stats.damage, stats.cooldown);
   }
 
   /**

@@ -18,6 +18,7 @@ import { BossHealthBar } from '@game/ui/BossHealthBar';
 import { StageClearUI } from '@game/ui/StageClearUI';
 import { checkCircleCollision } from '@game/utils/collision';
 import { audioManager } from '@services/audioManager';
+import { GameAnalytics } from '@services/gameAnalytics';
 import type { LevelUpChoice } from '@systems/LevelSystem';
 import { Container, type Spritesheet } from 'pixi.js';
 
@@ -56,6 +57,7 @@ export class BossSystem {
   private isActive: boolean = false;
   private isBossDefeated: boolean = false;
   private isSoulCollected: boolean = false;
+  private bossSpawnTime: number = 0; // 보스 스폰 시간 (Analytics용)
 
   // spritesheet (경험치 젬용)
   private spiritEnergySpritesheet: Spritesheet | null = null;
@@ -139,12 +141,16 @@ export class BossSystem {
     });
 
     this.isActive = true;
+    this.bossSpawnTime = Date.now();
 
     // 보스 생성
     this.boss = new WhiteTigerBoss(`boss_white_tiger`, spawnX, spawnY);
     this.boss.setTarget({ x: this.player.x, y: this.player.y });
     this.boss.setEntryDirection(entryDirection); // 진입 방향 설정
     console.log('[BossSystem] Boss created with entry direction:', entryDirection);
+
+    // Analytics: 보스 등장 추적
+    GameAnalytics.trackBossAppear('white_tiger', this.player.getLevel());
 
     // 보스 투사체 발사 콜백
     this.boss.onFireProjectile = (projectile: BossProjectile) => {
@@ -370,7 +376,7 @@ export class BossSystem {
 
       // 보스와 플레이어 충돌
       if (checkCircleCollision(this.boss, this.player)) {
-        this.player.takeDamage(this.boss.damage);
+        this.player.takeDamage(this.boss.damage, 'enemy_contact');
       }
     }
 
@@ -381,7 +387,7 @@ export class BossSystem {
 
       // 플레이어 충돌
       if (projectile.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(projectile.damage);
+        this.player.takeDamage(projectile.damage, 'boss_projectile');
         projectile.active = false;
       }
 
@@ -401,7 +407,7 @@ export class BossSystem {
 
       // 플레이어 충돌
       if (projectile.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(projectile.damage);
+        this.player.takeDamage(projectile.damage, 'boss_projectile');
         projectile.active = false;
       }
 
@@ -467,7 +473,7 @@ export class BossSystem {
 
       // 플레이어 충돌 (1회만 데미지)
       if (aoe.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(aoe.damage);
+        this.player.takeDamage(aoe.damage, 'boss_fire_aoe');
       }
 
       // 비활성화 시 제거
@@ -509,7 +515,7 @@ export class BossSystem {
 
     // 보스와 플레이어 충돌 체크
     if (checkCircleCollision(this.boss, this.player)) {
-      this.player.takeDamage(damage);
+      this.player.takeDamage(damage, 'boss_dash');
     }
   }
 
@@ -524,6 +530,11 @@ export class BossSystem {
     this.isBossDefeated = true;
 
     console.log('보스 처치!');
+
+    // Analytics: 보스 처치 추적
+    const timeToDefeat =
+      this.bossSpawnTime > 0 ? Math.floor((Date.now() - this.bossSpawnTime) / 1000) : 0;
+    GameAnalytics.trackBossDefeated('white_tiger', this.player.getLevel(), timeToDefeat);
 
     // 진행 중인 이펙트 모두 정리
     if (this.spiralChargeEffect) {
@@ -587,6 +598,9 @@ export class BossSystem {
 
     // 스테이지 클리어 UI 표시
     this.showStageClearUI();
+
+    // Analytics는 OverworldGameScene의 onStageClear 콜백에서 처리
+    // (enemiesKilled 등 게임 통계는 Scene에서 관리하므로)
   }
 
   /**

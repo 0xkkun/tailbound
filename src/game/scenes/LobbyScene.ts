@@ -1,5 +1,6 @@
 import { CDN_BASE_URL } from '@config/assets.config';
 import { audioManager } from '@services/audioManager';
+import { GameAnalytics } from '@services/gameAnalytics';
 import { safeGetSafeAreaInsets } from '@utils/tossAppBridge';
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
@@ -52,6 +53,9 @@ export class LobbyScene extends Container {
 
     // 로비 BGM 시작 (인게임에서 돌아왔을 때도 재생)
     audioManager.playBGMByTrack('main');
+
+    // Analytics: 로비 화면 노출 추적
+    GameAnalytics.trackScreenView('lobby');
   }
 
   private async loadAndCreateBackground(width: number, height: number): Promise<void> {
@@ -168,6 +172,10 @@ export class LobbyScene extends Container {
       () => {
         // 사용자 인터랙션 발생 - 대기 중인 BGM 재시도
         audioManager.retryPendingBGM();
+
+        // Analytics: 게임 시작 추적
+        GameAnalytics.trackGameStart();
+
         this.onShowStageSelect?.();
       },
       false,
@@ -287,6 +295,9 @@ export class LobbyScene extends Container {
       this.addChild(this.settingsModal);
       // BGM 일시정지
       audioManager.pauseAllBGM();
+
+      // Analytics: 설정 모달 접근 추적
+      GameAnalytics.trackSettingsModalOpen('lobby');
     }
   }
 

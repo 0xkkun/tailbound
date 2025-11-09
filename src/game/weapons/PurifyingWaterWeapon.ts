@@ -23,7 +23,7 @@ export class PurifyingWaterWeapon extends Weapon {
 
   constructor() {
     const stats = calculateWeaponStats('purifying_water', 1);
-    super('정화수', stats.damage, stats.cooldown);
+    super('weapon_purifying_water', '정화수', stats.damage, stats.cooldown);
 
     const config = WEAPON_BALANCE.purifying_water;
     this.throwCount = config.projectileCount;

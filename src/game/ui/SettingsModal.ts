@@ -11,6 +11,7 @@ import { CDN_ASSETS } from '@config/assets.config';
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
 import { audioManager } from '../../services/audioManager';
+import { GameAnalytics } from '../../services/gameAnalytics';
 import { hapticManager } from '../../services/hapticManager';
 
 import { PixelButton } from './PixelButton';
@@ -73,6 +74,10 @@ export class SettingsModal extends Container {
       buttonHeight,
       () => {
         const newState = audioManager.toggleBGM();
+
+        // Analytics: BGM 설정 변경 추적
+        GameAnalytics.trackSettingsChange('bgm_volume', newState ? 1 : 0);
+
         // 버튼 텍스트 및 아이콘 업데이트 (켜기/끄기)
         this.updateButtonWithIcon(
           this.bgmButton,
@@ -95,6 +100,10 @@ export class SettingsModal extends Container {
       buttonHeight,
       () => {
         const newState = audioManager.toggleSFX();
+
+        // Analytics: SFX 설정 변경 추적
+        GameAnalytics.trackSettingsChange('sfx_volume', newState ? 1 : 0);
+
         // 토글 후에 버튼 클릭 사운드 재생 (효과음이 켜진 상태에서만)
         if (newState) {
           audioManager.playButtonClickSound();
@@ -123,6 +132,10 @@ export class SettingsModal extends Container {
       buttonHeight,
       () => {
         const newState = hapticManager.toggle();
+
+        // Analytics: 진동 설정 변경 추적
+        GameAnalytics.trackSettingsChange('vibration', newState);
+
         // 버튼 텍스트 업데이트 (켜기/끄기)
         this.updateButtonWithIcon(
           this.hapticButton,

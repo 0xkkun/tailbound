@@ -45,6 +45,7 @@ import type { Weapon } from '@game/weapons/Weapon';
 import type { PlayerSnapshot } from '@hooks/useGameState';
 import i18n from '@i18n/config';
 import { audioManager } from '@services/audioManager';
+import { GameAnalytics } from '@services/gameAnalytics';
 import { BossSystem } from '@systems/BossSystem';
 import { CombatSystem } from '@systems/CombatSystem';
 import { PortalSpawner } from '@systems/PortalSpawner';
@@ -91,6 +92,13 @@ export class OverworldGameScene extends BaseGameScene {
   private bossDefeated: boolean = false; // 보스 처치 여부
   private bossSpawned: boolean = false; // 보스 스폰 여부
   private readonly BOSS_SPAWN_TIME: number = 600; // 10분 (600초)
+
+  // 게임 오버 통계 (Analytics용)
+  private lastGameStats: {
+    result: 'victory' | 'defeat';
+    level: number;
+    score: number;
+  } | null = null;
   private bgmStarted: boolean = false; // BGM 시작 여부
 
   // UI 레이아웃 상수
@@ -448,7 +456,7 @@ export class OverworldGameScene extends BaseGameScene {
         this.virtualJoystick.reset();
       }
       // await는 콜백 함수를 async로 만들어야 하지만, 레벨업 UI는 비동기로 로드해도 무방
-      void this.levelUpUI.show(choices);
+      void this.levelUpUI.show(choices, level);
     };
 
     // 초기 무기: 부적
@@ -831,7 +839,7 @@ export class OverworldGameScene extends BaseGameScene {
 
       // 플레이어와 충돌 체크
       if (enemyProj.active && enemyProj.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(enemyProj.damage);
+        this.player.takeDamage(enemyProj.damage, 'enemy_contact');
         enemyProj.active = false;
 
         if (!this.player.isAlive()) {
@@ -1558,6 +1566,41 @@ export class OverworldGameScene extends BaseGameScene {
     console.log(`생존 시간: ${Math.floor(this.gameTime)}초`);
     console.log(`처치한 적: ${this.enemiesKilled}마리`);
 
+    // Analytics: 플레이어 사망 원인 추적
+    const deathCause = this.player.getLastDamageCause();
+    if (deathCause) {
+      GameAnalytics.trackPlayerDeath(deathCause, this.player.getLevel(), Math.floor(this.gameTime));
+    }
+
+    // Analytics: 최종 빌드 스냅샷
+    const weaponIds = this.weapons.map((w) => w.id);
+    GameAnalytics.trackFinalBuild({
+      weapons: weaponIds,
+      powerups: {}, // TODO: 파워업 데이터 추가 필요
+      stats: {
+        max_health: this.player.maxHealth,
+        damage_multiplier: this.player.damageMultiplier,
+        cooldown_multiplier: this.player.cooldownMultiplier,
+        speed_multiplier: this.player.speedMultiplier,
+        pickup_range_multiplier: this.player.pickupRangeMultiplier,
+      },
+    });
+
+    // Analytics: 게임 종료 추적 (defeat)
+    GameAnalytics.trackGameEnd('defeat', {
+      survived_seconds: Math.floor(this.gameTime),
+      level: this.player.getLevel(),
+      kills: this.enemiesKilled,
+      score: this.enemiesKilled * 100,
+    });
+
+    // 게임 통계 저장 (버튼 클릭 시 Analytics용)
+    this.lastGameStats = {
+      result: 'defeat',
+      level: this.player.getLevel(),
+      score: this.enemiesKilled * 100,
+    };
+
     const centerX = this.screenWidth / 2;
     const centerY = this.screenHeight / 2;
 
@@ -1638,6 +1681,12 @@ export class OverworldGameScene extends BaseGameScene {
       buttonHeight,
       () => {
         console.log('로비로 돌아가기 버튼 클릭!');
+
+        // Analytics: 게임 오버 액션 추적
+        if (this.lastGameStats) {
+          GameAnalytics.trackGameOverAction('lobby', this.lastGameStats);
+        }
+
         this.onReturnToLobby?.();
       }
     );
@@ -1653,6 +1702,12 @@ export class OverworldGameScene extends BaseGameScene {
       buttonHeight,
       () => {
         console.log('게임 다시하기 버튼 클릭!');
+
+        // Analytics: 게임 오버 액션 추적
+        if (this.lastGameStats) {
+          GameAnalytics.trackGameOverAction('restart', this.lastGameStats);
+        }
+
         this.onRestartGame?.();
       }
     );
@@ -1730,6 +1785,9 @@ export class OverworldGameScene extends BaseGameScene {
       // 메뉴 열기
       this.settingsMenu = this.createSettingsMenu();
       this.uiLayer.addChild(this.settingsMenu);
+
+      // Analytics: 설정 모달 접근 추적
+      GameAnalytics.trackSettingsModalOpen('game');
     }
   }
 
@@ -1963,6 +2021,22 @@ export class OverworldGameScene extends BaseGameScene {
       console.log('스테이지 클리어!');
       this.bossDefeated = true;
 
+      // Analytics: 승리 이벤트 추적
+      // 보스 처치 + Soul 획득 = 게임 승리
+      GameAnalytics.trackGameEnd('victory', {
+        survived_seconds: Math.floor(this.gameTime),
+        level: this.player.getLevel(),
+        kills: this.enemiesKilled,
+        score: this.enemiesKilled * 100, // 간단한 점수 계산
+      });
+
+      // 게임 통계 저장 (스테이지 클리어 UI 버튼 클릭 시 Analytics용)
+      this.lastGameStats = {
+        result: 'victory',
+        level: this.player.getLevel(),
+        score: this.enemiesKilled * 100,
+      };
+
       // 플레이어 UI 다시 표시
       if (this.xpBarContainer) {
         this.xpBarContainer.visible = true;
@@ -1991,9 +2065,15 @@ export class OverworldGameScene extends BaseGameScene {
       // void this.levelUpUI.show(choices);
     };
 
-    // 로비 복귀 콜백
+    // 로비 복귀 콜백 (스테이지 클리어 UI에서)
     this.bossSystem.onReturnToLobby = () => {
       console.log('보스 클리어 후 로비로 복귀');
+
+      // Analytics: 게임 오버 액션 추적 (승리 후 로비 복귀)
+      if (this.lastGameStats) {
+        GameAnalytics.trackGameOverAction('lobby', this.lastGameStats);
+      }
+
       this.onReturnToLobby?.();
     };
   }

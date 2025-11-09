@@ -8,7 +8,7 @@ import { parsePowerupId, POWERUPS_CONFIG } from '@config/powerups.config';
 import { PLAYER_SPRITE_CONFIG } from '@config/sprite.config';
 import { hapticManager } from '@services/hapticManager';
 import { LevelSystem, type LevelUpChoice } from '@systems/LevelSystem';
-import type { InputState } from '@type/game.types';
+import type { DeathCause, InputState } from '@type/game.types';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Text, Texture } from 'pixi.js';
 
 export class Player extends Container {
@@ -77,6 +77,9 @@ export class Player extends Container {
   // 무적 시간 (피격 후)
   private invincibleTime: number = 0;
   private invincibleDuration: number = PLAYER_BALANCE.invincibleDuration;
+
+  // 사망 원인 추적 (Analytics용)
+  private lastDamageCause: DeathCause | null = null;
 
   // 콜백
   public onLevelUp?: (level: number, choices: LevelUpChoice[]) => void;
@@ -243,10 +246,15 @@ export class Player extends Container {
   /**
    * 데미지 받기
    */
-  public takeDamage(amount: number): void {
+  public takeDamage(amount: number, cause?: DeathCause): void {
     // 무적 시간이면 무시
     if (this.invincibleTime > 0) {
       return;
+    }
+
+    // 사망 원인 저장
+    if (cause) {
+      this.lastDamageCause = cause;
     }
 
     // 피해 감소 적용 (강체 파워업)
@@ -275,8 +283,15 @@ export class Player extends Container {
     this.invincibleTime = this.invincibleDuration;
 
     console.log(
-      `플레이어 피격! 데미지: ${finalDamage.toFixed(1)} | 체력: ${this.health.toFixed(0)}/${this.maxHealth}`
+      `플레이어 피격! 데미지: ${finalDamage.toFixed(1)} | 체력: ${this.health.toFixed(0)}/${this.maxHealth}${cause ? ` | 원인: ${cause}` : ''}`
     );
+  }
+
+  /**
+   * 마지막 사망 원인 반환
+   */
+  public getLastDamageCause(): DeathCause | null {
+    return this.lastDamageCause;
   }
 
   /**

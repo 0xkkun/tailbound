@@ -57,3 +57,9 @@ export interface GameSceneInterface extends Container {
   update(deltaTime: number): void;
   destroy(): void;
 }
+
+/**
+ * 플레이어 사망 원인 타입
+ * Analytics 추적용
+ */
+export type DeathCause = 'enemy_contact' | 'boss_projectile' | 'boss_dash' | 'boss_fire_aoe';

@@ -32,7 +32,7 @@ export class MoktakSoundWeapon extends Weapon {
 
   constructor() {
     const stats = calculateWeaponStats('moktak_sound', 1);
-    super('목탁 소리', stats.damage, stats.cooldown);
+    super('weapon_moktak', '목탁 소리', stats.damage, stats.cooldown);
   }
 
   /**

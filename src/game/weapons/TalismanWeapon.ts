@@ -20,7 +20,7 @@ export class TalismanWeapon extends Weapon {
 
   constructor() {
     const stats = calculateWeaponStats('talisman', 1);
-    super('부적', stats.damage, stats.cooldown);
+    super('weapon_talisman', '부적', stats.damage, stats.cooldown);
   }
 
   /**

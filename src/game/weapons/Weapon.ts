@@ -16,6 +16,7 @@ export type WeaponEntity = Projectile | AoEEffect | MeleeSwing | WaterSplash | W
 
 export abstract class Weapon {
   // 무기 정보
+  public readonly id: string; // 무기 고유 ID (Analytics용)
   public name: string;
   public level: number = 1;
 
@@ -24,7 +25,8 @@ export abstract class Weapon {
   public cooldown: number; // 초 단위
   protected cooldownTimer: number = 0;
 
-  constructor(name: string, damage: number, cooldown: number) {
+  constructor(id: string, name: string, damage: number, cooldown: number) {
+    this.id = id;
     this.name = name;
     this.damage = damage;
     this.cooldown = cooldown;

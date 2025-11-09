@@ -9,6 +9,7 @@ import {
   WEAPON_SPRITE_INFO,
 } from '@config/levelup.config';
 import { audioManager } from '@services/audioManager';
+import { GameAnalytics } from '@services/gameAnalytics';
 import type { LevelUpChoice } from '@systems/LevelSystem';
 import { Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 
@@ -20,6 +21,7 @@ export class LevelUpUI extends Container {
   private choiceCards: Container[] = [];
   private choices: LevelUpChoice[] = [];
   private isInputBlocked: boolean = false;
+  private playerLevel: number = 1;
 
   // 콜백
   public onChoiceSelected?: (choiceId: string) => void;
@@ -54,10 +56,11 @@ export class LevelUpUI extends Container {
   /**
    * 선택지 표시
    */
-  public async show(choices: LevelUpChoice[]): Promise<void> {
+  public async show(choices: LevelUpChoice[], playerLevel: number = 1): Promise<void> {
     // TODO: 파워업 선택지 효과음 적용. 임시로 인게임 시작 효과음
     audioManager.playIngameStartSound();
     this.choices = choices;
+    this.playerLevel = playerLevel;
 
     // 입력 블록 활성화 (오선택 방지)
     this.isInputBlocked = true;
@@ -304,6 +307,10 @@ export class LevelUpUI extends Container {
     if (this.isInputBlocked) {
       return;
     }
+
+    // Analytics: 레벨업 선택 추적
+    const choiceType = choiceId.startsWith('weapon_') ? 'weapon' : 'powerup';
+    GameAnalytics.trackLevelUpChoice(choiceType, choiceId, this.playerLevel);
 
     // 콜백 호출
     this.onChoiceSelected?.(choiceId);
