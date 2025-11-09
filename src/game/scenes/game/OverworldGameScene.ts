@@ -573,9 +573,9 @@ export class OverworldGameScene extends BaseGameScene {
     // 처치 아이콘 및 텍스트 (우측에 배치)
     this.loadAndCreateKillUI();
 
-    // 레벨업 UI
+    // 레벨업 UI (모달이므로 uiLayer가 아닌 Scene 루트에 추가하여 safe area 무시)
     this.levelUpUI = new LevelUpUI();
-    this.uiLayer.addChild(this.levelUpUI);
+    this.addChild(this.levelUpUI);
 
     // 레벨업 UI 선택 콜백
     this.levelUpUI.onChoiceSelected = (choiceId: string) => {
@@ -1561,10 +1561,10 @@ export class OverworldGameScene extends BaseGameScene {
     const centerX = this.screenWidth / 2;
     const centerY = this.screenHeight / 2;
 
-    // 게임 오버 UI 컨테이너 생성 (최상위 레이어)
+    // 게임 오버 UI 컨테이너 생성 (모달이므로 Scene 루트에 추가하여 safe area 무시)
     const gameOverContainer = new Container();
     gameOverContainer.zIndex = 10000; // 모든 UI보다 위에 표시
-    this.uiLayer.addChild(gameOverContainer);
+    this.addChild(gameOverContainer);
 
     // 반투명 오버레이 (다른 UI 클릭 차단)
     const overlay = new Graphics();
@@ -1937,9 +1937,11 @@ export class OverworldGameScene extends BaseGameScene {
     }
 
     // BossSystem 생성 (보스 경험치용으로 spiritEnergySpritesheet3 전달)
+    // overlayLayer는 Scene 루트 (this)를 전달하여 safe area 무시
     this.bossSystem = new BossSystem(
       this.gameLayer,
       this.uiLayer,
+      this, // overlayLayer: Scene 루트
       this.player,
       this.screenWidth,
       this.screenHeight,

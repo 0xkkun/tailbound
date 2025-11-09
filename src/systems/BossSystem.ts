@@ -40,6 +40,7 @@ export class BossSystem {
   // 레이어 참조
   private gameLayer: Container;
   private uiLayer: Container;
+  private overlayLayer: Container; // 모달/오버레이용 (safe area 무시)
 
   // 플레이어 참조
   private player: Player;
@@ -67,6 +68,7 @@ export class BossSystem {
   constructor(
     gameLayer: Container,
     uiLayer: Container,
+    overlayLayer: Container,
     player: Player,
     screenWidth: number,
     screenHeight: number,
@@ -74,6 +76,7 @@ export class BossSystem {
   ) {
     this.gameLayer = gameLayer;
     this.uiLayer = uiLayer;
+    this.overlayLayer = overlayLayer;
     this.player = player;
     this.screenWidth = screenWidth;
     this.screenHeight = screenHeight;
@@ -611,10 +614,10 @@ export class BossSystem {
       this.onReturnToLobby?.();
     };
 
-    // uiLayer sortableChildren 활성화 및 최상위 zIndex 설정
-    this.uiLayer.sortableChildren = true;
+    // overlayLayer에 추가하여 safe area 무시 (모달이므로 화면 전체 커버)
+    this.overlayLayer.sortableChildren = true;
     this.stageClearUI.zIndex = 20000; // 모든 UI보다 위에
-    this.uiLayer.addChild(this.stageClearUI);
+    this.overlayLayer.addChild(this.stageClearUI);
 
     // 콜백 호출
     this.onStageClear?.();

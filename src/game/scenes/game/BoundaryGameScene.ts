@@ -144,7 +144,8 @@ export class BoundaryGameScene extends BaseGameScene {
     this.dialogUI = new DialogUI(this.screenWidth, this.screenHeight);
     this.dialogUI.onClick = () => this.dialogSystem.nextDialog();
     this.dialogUI.setNPC(merchantData);
-    this.uiLayer.addChild(this.dialogUI);
+    // 모달이므로 uiLayer가 아닌 Scene 루트에 추가하여 safe area 무시
+    this.addChild(this.dialogUI);
   }
 
   /**
