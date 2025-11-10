@@ -642,7 +642,7 @@ export class LevelUpUI extends Container {
     iconBg.rect(iconX - iconSize / 2, iconY - iconSize / 2, iconSize, iconSize);
     iconBg.fill(0x000000);
     iconBg.rect(iconX - iconSize / 2, iconY - iconSize / 2, iconSize, iconSize);
-    iconBg.stroke({ color: iconBorderColor, width: 2 });
+    iconBg.stroke({ color: iconBorderColor, width: 1 });
     card.addChild(iconBg);
 
     // 아이콘 이미지
