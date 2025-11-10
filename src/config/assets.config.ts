@@ -115,6 +115,7 @@ export const CDN_ASSETS = {
     shamanSignature: `${CDN_BASE_URL}/assets/gui/shaman-signature.png`,
     loadingSprite: `${CDN_BASE_URL}/assets/gui/loading-sprite.png`,
     pattern: `${CDN_BASE_URL}/assets/gui/pattern.png`,
+    cornerPattern: '/assets/corner-pattern.png',
   },
 
   // Power-ups
