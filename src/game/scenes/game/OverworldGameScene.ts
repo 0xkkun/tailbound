@@ -1447,6 +1447,9 @@ export class OverworldGameScene extends BaseGameScene {
     } else if (choiceId.startsWith('powerup_')) {
       // 새로운 파워업 시스템
       this.player.applyPowerup(choiceId);
+
+      // Analytics: 파워업 획득 추적
+      GameAnalytics.trackPowerupAcquired(choiceId, this.player.getLevel());
     }
 
     // 조이스틱 상태 리셋 (레벨업 UI가 닫힌 후)
