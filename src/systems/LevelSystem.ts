@@ -60,6 +60,7 @@ export interface LevelUpChoice {
   description: string;
   icon?: string;
   rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+  currentLevel?: number; // 현재 파워업/무기 레벨 (0이면 새 획득)
 }
 
 /**
