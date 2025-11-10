@@ -56,6 +56,9 @@ export class LevelUpUI extends Container {
   // 입력 블록 딜레이 (ms) - 나중에 설정으로 변경 가능
   private static readonly INPUT_BLOCK_DELAY = 500;
 
+  // RIDIBatang 폰트 로드 상태 추적 (클래스 레벨)
+  private static fontLoadPromise: Promise<void> | null = null;
+
   private overlay!: Graphics;
   private backgroundBox!: Graphics;
   private lineContainer!: Graphics; // Figma: border가 있는 Line 컨테이너
@@ -96,6 +99,9 @@ export class LevelUpUI extends Container {
 
     // 기본적으로 숨김
     this.visible = false;
+
+    // RIDIBatang 폰트 로드 (한 번만)
+    void this.ensureFontLoaded();
 
     // 코너 패턴 비동기 로드
     void this.loadCornerPatterns();
@@ -278,6 +284,11 @@ export class LevelUpUI extends Container {
     powerupTotalValues?: Map<string, number>,
     powerupDisplayIds?: Map<string, string>
   ): Promise<void> {
+    // RIDIBatang 폰트 로드 대기 (생성자에서 시작된 로드가 완료될 때까지)
+    if (LevelUpUI.fontLoadPromise) {
+      await LevelUpUI.fontLoadPromise;
+    }
+
     // TODO: 파워업 선택지 효과음 적용. 임시로 인게임 시작 효과음
     audioManager.playIngameStartSound();
     this.choices = choices;
@@ -321,6 +332,40 @@ export class LevelUpUI extends Container {
   public hide(): void {
     this.visible = false;
     this.clearCards();
+  }
+
+  /**
+   * RIDIBatang 폰트가 로드되었는지 확인하고 필요시 로드 (한 번만)
+   */
+  private async ensureFontLoaded(): Promise<void> {
+    // 이미 로드 중이거나 완료된 경우 스킵
+    if (LevelUpUI.fontLoadPromise) {
+      return LevelUpUI.fontLoadPromise;
+    }
+
+    // 폰트 로드 시작
+    LevelUpUI.fontLoadPromise = (async () => {
+      const fontFamily = 'RIDIBatang';
+      const fontUrl = '/font/RIDIBatang.woff2';
+
+      // document.fonts API로 폰트 로드 상태 확인
+      if (document.fonts && document.fonts.check(`16px "${fontFamily}"`)) {
+        // 이미 로드됨
+        return;
+      }
+
+      try {
+        // FontFace API로 폰트 로드
+        const fontFace = new FontFace(fontFamily, `url(${fontUrl}) format('woff2')`);
+        await fontFace.load();
+        document.fonts.add(fontFace);
+      } catch (error) {
+        // 폰트 로드 실패 시에도 게임은 계속 진행
+        console.warn(`폰트 로드 실패 (${fontFamily}):`, error);
+      }
+    })();
+
+    return LevelUpUI.fontLoadPromise;
   }
 
   /**
