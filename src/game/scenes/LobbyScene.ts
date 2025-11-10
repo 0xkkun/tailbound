@@ -1,7 +1,12 @@
-import { CDN_BASE_URL } from '@config/assets.config';
+import { CDN_ASSETS, CDN_BASE_URL } from '@config/assets.config';
 import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
-import { safeGetSafeAreaInsets } from '@utils/tossAppBridge';
+import {
+  isInTossApp,
+  safeAnalyticsClick,
+  safeGetSafeAreaInsets,
+  safeOpenGameCenterLeaderboard,
+} from '@utils/tossAppBridge';
 import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js';
 
 import { PixelButton } from '../ui/PixelButton';
@@ -17,6 +22,7 @@ export class LobbyScene extends Container {
   private comingSoonText!: Text;
   private copyrightText!: Text;
   private settingsButton!: Container;
+  private leaderboardButton!: Container;
   private settingsModal: SettingsModal | null = null;
   private isMobile: boolean;
   private scaleFactor: number;
@@ -26,6 +32,7 @@ export class LobbyScene extends Container {
   // UI 레이아웃 상수
   private readonly UI_PADDING = 16;
   private readonly UI_SETTINGS_SIZE = 32;
+  private readonly UI_BUTTON_SPACING = 8;
 
   public onStartGame?: () => void;
   public onStartTestMode?: () => void;
@@ -49,6 +56,7 @@ export class LobbyScene extends Container {
     this.loadAndCreateTitleImage();
     this.createButtons(screenWidth, screenHeight);
     this.createSettingsButton();
+    this.createLeaderboardButton();
     this.createCopyright(screenWidth, screenHeight);
 
     // 로비 BGM 시작 (인게임에서 돌아왔을 때도 재생)
@@ -276,6 +284,60 @@ export class LobbyScene extends Container {
 
     this.settingsButton = buttonContainer;
     this.addChild(this.settingsButton);
+  }
+
+  private createLeaderboardButton(): void {
+    // 인앱토스 SafeArea 적용
+    const insets = safeGetSafeAreaInsets();
+
+    const buttonContainer = new Container();
+    // 설정 버튼 오른쪽에 배치
+    buttonContainer.x = this.UI_PADDING + this.UI_SETTINGS_SIZE * 1.5 + 8;
+    buttonContainer.y = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2 + insets.top;
+    buttonContainer.zIndex = 1000;
+
+    // 토스 환경이 아니면 버튼 숨김
+    buttonContainer.visible = isInTossApp();
+
+    // 크라운 아이콘 비동기 로드
+    Assets.load(CDN_ASSETS.gui.crown).then((texture) => {
+      // 픽셀 아트 렌더링 설정
+      if (texture.source) {
+        texture.source.scaleMode = 'nearest';
+      }
+
+      const icon = new Sprite(texture);
+      icon.width = this.UI_SETTINGS_SIZE;
+      icon.height = this.UI_SETTINGS_SIZE;
+      icon.anchor.set(0.5);
+      buttonContainer.addChild(icon);
+    });
+
+    // 인터랙션 활성화
+    buttonContainer.eventMode = 'static';
+    buttonContainer.cursor = 'pointer';
+
+    // 호버 효과
+    buttonContainer.on('pointerover', () => {
+      buttonContainer.scale.set(1.1);
+    });
+
+    buttonContainer.on('pointerout', () => {
+      buttonContainer.scale.set(1.0);
+    });
+
+    // 클릭 시 리더보드 열기
+    buttonContainer.on('pointerdown', () => {
+      safeOpenGameCenterLeaderboard();
+      // Analytics: 리더보드 버튼 클릭 추적
+      safeAnalyticsClick({
+        button_name: 'leaderboard',
+        screen: 'lobby',
+      });
+    });
+
+    this.leaderboardButton = buttonContainer;
+    this.addChild(this.leaderboardButton);
   }
 
   private toggleSettingsModal(): void {

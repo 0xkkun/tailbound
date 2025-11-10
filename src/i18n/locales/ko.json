@@ -15,7 +15,8 @@
     "returnToLobby": "로비로 돌아가기",
     "restart": "게임 다시하기",
     "survivalTime": "생존 시간: {{time}}",
-    "enemiesKilled": "처치한 적: {{count}}마리"
+    "enemiesKilled": "처치한 적: {{count}}마리",
+    "finalScore": "최종 점수: {{score}}"
   },
   "level": {
     "levelUp": "🎉 레벨업! Lv.{{level}}",

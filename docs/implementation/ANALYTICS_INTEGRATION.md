@@ -143,14 +143,14 @@
 | ------------------ | -------------- | ----------------------------------------------------------------------------- | ------------------- |
 | `levelup_ui_shown` | 레벨업 UI      | `level: number`, `options: string[]`                                          | 레벨업 화면 노출    |
 | `boss_appear`      | 게임 화면      | `boss_name: string`, `player_level: number`                                   | 보스 등장           |
-| `game_over_shown`  | 게임 오버 화면 | `survived_seconds: number`, `level: number`, `kills: number`, `score: number` | 게임 오버 화면 노출 |
+| `game_over_shown`  | 게임 오버 화면 | `survived_seconds: number`, `level: number`, `kills: number`, `score: number` (총 획득 경험치) | 게임 오버 화면 노출 |
 
 ### 3. 커스텀 이벤트
 
 | 이벤트명             | 시점        | 파라미터                                                                                             | 목적           |
 | -------------------- | ----------- | ---------------------------------------------------------------------------------------------------- | -------------- |
 | `game_session_start` | 게임 시작   | `timestamp: number`                                                                                  | 세션 시작      |
-| `game_session_end`   | 게임 종료   | `duration: number`, `result: 'victory'\|'defeat'`, `score: number`, `level: number`, `kills: number` | 세션 종료      |
+| `game_session_end`   | 게임 종료   | `duration: number`, `result: 'victory'\|'defeat'`, `score: number` (총 획득 경험치), `level: number`, `kills: number` | 세션 종료      |
 | `boss_defeated`      | 보스 처치   | `boss_name: string`, `time_taken: number`                                                            | 보스 처치 성공 |
 | `weapon_acquired`    | 무기 획득   | `weapon_name: string`, `level: number`                                                               | 새 무기 획득   |
 | `powerup_acquired`   | 파워업 획득 | `powerup_name: string`, `stack: number`                                                              | 파워업 획득    |
@@ -208,7 +208,7 @@ export class GameAnalytics {
       survived_seconds: number;
       level: number;
       kills: number;
-      score: number;
+      score: number;  // 총 획득 경험치
     }
   ) {
     const duration = this.sessionStartTime
@@ -413,7 +413,7 @@ export class BaseGameScene extends Container {
       survived_seconds: Math.floor(this.elapsedTime),
       level: this.player.level,
       kills: this.enemyKillCount,
-      score: this.score,
+      score: this.player.getTotalXP(),  // 총 획득 경험치
     });
 
     // 기존 로직...

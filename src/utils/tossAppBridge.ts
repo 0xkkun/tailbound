@@ -11,6 +11,9 @@ import {
   generateHapticFeedback,
   getSafeAreaInsets,
   getTossAppVersion,
+  getUserKeyForGame,
+  openGameCenterLeaderboard,
+  submitGameCenterLeaderBoardScore,
 } from '@apps-in-toss/web-framework';
 
 /**
@@ -58,6 +61,14 @@ function checkIsInAppToss(): boolean {
   }
 
   return isInAppToss;
+}
+
+/**
+ * 인앱 토스 환경 여부 확인 (외부에서 사용 가능)
+ * @returns 토스 환경 여부
+ */
+export function isInTossApp(): boolean {
+  return checkIsInAppToss();
 }
 
 /**
@@ -131,5 +142,99 @@ export function safeAnalyticsImpression(params: Record<string, Primitive>): void
     console.log('[Analytics] Impression:', params);
   } catch (error) {
     console.error('Analytics.impression failed:', error);
+  }
+}
+
+/**
+ * 안전한 게임 사용자 키 가져오기
+ * 인앱 토스 환경이 아니거나 게임 카테고리가 아닐 경우 null을 반환합니다.
+ *
+ * @returns 사용자 해시값 또는 null
+ * @see https://developers-apps-in-toss.toss.im/bedrock/reference/framework/게임/getUserKeyForGame.html
+ */
+export async function safeGetUserKeyForGame(): Promise<string | null> {
+  if (!checkIsInAppToss()) {
+    console.log('[getUserKeyForGame] Not in Toss App Environment');
+    return null;
+  }
+
+  try {
+    const result = await getUserKeyForGame();
+
+    if (result === undefined) {
+      console.warn('[getUserKeyForGame] Toss App version too old (< 5.232.0)');
+      return null;
+    }
+
+    if (result === 'INVALID_CATEGORY') {
+      console.error('[getUserKeyForGame] Not a game category mini-app');
+      return null;
+    }
+
+    if (result === 'ERROR') {
+      console.error('[getUserKeyForGame] Unknown error occurred');
+      return null;
+    }
+
+    console.log('[getUserKeyForGame] Success:', result.hash);
+    return result.hash;
+  } catch (error) {
+    console.error('[getUserKeyForGame] Failed:', error);
+    return null;
+  }
+}
+
+/**
+ * 안전한 리더보드 열기
+ * 인앱 토스 환경이 아니거나 버전이 낮을 경우 아무 동작도 하지 않습니다.
+ *
+ * @see https://developers-apps-in-toss.toss.im/bedrock/reference/framework/게임/openGameCenterLeaderboard.html
+ */
+export async function safeOpenGameCenterLeaderboard(): Promise<void> {
+  if (!checkIsInAppToss()) {
+    console.log('[openGameCenterLeaderboard] Not in Toss App Environment');
+    return;
+  }
+
+  try {
+    await openGameCenterLeaderboard();
+    console.log('[openGameCenterLeaderboard] Leaderboard opened');
+  } catch (error) {
+    console.error('[openGameCenterLeaderboard] Failed:', error);
+  }
+}
+
+/**
+ * 안전한 리더보드 점수 제출
+ * 인앱 토스 환경이 아니거나 버전이 낮을 경우 false를 반환합니다.
+ *
+ * @param score 점수 (문자열 형태의 숫자, 예: "123.45")
+ * @returns 성공 여부
+ * @see https://developers-apps-in-toss.toss.im/bedrock/reference/framework/게임/submitGameCenterLeaderBoardScore.html
+ */
+export async function safeSubmitGameCenterLeaderBoardScore(score: string): Promise<boolean> {
+  if (!checkIsInAppToss()) {
+    console.log('[submitGameCenterLeaderBoardScore] Not in Toss App Environment');
+    return false;
+  }
+
+  try {
+    const result = await submitGameCenterLeaderBoardScore({ score });
+
+    if (result === undefined) {
+      console.warn('[submitGameCenterLeaderBoardScore] Toss App version too old (< 5.221.0)');
+      return false;
+    }
+
+    if (result.statusCode === 'SUCCESS') {
+      console.log('[submitGameCenterLeaderBoardScore] Score submitted successfully:', score);
+      return true;
+    }
+
+    console.error('[submitGameCenterLeaderBoardScore] Failed with status:', result.statusCode);
+    return false;
+  } catch (error) {
+    console.error('[submitGameCenterLeaderBoardScore] Failed:', error);
+    return false;
   }
 }
