@@ -81,6 +81,18 @@ export class Player extends Container {
   // 사망 원인 추적 (Analytics용)
   private lastDamageCause: DeathCause | null = null;
 
+  // 파워업 획득 기록 (UI 표시용)
+  // key: 무기 ID 또는 파워업 타입, value: 무기 레벨 또는 파워업 스택 수
+  private acquiredPowerups: Map<string, number> = new Map();
+
+  // 파워업 누적 수치 (UI 표시용)
+  // key: 파워업 타입 (예: 'damage', 'crit_rate'), value: 누적된 총 증가량 (예: 0.35 = 35%)
+  private powerupTotalValues: Map<string, number> = new Map();
+
+  // 파워업 표시용 ID (UI 아이콘 로드용)
+  // key: 파워업 타입, value: 마지막으로 획득한 전체 파워업 ID (예: 'powerup_damage_epic')
+  private powerupDisplayIds: Map<string, string> = new Map();
+
   // 콜백
   public onLevelUp?: (level: number, choices: LevelUpChoice[]) => void;
 
@@ -337,9 +349,20 @@ export class Player extends Container {
 
     const { type, rarity } = parsed;
 
+    // 파워업 획득 기록 업데이트 (UI 표시용)
+    const currentStack = this.acquiredPowerups.get(type) || 0;
+    this.acquiredPowerups.set(type, currentStack + 1);
+
+    // 파워업 표시용 ID 저장 (UI 아이콘 로드용)
+    this.powerupDisplayIds.set(type, powerupId);
+
     // 파워업 메타데이터 가져오기
     const powerupMeta = POWERUPS_CONFIG[type];
     const increment = powerupMeta.increment[rarity];
+
+    // 파워업 누적 수치 업데이트 (UI 표시용)
+    const currentTotal = this.powerupTotalValues.get(type) || 0;
+    this.powerupTotalValues.set(type, currentTotal + increment);
 
     // 각 파워업별 적용 로직
     switch (type) {
@@ -529,6 +552,39 @@ export class Player extends Container {
 
   public getLevelSystem(): LevelSystem {
     return this.levelSystem;
+  }
+
+  /**
+   * 무기 획득/업그레이드 추적 (UI 표시용)
+   * @param weaponId 무기 ID (예: 'weapon_talisman')
+   * @param level 무기 레벨
+   */
+  public trackWeaponAcquisition(weaponId: string, level: number): void {
+    this.acquiredPowerups.set(weaponId, level);
+  }
+
+  /**
+   * 획득한 파워업 목록 반환 (UI 표시용)
+   * @returns Map<무기 ID 또는 파워업 타입, 무기 레벨 또는 파워업 스택 수>
+   */
+  public getAcquiredPowerups(): Map<string, number> {
+    return new Map(this.acquiredPowerups);
+  }
+
+  /**
+   * 파워업 누적 수치 반환 (UI 표시용)
+   * @returns Map<파워업 타입, 누적 증가량>
+   */
+  public getPowerupTotalValues(): Map<string, number> {
+    return new Map(this.powerupTotalValues);
+  }
+
+  /**
+   * 파워업 표시용 ID 반환 (UI 아이콘 로드용)
+   * @returns Map<파워업 타입, 전체 파워업 ID>
+   */
+  public getPowerupDisplayIds(): Map<string, string> {
+    return new Map(this.powerupDisplayIds);
   }
 
   /**
