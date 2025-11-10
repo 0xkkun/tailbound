@@ -67,6 +67,12 @@ export class LevelUpUI extends Container {
   private isInputBlocked: boolean = false;
   private playerLevel: number = 1;
 
+  // 하단 파워업 목록
+  private powerupsSection!: Container;
+  private acquiredPowerups: Map<string, number> = new Map();
+  private powerupTotalValues: Map<string, number> = new Map();
+  private powerupDisplayIds: Map<string, string> = new Map();
+
   // 콜백
   public onChoiceSelected?: (choiceId: string) => void;
 
@@ -101,7 +107,7 @@ export class LevelUpUI extends Container {
   private createOverlay(): void {
     this.overlay = new Graphics();
     this.overlay.rect(0, 0, window.innerWidth, window.innerHeight);
-    this.overlay.fill({ color: COLORS.OVERLAY, alpha: 0.5 });
+    this.overlay.fill({ color: COLORS.OVERLAY, alpha: 0.8 });
 
     // 오버레이도 클릭 가능하게 (카드 외부 클릭 방지)
     this.overlay.eventMode = 'static';
@@ -114,9 +120,9 @@ export class LevelUpUI extends Container {
   private createBackgroundBox(): void {
     this.backgroundBox = new Graphics();
     const boxWidth = Math.min(360, window.innerWidth - 40); // Figma 모바일 디자인
-    const boxHeight = Math.min(600, window.innerHeight - 40);
+    const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션(120px) + 간격(40px) 여유
     const x = (window.innerWidth - boxWidth) / 2;
-    const y = (window.innerHeight - boxHeight) / 2;
+    const y = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
 
     // 배경 (Figma: radius 없음)
     this.backgroundBox.rect(x, y, boxWidth, boxHeight);
@@ -135,9 +141,9 @@ export class LevelUpUI extends Container {
   private createLineContainer(): void {
     this.lineContainer = new Graphics();
     const boxWidth = Math.min(360, window.innerWidth - 40);
-    const boxHeight = Math.min(600, window.innerHeight - 40);
+    const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션 여유
     const x = (window.innerWidth - boxWidth) / 2;
-    const y = (window.innerHeight - boxHeight) / 2;
+    const y = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
 
     // Line 컨테이너는 배경 박스 안쪽에 8px 패딩
     const lineX = x + 8;
@@ -168,8 +174,8 @@ export class LevelUpUI extends Container {
     this.titleText.anchor.set(0.5);
 
     // 위치 계산
-    const boxHeight = Math.min(600, window.innerHeight - 40);
-    const boxY = (window.innerHeight - boxHeight) / 2;
+    const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션 여유
+    const boxY = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
     const lineY = boxY + 8;
 
     this.titleText.x = window.innerWidth / 2;
@@ -193,9 +199,9 @@ export class LevelUpUI extends Container {
       console.log('✅ Corner pattern loaded successfully');
 
       const boxWidth = Math.min(360, window.innerWidth - 40);
-      const boxHeight = Math.min(600, window.innerHeight - 40);
+      const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션 여유
       const boxX = (window.innerWidth - boxWidth) / 2;
-      const boxY = (window.innerHeight - boxHeight) / 2;
+      const boxY = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
 
       // Line 컨테이너의 위치 (배경 박스 + 8px 패딩)
       const lineX = boxX + 8;
@@ -265,11 +271,28 @@ export class LevelUpUI extends Container {
   /**
    * 선택지 표시
    */
-  public async show(choices: LevelUpChoice[], playerLevel: number = 1): Promise<void> {
+  public async show(
+    choices: LevelUpChoice[],
+    playerLevel: number = 1,
+    acquiredPowerups?: Map<string, number>,
+    powerupTotalValues?: Map<string, number>,
+    powerupDisplayIds?: Map<string, string>
+  ): Promise<void> {
     // TODO: 파워업 선택지 효과음 적용. 임시로 인게임 시작 효과음
     audioManager.playIngameStartSound();
     this.choices = choices;
     this.playerLevel = playerLevel;
+
+    // 획득한 파워업 정보 업데이트
+    if (acquiredPowerups) {
+      this.acquiredPowerups = acquiredPowerups;
+    }
+    if (powerupTotalValues) {
+      this.powerupTotalValues = powerupTotalValues;
+    }
+    if (powerupDisplayIds) {
+      this.powerupDisplayIds = powerupDisplayIds;
+    }
 
     // 입력 블록 활성화 (오선택 방지)
     this.isInputBlocked = true;
@@ -279,6 +302,9 @@ export class LevelUpUI extends Container {
 
     // 새 카드 생성
     await this.createCards();
+
+    // 파워업 섹션 생성/업데이트
+    await this.createPowerupsSection();
 
     // 표시
     this.visible = true;
@@ -313,13 +339,168 @@ export class LevelUpUI extends Container {
   }
 
   /**
+   * 하단 파워업 목록 섹션 생성
+   */
+  private async createPowerupsSection(): Promise<void> {
+    // 기존 섹션 제거
+    if (this.powerupsSection) {
+      this.powerupsSection.destroy();
+    }
+
+    this.powerupsSection = new Container();
+
+    const boxHeight = Math.min(450, window.innerHeight - 160);
+    const boxY = (window.innerHeight - boxHeight) / 2 - 60;
+
+    // 파워업 섹션 위치 (모달 바깥쪽 아래)
+    const sectionY = boxY + boxHeight + 20; // 모달 박스 바로 아래 20px 간격
+    const sectionHeight = 120;
+    const sectionWidth = Math.min(360, window.innerWidth - 40);
+    const sectionX = (window.innerWidth - sectionWidth) / 2;
+
+    // 검은색 배경
+    const bg = new Graphics();
+    bg.rect(sectionX, sectionY, sectionWidth, sectionHeight);
+    bg.fill(0x000000);
+    this.powerupsSection.addChild(bg);
+
+    // 파워업 아이콘 배치
+    const iconSize = 40;
+    const iconSpacingX = 8; // 좌우 간격
+    const iconSpacingY = 12; // 상하 간격
+    const paddingX = 10; // 좌우 패딩
+    const startX = sectionX + paddingX;
+    const startY = sectionY + 10;
+
+    // 반응형: 섹션 너비에 따라 한 줄에 들어갈 아이콘 개수 계산
+    const availableWidth = sectionWidth - paddingX * 2; // 좌우 패딩 제외
+    const iconsPerRow = Math.max(1, Math.floor(availableWidth / (iconSize + iconSpacingX)));
+
+    let row = 0;
+    let col = 0;
+
+    // 파워업 목록을 배열로 변환하여 순회
+    for (const [powerupType, level] of this.acquiredPowerups.entries()) {
+      if (row >= 2) break; // 최대 2줄
+
+      const iconX = startX + col * (iconSize + iconSpacingX);
+      const iconY = startY + row * (iconSize + 20 + iconSpacingY); // iconSize + 레벨텍스트(20px) + 상하간격
+
+      // 아이콘 카드
+      const iconCard = new Container();
+      iconCard.x = iconX;
+      iconCard.y = iconY;
+
+      // 아이콘 배경 (작은 정사각형, 보더)
+      const iconBg = new Graphics();
+      iconBg.rect(0, 0, iconSize, iconSize);
+      iconBg.fill(0x222222);
+      iconBg.stroke({ color: 0x9d5a29, width: 2 }); // #9D5A29 보더
+      iconCard.addChild(iconBg);
+
+      // 파워업 아이콘 로드 (실제 아이콘 사용)
+      try {
+        // 무기는 powerupType 그대로, 파워업은 전체 ID 사용
+        const displayId = powerupType.startsWith('weapon_')
+          ? powerupType
+          : this.powerupDisplayIds.get(powerupType) || powerupType;
+
+        const iconPath = this.getIconPath(displayId);
+        const baseTexture = await Assets.load(iconPath);
+
+        let iconSprite: Sprite;
+
+        // 무기인 경우 스프라이트 시트에서 첫 프레임 추출
+        if (displayId.startsWith('weapon_')) {
+          const spriteInfo = this.getWeaponSpriteInfo(displayId);
+          const frameX = spriteInfo.frameCol * spriteInfo.frameWidth;
+          const frameY = spriteInfo.frameRow * spriteInfo.frameHeight;
+
+          const texture = new Texture({
+            source: baseTexture.source,
+            frame: new Rectangle(frameX, frameY, spriteInfo.frameWidth, spriteInfo.frameHeight),
+          });
+          iconSprite = new Sprite(texture);
+        } else {
+          // 파워업은 단일 이미지
+          iconSprite = new Sprite(baseTexture);
+        }
+
+        // 아이콘 크기 조정 (40x40에 맞춤, 약간 여백)
+        const targetSize = iconSize - 8; // 4px 패딩
+        const scale = Math.min(targetSize / iconSprite.width, targetSize / iconSprite.height);
+        iconSprite.scale.set(scale);
+        iconSprite.anchor.set(0.5);
+        iconSprite.x = iconSize / 2;
+        iconSprite.y = iconSize / 2;
+
+        iconCard.addChild(iconSprite);
+      } catch (error) {
+        console.error(`Failed to load powerup icon: ${powerupType}`, error);
+        // 폴백: 텍스트 표시
+        const iconText = new Text({
+          text: powerupType.substring(0, 3).toUpperCase(),
+          style: {
+            fontFamily: 'NeoDunggeunmo',
+            fontSize: 10,
+            fill: 0xffffff,
+          },
+        });
+        iconText.resolution = 2;
+        iconText.anchor.set(0.5);
+        iconText.x = iconSize / 2;
+        iconText.y = iconSize / 2;
+        iconCard.addChild(iconText);
+      }
+
+      // 레벨 또는 누적 수치 텍스트
+      let displayText: string;
+      if (powerupType.startsWith('weapon_')) {
+        // 무기: 레벨 표시
+        displayText = `Lv.${level}`;
+      } else {
+        // 파워업: 누적 수치 표시
+        const totalValue = this.powerupTotalValues.get(powerupType) || 0;
+        // 퍼센트로 변환 (0.35 -> 35%)
+        const percentage = Math.round(totalValue * 100);
+        displayText = `+${percentage}%`;
+      }
+
+      const levelText = new Text({
+        text: displayText,
+        style: {
+          fontFamily: 'NeoDunggeunmo',
+          fontSize: 9, // 약간 작게 조정 (긴 텍스트 대비)
+          fill: 0xffffff,
+        },
+      });
+      levelText.resolution = 2;
+      levelText.anchor.set(0.5, 0);
+      levelText.x = iconSize / 2;
+      levelText.y = iconSize + 2;
+      iconCard.addChild(levelText);
+
+      this.powerupsSection.addChild(iconCard);
+
+      // 다음 위치 계산
+      col++;
+      if (col >= iconsPerRow) {
+        col = 0;
+        row++;
+      }
+    }
+
+    this.addChild(this.powerupsSection);
+  }
+
+  /**
    * 선택 카드 생성 (Figma 디자인: 카드 래퍼 포함)
    */
   private async createCards(): Promise<void> {
     const boxWidth = Math.min(360, window.innerWidth - 40);
-    const boxHeight = Math.min(600, window.innerHeight - 40);
+    const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션 여유
     const boxX = (window.innerWidth - boxWidth) / 2;
-    const boxY = (window.innerHeight - boxHeight) / 2;
+    const boxY = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
 
     // Line 컨테이너 위치
     const lineX = boxX + 8;
@@ -380,17 +561,11 @@ export class LevelUpUI extends Container {
 
     // 등급별 색상
     const rarity = choice.rarity || 'common';
-    console.log('🎴 Card rarity:', choice.name, '-', rarity);
     const bgColor =
       COLORS.RARITY_BG[rarity as keyof typeof COLORS.RARITY_BG] || COLORS.RARITY_BG.common;
     const borderColor =
       COLORS.RARITY_BORDER[rarity as keyof typeof COLORS.RARITY_BORDER] ||
       COLORS.RARITY_BORDER.common;
-    console.log('🎨 Card colors:', {
-      rarity,
-      bgColor: bgColor.toString(16),
-      borderColor: borderColor.toString(16),
-    });
 
     // 카드 배경 (Figma: border-2 = 2px, rounded-[3px])
     const bg = new Graphics();
@@ -411,7 +586,6 @@ export class LevelUpUI extends Container {
 
     // 레이아웃 상수
     const topPadding = 12; // 카드 상단 패딩
-    console.log('🎨 Layout padding:', topPadding);
 
     // 등급 표시 (우측 상단) - Figma 디자인 기준
     const badgeBgColor =
@@ -428,7 +602,6 @@ export class LevelUpUI extends Container {
     );
     rarityBg.fill(badgeBgColor);
     card.addChild(rarityBg);
-    console.log('🏷️ Badge Y:', topPadding);
 
     // 등급 텍스트 매핑 (Figma 디자인)
     const rarityTextMap: Record<string, string> = {
@@ -452,8 +625,27 @@ export class LevelUpUI extends Container {
     rarityText.y = topPadding + rarityBadgeHeight / 2;
     card.addChild(rarityText);
 
-    // 아이콘 Y 위치
+    // 아이콘 배경 및 보더 (등급별 색상)
+    const iconBorderColors = {
+      common: 0xe7d58d,
+      rare: 0xb99bea,
+      epic: 0xee95a6,
+      legendary: 0xd4af37,
+    };
+    const iconBorderColor =
+      iconBorderColors[rarity as keyof typeof iconBorderColors] || iconBorderColors.common;
+
     const iconY = topPadding + iconSize / 2;
+
+    // 아이콘 배경 박스 (검은색 배경 + 등급별 보더)
+    const iconBg = new Graphics();
+    iconBg.rect(iconX - iconSize / 2, iconY - iconSize / 2, iconSize, iconSize);
+    iconBg.fill(0x000000);
+    iconBg.rect(iconX - iconSize / 2, iconY - iconSize / 2, iconSize, iconSize);
+    iconBg.stroke({ color: iconBorderColor, width: 2 });
+    card.addChild(iconBg);
+
+    // 아이콘 이미지
     const iconPath = this.getIconPath(choice.id);
     try {
       const baseTexture = await Assets.load(iconPath);
@@ -477,11 +669,13 @@ export class LevelUpUI extends Container {
         iconSprite = new Sprite(baseTexture);
       }
 
-      // 아이콘 크기 조정
-      const scale = Math.min(iconSize / iconSprite.width, iconSize / iconSprite.height);
+      // 아이콘 크기 조정 (배경보다 약간 작게)
+      const iconPadding = 4; // 배경과 아이콘 사이 여백
+      const targetIconSize = iconSize - iconPadding * 2;
+      const scale = Math.min(targetIconSize / iconSprite.width, targetIconSize / iconSprite.height);
       iconSprite.scale.set(scale);
 
-      // 왼쪽 상단 배치
+      // 중앙 배치
       iconSprite.anchor.set(0.5);
       iconSprite.x = iconX;
       iconSprite.y = iconY;
@@ -505,10 +699,11 @@ export class LevelUpUI extends Container {
     }
 
     // 레벨 또는 NEW! 텍스트 (아이콘 바로 아래)
-    // TODO: choice.isNew 속성을 추가하여 새 파워업 여부 판단
+    // NEW인 경우: "NEW!" 표시
+    // 기존 파워업/무기: 선택 시 얻게 될 다음 레벨 표시 (현재 레벨 + 1)
     const isNew = choice.currentLevel === 0; // 레벨 0이면 새 파워업
     const levelText = new Text({
-      text: isNew ? 'NEW!' : `Lv.${choice.currentLevel || 1}`,
+      text: isNew ? 'NEW!' : `Lv.${(choice.currentLevel || 0) + 1}`,
       style: {
         fontFamily: 'NeoDunggeunmo',
         fontSize: 12,
@@ -542,7 +737,6 @@ export class LevelUpUI extends Container {
     nameText.x = textStartX;
     nameText.y = topPadding;
     card.addChild(nameText);
-    console.log('📝 Name Y:', topPadding, 'Font size:', nameFontSize);
 
     // 설명 (좌측 정렬, 이름 아래 8px 간격)
     const descY = topPadding + nameFontSize + 8;
@@ -563,15 +757,6 @@ export class LevelUpUI extends Container {
     descText.x = textStartX;
     descText.y = descY;
     card.addChild(descText);
-    console.log(
-      '📄 Desc Y:',
-      descY,
-      '(topPadding + nameFontSize + 8 =',
-      topPadding,
-      '+',
-      nameFontSize,
-      '+ 8)'
-    );
 
     // 터치/클릭 이벤트
     card.eventMode = 'static';
@@ -693,14 +878,14 @@ export class LevelUpUI extends Container {
     // 오버레이 업데이트
     this.overlay.clear();
     this.overlay.rect(0, 0, width, height);
-    this.overlay.fill({ color: COLORS.OVERLAY, alpha: 0.5 });
+    this.overlay.fill({ color: COLORS.OVERLAY, alpha: 0.8 });
 
     // 배경 박스 재생성
     this.backgroundBox.clear();
     const boxWidth = Math.min(360, width - 40);
-    const boxHeight = Math.min(600, height - 40);
+    const boxHeight = Math.min(450, height - 160); // 파워업 섹션 여유
     const x = (width - boxWidth) / 2;
-    const y = (height - boxHeight) / 2;
+    const y = (height - boxHeight) / 2 - 60; // 위로 조금 올림
     this.backgroundBox.rect(x, y, boxWidth, boxHeight);
     this.backgroundBox.fill(COLORS.BACKGROUND);
     this.backgroundBox.rect(x, y, boxWidth, boxHeight);
