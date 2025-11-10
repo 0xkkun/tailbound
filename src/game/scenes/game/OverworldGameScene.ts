@@ -1609,9 +1609,12 @@ export class OverworldGameScene extends BaseGameScene {
 
     // Analytics: 최종 빌드 스냅샷
     const weaponIds = this.weapons.map((w) => w.id);
+    const acquiredPowerupsMap = this.player.getAcquiredPowerups();
+    const powerups = Object.fromEntries(acquiredPowerupsMap);
+
     GameAnalytics.trackFinalBuild({
       weapons: weaponIds,
-      powerups: {}, // TODO: 파워업 데이터 추가 필요
+      powerups,
       stats: {
         max_health: this.player.maxHealth,
         damage_multiplier: this.player.damageMultiplier,
