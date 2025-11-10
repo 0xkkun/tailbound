@@ -451,17 +451,37 @@ export class OverworldGameScene extends BaseGameScene {
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
       console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
+
+      // 현재 무기 레벨 정보를 선택지에 추가
+      const choicesWithLevel = choices.map((choice) => {
+        if (choice.type === 'weapon') {
+          // 현재 보유한 무기 찾기
+          const existingWeapon = this.weapons.find((w) => w.id === choice.id);
+          return {
+            ...choice,
+            currentLevel: existingWeapon ? existingWeapon.level : 0,
+          };
+        }
+        // 파워업과 스탯은 현재 레벨 추적 미구현 (TODO)
+        return { ...choice, currentLevel: 0 };
+      });
+
+      // 획득한 파워업 목록 가져오기
+      const acquiredPowerups = this.player.getAcquiredPowerups();
+
       // 조이스틱 상태 리셋 (레벨업 UI 표시 전)
       if (this.virtualJoystick) {
         this.virtualJoystick.reset();
       }
       // await는 콜백 함수를 async로 만들어야 하지만, 레벨업 UI는 비동기로 로드해도 무방
-      void this.levelUpUI.show(choices, level);
+      void this.levelUpUI.show(choicesWithLevel, level, acquiredPowerups);
     };
 
     // 초기 무기: 부적
     const talisman = new TalismanWeapon();
     this.weapons.push(talisman);
+    // 초기 무기도 추적
+    this.player.trackWeaponAcquisition('weapon_talisman', talisman.level);
 
     // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
     this.combatSystem.onEnemyKilled = (result) => {
@@ -1471,10 +1491,12 @@ export class OverworldGameScene extends BaseGameScene {
         if (existingTalisman) {
           existingTalisman.levelUp();
           console.log(`부적 레벨업! Lv.${existingTalisman.level}`);
+          this.player.trackWeaponAcquisition(weaponId, existingTalisman.level);
         } else {
           const talisman = new TalismanWeapon();
           this.weapons.push(talisman);
           console.log('부적 무기 추가 완료!');
+          this.player.trackWeaponAcquisition(weaponId, talisman.level);
         }
         break;
       }
@@ -1486,12 +1508,14 @@ export class OverworldGameScene extends BaseGameScene {
           // 레벨업 시 궤도 재생성 (소리 없이)
           await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.gameLayer);
           console.log(`도깨비불 레벨업! Lv.${existingDokkaebi.level}`);
+          this.player.trackWeaponAcquisition(weaponId, existingDokkaebi.level);
         } else {
           const dokkaebi = new DokkaebiFireWeapon();
           this.weapons.push(dokkaebi);
           // 최초 생성 시 궤도 생성 (소리와 함께)
           await dokkaebi.spawnOrbitals(this.gameLayer);
           console.log('도깨비불 무기 추가 완료!');
+          this.player.trackWeaponAcquisition(weaponId, dokkaebi.level);
         }
         break;
       }
@@ -1501,10 +1525,12 @@ export class OverworldGameScene extends BaseGameScene {
         if (existingMoktak) {
           existingMoktak.levelUp();
           console.log(`목탁 소리 레벨업! Lv.${existingMoktak.level}`);
+          this.player.trackWeaponAcquisition(weaponId, existingMoktak.level);
         } else {
           const moktak = new MoktakSoundWeapon();
           this.weapons.push(moktak);
           console.log('목탁 소리 무기 추가 완료!');
+          this.player.trackWeaponAcquisition(weaponId, moktak.level);
         }
         break;
       }
@@ -1516,12 +1542,14 @@ export class OverworldGameScene extends BaseGameScene {
           // 레벨업 시 작두 재생성
           await (existingJakdu as JakduBladeWeapon).spawnBlades(this.gameLayer);
           console.log(`작두날 레벨업! Lv.${existingJakdu.level}`);
+          this.player.trackWeaponAcquisition(weaponId, existingJakdu.level);
         } else {
           const jakdu = new JakduBladeWeapon();
           this.weapons.push(jakdu);
           // 최초 생성 시 작두 생성
           await jakdu.spawnBlades(this.gameLayer);
           console.log('작두날 무기 추가 완료!');
+          this.player.trackWeaponAcquisition(weaponId, jakdu.level);
         }
         break;
       }
@@ -1531,10 +1559,12 @@ export class OverworldGameScene extends BaseGameScene {
         if (existingFanWind) {
           existingFanWind.levelUp();
           console.log(`부채바람 레벨업! Lv.${existingFanWind.level}`);
+          this.player.trackWeaponAcquisition(weaponId, existingFanWind.level);
         } else {
           const fanWind = new FanWindWeapon();
           this.weapons.push(fanWind);
           console.log('부채바람 무기 추가 완료!');
+          this.player.trackWeaponAcquisition(weaponId, fanWind.level);
         }
         break;
       }
@@ -1544,10 +1574,12 @@ export class OverworldGameScene extends BaseGameScene {
         if (existingWater) {
           existingWater.levelUp();
           console.log(`정화수 레벨업! Lv.${existingWater.level}`);
+          this.player.trackWeaponAcquisition(weaponId, existingWater.level);
         } else {
           const water = new PurifyingWaterWeapon();
           this.weapons.push(water);
           console.log('정화수 무기 추가 완료!');
+          this.player.trackWeaponAcquisition(weaponId, water.level);
         }
         break;
       }
