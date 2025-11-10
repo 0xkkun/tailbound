@@ -2,6 +2,7 @@
  * 레벨업 UI - 선택지 카드 표시
  */
 
+import { CDN_ASSETS } from '@config/assets.config';
 import {
   DEFAULT_ICON,
   POWERUP_ICON_MAP,
@@ -13,11 +14,54 @@ import { GameAnalytics } from '@services/gameAnalytics';
 import type { LevelUpChoice } from '@systems/LevelSystem';
 import { Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 
+// 색상 팔레트 (Figma 디자인 기준)
+const COLORS = {
+  // 배경
+  OVERLAY: 0x000000,
+  BACKGROUND: 0xdcc7af, // Figma: 갈색 베이지
+  BORDER: 0x9d5a29, // Figma: 진한 갈색
+
+  // 등급별 카드 배경
+  RARITY_BG: {
+    common: 0xf5f1e9, // 베이지
+    rare: 0xf0ecf7, // 연보라
+    epic: 0xf4ebee, // 연핑크
+    legendary: 0xfef5e7, // 연금색
+  },
+
+  // 등급별 테두리
+  RARITY_BORDER: {
+    common: 0xcac3a6, // 연한 갈색
+    rare: 0xa782e2, // 보라색
+    epic: 0xde8092, // 핑크색
+    legendary: 0xd4af37, // 금색
+  },
+
+  // 등급별 뱃지 배경 (Figma 디자인)
+  RARITY_BADGE_BG: {
+    common: 0x8f8a74, // Base 뱃지
+    rare: 0x8041e4, // Rare 뱃지
+    epic: 0xd3294a, // Epic 뱃지
+    legendary: 0xd4af37, // Legendary 뱃지
+  },
+
+  // 텍스트
+  TITLE: 0x773f16, // Figma: 갈색 (제목)
+  TEXT: 0x292826, // Figma: 진한 회갈색 (본문)
+  TEXT_DESC: 0x8f867f, // Figma: 회갈색 (설명)
+  NEW_TEXT: 0xd61c1f, // Figma: 빨간색 (NEW!)
+} as const;
+
 export class LevelUpUI extends Container {
   // 입력 블록 딜레이 (ms) - 나중에 설정으로 변경 가능
   private static readonly INPUT_BLOCK_DELAY = 500;
 
   private overlay!: Graphics;
+  private backgroundBox!: Graphics;
+  private lineContainer!: Graphics; // Figma: border가 있는 Line 컨테이너
+  private cardsWrapper!: Graphics; // Figma: 카드들을 감싸는 래퍼 (#f4efe9)
+  private titleText!: Text;
+  private cornerPatterns: Sprite[] = [];
   private choiceCards: Container[] = [];
   private choices: LevelUpChoice[] = [];
   private isInputBlocked: boolean = false;
@@ -32,11 +76,23 @@ export class LevelUpUI extends Container {
     // 오버레이 배경
     this.createOverlay();
 
+    // 배경 박스
+    this.createBackgroundBox();
+
+    // Line 컨테이너 (border가 있는 내부 컨테이너)
+    this.createLineContainer();
+
+    // 제목
+    this.createTitle();
+
     // UI는 항상 최상위 레이어에 표시
     this.zIndex = 1000;
 
     // 기본적으로 숨김
     this.visible = false;
+
+    // 코너 패턴 비동기 로드
+    void this.loadCornerPatterns();
   }
 
   /**
@@ -44,13 +100,166 @@ export class LevelUpUI extends Container {
    */
   private createOverlay(): void {
     this.overlay = new Graphics();
-    this.overlay.beginFill(0x000000, 0.7);
-    this.overlay.drawRect(0, 0, window.innerWidth, window.innerHeight);
-    this.overlay.endFill();
+    this.overlay.rect(0, 0, window.innerWidth, window.innerHeight);
+    this.overlay.fill({ color: COLORS.OVERLAY, alpha: 0.5 });
 
     // 오버레이도 클릭 가능하게 (카드 외부 클릭 방지)
     this.overlay.eventMode = 'static';
     this.addChild(this.overlay);
+  }
+
+  /**
+   * 배경 박스 생성 (Figma: 바깥 박스, radius 없음)
+   */
+  private createBackgroundBox(): void {
+    this.backgroundBox = new Graphics();
+    const boxWidth = Math.min(360, window.innerWidth - 40); // Figma 모바일 디자인
+    const boxHeight = Math.min(600, window.innerHeight - 40);
+    const x = (window.innerWidth - boxWidth) / 2;
+    const y = (window.innerHeight - boxHeight) / 2;
+
+    // 배경 (Figma: radius 없음)
+    this.backgroundBox.rect(x, y, boxWidth, boxHeight);
+    this.backgroundBox.fill(COLORS.BACKGROUND);
+
+    // 테두리 (Figma: border-2 = 2px, #9d5a29)
+    this.backgroundBox.rect(x, y, boxWidth, boxHeight);
+    this.backgroundBox.stroke({ color: COLORS.BORDER, width: 2 });
+
+    this.addChild(this.backgroundBox);
+  }
+
+  /**
+   * Line 컨테이너 생성 (Figma: border가 있는 내부 컨테이너, 코너 패턴이 이곳에 위치)
+   */
+  private createLineContainer(): void {
+    this.lineContainer = new Graphics();
+    const boxWidth = Math.min(360, window.innerWidth - 40);
+    const boxHeight = Math.min(600, window.innerHeight - 40);
+    const x = (window.innerWidth - boxWidth) / 2;
+    const y = (window.innerHeight - boxHeight) / 2;
+
+    // Line 컨테이너는 배경 박스 안쪽에 8px 패딩
+    const lineX = x + 8;
+    const lineY = y + 8;
+    const lineWidth = boxWidth - 16;
+    const lineHeight = boxHeight - 16;
+
+    // border만 (Figma: border-[#baa48b])
+    this.lineContainer.rect(lineX, lineY, lineWidth, lineHeight);
+    this.lineContainer.stroke({ color: 0xbaa48b, width: 1 });
+
+    this.addChild(this.lineContainer);
+  }
+
+  /**
+   * 제목 생성 (Figma: Line 컨테이너 상단에 위치)
+   */
+  private createTitle(): void {
+    this.titleText = new Text({
+      text: '파워 업!',
+      style: {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 24, // Figma 디자인: 24px
+        fill: COLORS.TITLE,
+      },
+    });
+    this.titleText.resolution = 2;
+    this.titleText.anchor.set(0.5);
+
+    // 위치 계산
+    const boxHeight = Math.min(600, window.innerHeight - 40);
+    const boxY = (window.innerHeight - boxHeight) / 2;
+    const lineY = boxY + 8;
+
+    this.titleText.x = window.innerWidth / 2;
+    this.titleText.y = lineY + 30; // Line 컨테이너 상단에서 약간 아래
+    this.addChild(this.titleText);
+  }
+
+  /**
+   * 코너 패턴 로드 (Figma: Line 컨테이너의 네 모서리에 위치)
+   * Figma 디자인 기준:
+   * - 좌상: 원본
+   * - 우상: rotate 180° + scaleY -1 (좌우반전 + 상하반전)
+   * - 우하: rotate 180° (180도 회전)
+   * - 좌하: scaleY -1 (상하반전)
+   */
+  private async loadCornerPatterns(): Promise<void> {
+    try {
+      console.log('🎨 Loading corner pattern from:', CDN_ASSETS.gui.cornerPattern);
+      const texture = await Assets.load(CDN_ASSETS.gui.cornerPattern);
+      texture.source.scaleMode = 'nearest';
+      console.log('✅ Corner pattern loaded successfully');
+
+      const boxWidth = Math.min(360, window.innerWidth - 40);
+      const boxHeight = Math.min(600, window.innerHeight - 40);
+      const boxX = (window.innerWidth - boxWidth) / 2;
+      const boxY = (window.innerHeight - boxHeight) / 2;
+
+      // Line 컨테이너의 위치 (배경 박스 + 8px 패딩)
+      const lineX = boxX + 8;
+      const lineY = boxY + 8;
+      const lineWidth = boxWidth - 16;
+      const lineHeight = boxHeight - 16;
+
+      // 이미지는 80x80px, 화면에는 40x40으로 표시 (scale 0.5)
+      const displaySize = 40; // 화면에 표시될 크기
+      const halfSize = displaySize / 2;
+      const imageScale = 0.5; // 80px -> 40px
+
+      // 네 모서리 위치 및 변환 (Figma 디자인 기준)
+      // anchor를 중앙(0.5, 0.5)으로 설정하여 회전/반전이 중앙 기준으로 적용
+      const corners = [
+        // 좌상: 원본
+        {
+          x: lineX + halfSize,
+          y: lineY + halfSize,
+          rotation: 0,
+          scaleX: imageScale,
+          scaleY: imageScale,
+        },
+        // 우상: rotate 180° + scaleY -1
+        {
+          x: lineX + lineWidth - halfSize,
+          y: lineY + halfSize,
+          rotation: Math.PI,
+          scaleX: imageScale,
+          scaleY: -imageScale,
+        },
+        // 우하: rotate 180°
+        {
+          x: lineX + lineWidth - halfSize,
+          y: lineY + lineHeight - halfSize,
+          rotation: Math.PI,
+          scaleX: imageScale,
+          scaleY: imageScale,
+        },
+        // 좌하: scaleY -1
+        {
+          x: lineX + halfSize,
+          y: lineY + lineHeight - halfSize,
+          rotation: 0,
+          scaleX: imageScale,
+          scaleY: -imageScale,
+        },
+      ];
+
+      for (const corner of corners) {
+        const sprite = new Sprite(texture);
+        sprite.anchor.set(0.5, 0.5); // 중앙 기준 회전/반전
+        sprite.x = corner.x;
+        sprite.y = corner.y;
+        sprite.rotation = corner.rotation;
+        sprite.scale.set(corner.scaleX, corner.scaleY);
+        sprite.zIndex = 100; // 최상위에 표시
+        this.cornerPatterns.push(sprite);
+        this.addChild(sprite);
+      }
+      console.log('✅ Corner patterns added:', this.cornerPatterns.length);
+    } catch (error) {
+      console.error('❌ Failed to load corner pattern:', error);
+    }
   }
 
   /**
@@ -96,19 +305,48 @@ export class LevelUpUI extends Container {
       card.destroy();
     }
     this.choiceCards = [];
+
+    // 카드 래퍼도 제거
+    if (this.cardsWrapper) {
+      this.cardsWrapper.destroy();
+    }
   }
 
   /**
-   * 선택 카드 생성 (세로 정렬)
+   * 선택 카드 생성 (Figma 디자인: 카드 래퍼 포함)
    */
   private async createCards(): Promise<void> {
-    const cardWidth = 300;
-    const cardHeight = 200; // 아이콘과 설명을 표시하기 위해 높이 증가
-    const cardSpacing = 20;
-    const totalHeight = cardHeight * 3 + cardSpacing * 2;
+    const boxWidth = Math.min(360, window.innerWidth - 40);
+    const boxHeight = Math.min(600, window.innerHeight - 40);
+    const boxX = (window.innerWidth - boxWidth) / 2;
+    const boxY = (window.innerHeight - boxHeight) / 2;
 
-    const startX = (window.innerWidth - cardWidth) / 2;
-    const startY = (window.innerHeight - totalHeight) / 2;
+    // Line 컨테이너 위치
+    const lineX = boxX + 8;
+    const lineY = boxY + 8;
+    const lineWidth = boxWidth - 16;
+
+    // 카드 래퍼 생성 (Figma: #f4efe9 배경, border #baa48b)
+    this.cardsWrapper = new Graphics();
+    const wrapperX = lineX + 15; // px-[15px]
+    const wrapperY = lineY + 70; // 타이틀 아래 위치
+    const wrapperWidth = lineWidth - 30; // 좌우 15px씩 패딩
+    const wrapperPaddingY = 32; // py-[32px]
+    const cardHeight = 76; // 카드 높이
+    const cardSpacing = 12; // gap-[12px]
+    const wrapperHeight = wrapperPaddingY * 2 + cardHeight * 3 + cardSpacing * 2;
+
+    // 카드 래퍼 배경 (Figma: rounded-[2px])
+    this.cardsWrapper.roundRect(wrapperX, wrapperY, wrapperWidth, wrapperHeight, 2);
+    this.cardsWrapper.fill(0xf4efe9); // Figma: #f4efe9
+    this.cardsWrapper.roundRect(wrapperX, wrapperY, wrapperWidth, wrapperHeight, 2);
+    this.cardsWrapper.stroke({ color: 0xbaa48b, width: 1 });
+    this.addChild(this.cardsWrapper);
+
+    // 카드 생성 (래퍼 안쪽에 배치)
+    const cardWidth = wrapperWidth - 24; // 래퍼 padding 12px씩
+    const startX = wrapperX + 12;
+    const startY = wrapperY + wrapperPaddingY;
 
     // 모든 카드를 병렬로 생성
     const cardPromises = this.choices.map(async (choice, i) => {
@@ -140,47 +378,82 @@ export class LevelUpUI extends Container {
     card.x = x;
     card.y = y;
 
-    // 등급별 테두리 색상
+    // 등급별 색상
     const rarity = choice.rarity || 'common';
-    let borderColor = 0x808080; // 회색 (common)
-    if (rarity === 'rare') {
-      borderColor = 0x4a90e2; // 파란색
-    } else if (rarity === 'epic') {
-      borderColor = 0x9b59b6; // 보라색
-    } else if (rarity === 'legendary') {
-      borderColor = 0xffd700; // 금색
-    }
+    console.log('🎴 Card rarity:', choice.name, '-', rarity);
+    const bgColor =
+      COLORS.RARITY_BG[rarity as keyof typeof COLORS.RARITY_BG] || COLORS.RARITY_BG.common;
+    const borderColor =
+      COLORS.RARITY_BORDER[rarity as keyof typeof COLORS.RARITY_BORDER] ||
+      COLORS.RARITY_BORDER.common;
+    console.log('🎨 Card colors:', {
+      rarity,
+      bgColor: bgColor.toString(16),
+      borderColor: borderColor.toString(16),
+    });
 
-    // 카드 배경
+    // 카드 배경 (Figma: border-2 = 2px, rounded-[3px])
     const bg = new Graphics();
-    bg.beginFill(0x1a1a1a);
-    bg.lineStyle(4, borderColor);
-    bg.drawRoundedRect(0, 0, width, height, 10);
-    bg.endFill();
+    bg.roundRect(0, 0, width, height, 3);
+    bg.fill(bgColor);
+    bg.roundRect(0, 0, width, height, 3);
+    bg.stroke({ color: borderColor, width: 2 });
     card.addChild(bg);
 
-    // 등급 표시 (상단 좌측)
+    // Figma 디자인 기준 레이아웃
+    const iconSize = 32; // Figma: 32x32 고정
+    const iconX = 12 + iconSize / 2; // 좌측 12px 패딩
+    const textStartX = 12 + iconSize + 8; // 아이콘 + 8px 간격
+    const nameFontSize = 16; // Figma 기준
+    const descFontSize = 12; // Figma 기준
+    const rarityBadgeWidth = 60;
+    const rarityBadgeHeight = 20;
+
+    // 레이아웃 상수
+    const topPadding = 12; // 카드 상단 패딩
+    console.log('🎨 Layout padding:', topPadding);
+
+    // 등급 표시 (우측 상단) - Figma 디자인 기준
+    const badgeBgColor =
+      COLORS.RARITY_BADGE_BG[rarity as keyof typeof COLORS.RARITY_BADGE_BG] ||
+      COLORS.RARITY_BADGE_BG.common;
+
     const rarityBg = new Graphics();
-    rarityBg.beginFill(borderColor);
-    rarityBg.drawRoundedRect(10, 10, 80, 28, 5);
-    rarityBg.endFill();
+    rarityBg.roundRect(
+      width - rarityBadgeWidth - 6,
+      topPadding,
+      rarityBadgeWidth,
+      rarityBadgeHeight,
+      15
+    );
+    rarityBg.fill(badgeBgColor);
     card.addChild(rarityBg);
+    console.log('🏷️ Badge Y:', topPadding);
+
+    // 등급 텍스트 매핑 (Figma 디자인)
+    const rarityTextMap: Record<string, string> = {
+      common: 'Base',
+      rare: 'Rare',
+      epic: 'Epic',
+      legendary: 'Legendary',
+    };
 
     const rarityText = new Text({
-      text: (choice.rarity || 'common').toUpperCase(),
+      text: rarityTextMap[rarity] || 'Base',
       style: {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 14,
+        fontSize: 12,
         fill: 0xffffff,
       },
     });
     rarityText.resolution = 2;
     rarityText.anchor.set(0.5);
-    rarityText.x = 50;
-    rarityText.y = 24;
+    rarityText.x = width - rarityBadgeWidth / 2 - 6;
+    rarityText.y = topPadding + rarityBadgeHeight / 2;
     card.addChild(rarityText);
 
-    // 아이콘 이미지 (상단 중앙, 크게)
+    // 아이콘 Y 위치
+    const iconY = topPadding + iconSize / 2;
     const iconPath = this.getIconPath(choice.id);
     try {
       const baseTexture = await Assets.load(iconPath);
@@ -204,15 +477,14 @@ export class LevelUpUI extends Container {
         iconSprite = new Sprite(baseTexture);
       }
 
-      // 아이콘 크기 조정 (64x64)
-      const iconSize = 64;
+      // 아이콘 크기 조정
       const scale = Math.min(iconSize / iconSprite.width, iconSize / iconSprite.height);
       iconSprite.scale.set(scale);
 
-      // 중앙 배치
+      // 왼쪽 상단 배치
       iconSprite.anchor.set(0.5);
-      iconSprite.x = width / 2;
-      iconSprite.y = 70;
+      iconSprite.x = iconX;
+      iconSprite.y = iconY;
       card.addChild(iconSprite);
     } catch (error) {
       console.error(`❌ Failed to load icon: ${iconPath}`, error);
@@ -220,12 +492,11 @@ export class LevelUpUI extends Container {
       try {
         const fallbackTexture = await Assets.load(DEFAULT_ICON);
         const iconSprite = new Sprite(fallbackTexture);
-        const iconSize = 64;
         const scale = Math.min(iconSize / iconSprite.width, iconSize / iconSprite.height);
         iconSprite.scale.set(scale);
         iconSprite.anchor.set(0.5);
-        iconSprite.x = width / 2;
-        iconSprite.y = 70;
+        iconSprite.x = iconX;
+        iconSprite.y = iconY;
         card.addChild(iconSprite);
       } catch (fallbackError) {
         // 폴백도 실패하면 아이콘 없이 진행
@@ -233,62 +504,101 @@ export class LevelUpUI extends Container {
       }
     }
 
-    // 이름 (아이콘 아래)
+    // 레벨 또는 NEW! 텍스트 (아이콘 바로 아래)
+    // TODO: choice.isNew 속성을 추가하여 새 파워업 여부 판단
+    const isNew = choice.currentLevel === 0; // 레벨 0이면 새 파워업
+    const levelText = new Text({
+      text: isNew ? 'NEW!' : `Lv.${choice.currentLevel || 1}`,
+      style: {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 12,
+        fill: isNew ? COLORS.NEW_TEXT : COLORS.TEXT,
+      },
+    });
+    levelText.resolution = 2;
+    levelText.anchor.set(0.5, 0);
+    levelText.x = iconX;
+    levelText.y = iconY + iconSize / 2 + 4; // 아이콘 바로 아래 4px 간격
+    card.addChild(levelText);
+
+    // 텍스트 영역 계산
+    const rarityBadgeStartX = width - rarityBadgeWidth - 6;
+    const textAreaWidth = rarityBadgeStartX - textStartX - 4; // 라벨 바로 앞까지
+
+    // 파워업 이름 (좌측 정렬, Figma 디자인)
     const nameText = new Text({
       text: choice.name,
       style: {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 24,
-        fill: 0xffffff,
+        fontSize: nameFontSize,
+        fill: COLORS.TEXT,
         wordWrap: true,
-        wordWrapWidth: width - 30,
-        align: 'center',
+        wordWrapWidth: textAreaWidth,
+        align: 'left',
       },
     });
     nameText.resolution = 2;
-    nameText.anchor.set(0.5, 0);
-    nameText.x = width / 2;
-    nameText.y = 115;
+    nameText.anchor.set(0, 0); // 좌측 상단 기준
+    nameText.x = textStartX;
+    nameText.y = topPadding;
     card.addChild(nameText);
+    console.log('📝 Name Y:', topPadding, 'Font size:', nameFontSize);
 
-    // 설명 (이름 아래)
+    // 설명 (좌측 정렬, 이름 아래 8px 간격)
+    const descY = topPadding + nameFontSize + 8;
     const descText = new Text({
       text: choice.description,
       style: {
-        fontFamily: 'NeoDunggeunmo',
-        fontSize: 14,
-        fill: 0xcccccc,
+        fontFamily: 'RIDIBatang', // Figma 디자인: RIDIBatang 폰트
+        fontSize: descFontSize,
+        fill: COLORS.TEXT_DESC,
         wordWrap: true,
-        wordWrapWidth: width - 30,
-        align: 'center',
-        lineHeight: 18,
+        wordWrapWidth: textAreaWidth,
+        align: 'left',
+        lineHeight: 16,
       },
     });
     descText.resolution = 2;
-    descText.anchor.set(0.5, 0);
-    descText.x = width / 2;
-    descText.y = 150;
+    descText.anchor.set(0, 0);
+    descText.x = textStartX;
+    descText.y = descY;
     card.addChild(descText);
+    console.log(
+      '📄 Desc Y:',
+      descY,
+      '(topPadding + nameFontSize + 8 =',
+      topPadding,
+      '+',
+      nameFontSize,
+      '+ 8)'
+    );
 
     // 터치/클릭 이벤트
     card.eventMode = 'static';
     card.cursor = 'pointer';
 
-    // 호버 효과
+    // 호버 효과 - 배경을 약간 어둡게
+    const darkenColor = (color: number, amount: number = 0.95): number => {
+      const r = Math.floor(((color >> 16) & 0xff) * amount);
+      const g = Math.floor(((color >> 8) & 0xff) * amount);
+      const b = Math.floor((color & 0xff) * amount);
+      return (r << 16) | (g << 8) | b;
+    };
+
     card.on('pointerover', () => {
       bg.clear();
-      bg.beginFill(0x2a2a2a);
-      bg.lineStyle(4, borderColor);
-      bg.drawRoundedRect(0, 0, width, height, 10);
-      bg.endFill();
+      bg.roundRect(0, 0, width, height, 3);
+      bg.fill(darkenColor(bgColor, 0.95));
+      bg.roundRect(0, 0, width, height, 3);
+      bg.stroke({ color: borderColor, width: 2 });
     });
 
     card.on('pointerout', () => {
       bg.clear();
-      bg.beginFill(0x1a1a1a);
-      bg.lineStyle(4, borderColor);
-      bg.drawRoundedRect(0, 0, width, height, 10);
-      bg.endFill();
+      bg.roundRect(0, 0, width, height, 3);
+      bg.fill(bgColor);
+      bg.roundRect(0, 0, width, height, 3);
+      bg.stroke({ color: borderColor, width: 2 });
     });
 
     // 클릭/터치 선택
@@ -377,13 +687,53 @@ export class LevelUpUI extends Container {
   }
 
   /**
-   * 화면 크기 변경 시 오버레이 업데이트
+   * 화면 크기 변경 시 전체 UI 재구성
    */
   public async resize(width: number, height: number): Promise<void> {
+    // 오버레이 업데이트
     this.overlay.clear();
-    this.overlay.beginFill(0x000000, 0.7);
-    this.overlay.drawRect(0, 0, width, height);
-    this.overlay.endFill();
+    this.overlay.rect(0, 0, width, height);
+    this.overlay.fill({ color: COLORS.OVERLAY, alpha: 0.5 });
+
+    // 배경 박스 재생성
+    this.backgroundBox.clear();
+    const boxWidth = Math.min(360, width - 40);
+    const boxHeight = Math.min(600, height - 40);
+    const x = (width - boxWidth) / 2;
+    const y = (height - boxHeight) / 2;
+    this.backgroundBox.rect(x, y, boxWidth, boxHeight);
+    this.backgroundBox.fill(COLORS.BACKGROUND);
+    this.backgroundBox.rect(x, y, boxWidth, boxHeight);
+    this.backgroundBox.stroke({ color: COLORS.BORDER, width: 2 });
+
+    // Line 컨테이너 재생성
+    this.lineContainer.clear();
+    const lineX = x + 8;
+    const lineY = y + 8;
+    const lineWidth = boxWidth - 16;
+    const lineHeight = boxHeight - 16;
+    this.lineContainer.rect(lineX, lineY, lineWidth, lineHeight);
+    this.lineContainer.stroke({ color: 0xbaa48b, width: 1 });
+
+    // 타이틀 위치 업데이트
+    this.titleText.x = width / 2;
+    this.titleText.y = lineY + 30;
+
+    // 코너 패턴 위치 업데이트
+    if (this.cornerPatterns.length === 4) {
+      const displaySize = 40;
+      const halfSize = displaySize / 2;
+      const corners = [
+        { x: lineX + halfSize, y: lineY + halfSize },
+        { x: lineX + lineWidth - halfSize, y: lineY + halfSize },
+        { x: lineX + lineWidth - halfSize, y: lineY + lineHeight - halfSize },
+        { x: lineX + halfSize, y: lineY + lineHeight - halfSize },
+      ];
+      this.cornerPatterns.forEach((sprite, i) => {
+        sprite.x = corners[i].x;
+        sprite.y = corners[i].y;
+      });
+    }
 
     // 카드 재배치
     if (this.visible && this.choices.length > 0) {
@@ -398,6 +748,12 @@ export class LevelUpUI extends Container {
   public destroy(): void {
     this.clearCards();
     this.overlay?.destroy();
+    this.backgroundBox?.destroy();
+    this.lineContainer?.destroy();
+    this.cardsWrapper?.destroy();
+    for (const pattern of this.cornerPatterns) {
+      pattern.destroy();
+    }
     super.destroy();
   }
 }
