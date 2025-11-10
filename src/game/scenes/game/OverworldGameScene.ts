@@ -1,7 +1,7 @@
 /**
  * 게임 씬 - 메인 게임 로직
  */
-import { CDN_BASE_URL } from '@config/assets.config';
+import { CDN_ASSETS, CDN_BASE_URL } from '@config/assets.config';
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
 import { AoEEffect } from '@game/entities/AoEEffect';
@@ -51,7 +51,14 @@ import { CombatSystem } from '@systems/CombatSystem';
 import { PortalSpawner } from '@systems/PortalSpawner';
 import { SpawnSystem } from '@systems/SpawnSystem';
 import type { GameResult } from '@type/game.types';
-import { safeGetSafeAreaInsets } from '@utils/tossAppBridge';
+import {
+  isInTossApp,
+  safeAnalyticsClick,
+  safeGetSafeAreaInsets,
+  safeGetUserKeyForGame,
+  safeOpenGameCenterLeaderboard,
+  safeSubmitGameCenterLeaderBoardScore,
+} from '@utils/tossAppBridge';
 import { Assets, Container, Graphics, Sprite, Spritesheet, Text } from 'pixi.js';
 
 import { BaseGameScene } from './BaseGameScene';
@@ -129,6 +136,7 @@ export class OverworldGameScene extends BaseGameScene {
   private levelUpUI!: LevelUpUI;
   private portalIndicator!: PortalIndicator;
   private settingsButton!: Container;
+  private leaderboardButton!: Container;
   private settingsMenu: Container | null = null;
   private transitionScene: StageTransitionScene | null = null;
 
@@ -617,6 +625,10 @@ export class OverworldGameScene extends BaseGameScene {
     // 설정 버튼 (우측 상단)
     this.settingsButton = this.createSettingsButton();
     this.uiLayer.addChild(this.settingsButton);
+
+    // 리더보드 버튼 (설정 버튼 오른쪽)
+    this.leaderboardButton = this.createLeaderboardButton();
+    this.uiLayer.addChild(this.leaderboardButton);
   }
 
   /**
@@ -1479,6 +1491,25 @@ export class OverworldGameScene extends BaseGameScene {
   }
 
   /**
+   * 리더보드에 점수 제출
+   * getUserKeyForGame 성공 시에만 점수를 제출합니다
+   */
+  private async submitScoreToLeaderboard(score: number): Promise<void> {
+    // Check if user key can be obtained
+    const userKey = await safeGetUserKeyForGame();
+    if (!userKey) {
+      console.log('[Leaderboard] Cannot submit score - user key not available');
+      return;
+    }
+
+    // Submit score to leaderboard
+    const success = await safeSubmitGameCenterLeaderBoardScore(score.toString());
+    if (success) {
+      console.log('[Leaderboard] Score submitted successfully:', score);
+    }
+  }
+
+  /**
    * 무기 추가
    */
   protected async addWeapon(weaponId: string): Promise<void> {
@@ -1625,19 +1656,23 @@ export class OverworldGameScene extends BaseGameScene {
     });
 
     // Analytics: 게임 종료 추적 (defeat)
+    const finalScore = this.player.getTotalXP();
     GameAnalytics.trackGameEnd('defeat', {
       survived_seconds: Math.floor(this.gameTime),
       level: this.player.getLevel(),
       kills: this.enemiesKilled,
-      score: this.enemiesKilled * 100,
+      score: finalScore,
     });
 
     // 게임 통계 저장 (버튼 클릭 시 Analytics용)
     this.lastGameStats = {
       result: 'defeat',
       level: this.player.getLevel(),
-      score: this.enemiesKilled * 100,
+      score: finalScore,
     };
+
+    // 토스 리더보드에 점수 제출 (사용자 키 확인 후)
+    void this.submitScoreToLeaderboard(finalScore);
 
     const centerX = this.screenWidth / 2;
     const centerY = this.screenHeight / 2;
@@ -1659,14 +1694,14 @@ export class OverworldGameScene extends BaseGameScene {
       text: i18n.t('gameOver.title'),
       style: {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 64,
+        fontSize: 72,
         fill: 0xff0000,
       },
     });
     gameOverText.resolution = 2; // 고해상도 렌더링
     gameOverText.anchor.set(0.5);
     gameOverText.x = centerX;
-    gameOverText.y = centerY - 150;
+    gameOverText.y = centerY - 200;
     gameOverContainer.addChild(gameOverText);
 
     // 생존 시간 표시 (분:초 형식)
@@ -1678,14 +1713,14 @@ export class OverworldGameScene extends BaseGameScene {
       text: i18n.t('gameOver.survivalTime', { time: formattedTime }),
       style: {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 32,
+        fontSize: 28,
         fill: 0xffffff,
       },
     });
     timeText.resolution = 2; // 고해상도 렌더링
     timeText.anchor.set(0.5);
     timeText.x = centerX;
-    timeText.y = centerY - 80;
+    timeText.y = centerY - 110;
     gameOverContainer.addChild(timeText);
 
     // 처치한 적 표시
@@ -1693,20 +1728,35 @@ export class OverworldGameScene extends BaseGameScene {
       text: i18n.t('gameOver.enemiesKilled', { count: this.enemiesKilled }),
       style: {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 32,
+        fontSize: 28,
         fill: 0xffffff,
       },
     });
     killsText.resolution = 2; // 고해상도 렌더링
     killsText.anchor.set(0.5);
     killsText.x = centerX;
-    killsText.y = centerY - 40;
+    killsText.y = centerY - 75;
     gameOverContainer.addChild(killsText);
+
+    // 최종 점수 (획득 경험치) 표시
+    const scoreText = new Text({
+      text: i18n.t('gameOver.finalScore', { score: finalScore }),
+      style: {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 36,
+        fill: 0xffd700, // 금색
+      },
+    });
+    scoreText.resolution = 2; // 고해상도 렌더링
+    scoreText.anchor.set(0.5);
+    scoreText.x = centerX;
+    scoreText.y = centerY - 30;
+    gameOverContainer.addChild(scoreText);
 
     // 버튼 크기 및 간격 (설정 메뉴와 동일: 184x56)
     const buttonWidth = 184;
     const buttonHeight = 56;
-    const buttonGap = buttonHeight + 12;
+    const buttonGap = buttonHeight + 16;
 
     // 로비로 돌아가기 버튼 (아이콘과 함께)
     this.createMenuButtonWithIcon(
@@ -1714,7 +1764,7 @@ export class OverworldGameScene extends BaseGameScene {
       i18n.t('gameOver.returnToLobby'),
       `${CDN_BASE_URL}/assets/gui/back.png`,
       centerX,
-      centerY + 40,
+      centerY + 60,
       buttonWidth,
       buttonHeight,
       () => {
@@ -1735,7 +1785,7 @@ export class OverworldGameScene extends BaseGameScene {
       i18n.t('gameOver.restart'),
       `${CDN_BASE_URL}/assets/gui/restart.png`,
       centerX,
-      centerY + 40 + buttonGap,
+      centerY + 60 + buttonGap,
       buttonWidth,
       buttonHeight,
       () => {
@@ -1753,7 +1803,7 @@ export class OverworldGameScene extends BaseGameScene {
     // 게임 오버 결과 콜백
     if (this.onGameOver) {
       const result: GameResult = {
-        score: this.enemiesKilled * 100,
+        score: this.player.getTotalXP(),
         time: Math.floor(this.gameTime),
         enemiesKilled: this.enemiesKilled,
       };
@@ -1771,7 +1821,7 @@ export class OverworldGameScene extends BaseGameScene {
     const buttonContainer = new Container();
     buttonContainer.x = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
     buttonContainer.y = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
-    buttonContainer.zIndex = 1000; // 다른 UI보다 위에
+    buttonContainer.zIndex = 10000; // 설정 모달 오버레이 위에 표시
 
     // 설정 아이콘 (톱니바퀴 이미지)
     const icon = Sprite.from(`${CDN_BASE_URL}/assets/gui/settings.png`);
@@ -1803,12 +1853,58 @@ export class OverworldGameScene extends BaseGameScene {
   }
 
   /**
+   * 리더보드 버튼 생성
+   */
+  private createLeaderboardButton(): Container {
+    const buttonContainer = new Container();
+    // 설정 버튼 오른쪽에 배치
+    buttonContainer.x = this.UI_PADDING + this.UI_SETTINGS_SIZE * 1.5 + 8;
+    buttonContainer.y = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
+    buttonContainer.zIndex = 10000; // 설정 모달 오버레이 위에 표시
+
+    // 토스 환경이 아니면 버튼 숨김
+    buttonContainer.visible = isInTossApp();
+
+    // 크라운 아이콘
+    const icon = Sprite.from(CDN_ASSETS.gui.crown);
+    icon.width = this.UI_SETTINGS_SIZE;
+    icon.height = this.UI_SETTINGS_SIZE;
+    icon.anchor.set(0.5);
+    buttonContainer.addChild(icon);
+
+    // 인터랙션 활성화
+    buttonContainer.eventMode = 'static';
+    buttonContainer.cursor = 'pointer';
+
+    // 호버 효과
+    buttonContainer.on('pointerover', () => {
+      buttonContainer.scale.set(1.1);
+    });
+
+    buttonContainer.on('pointerout', () => {
+      buttonContainer.scale.set(1.0);
+    });
+
+    // 클릭 시 리더보드 열기
+    buttonContainer.on('pointerdown', () => {
+      safeOpenGameCenterLeaderboard();
+      // Analytics: 리더보드 버튼 클릭 추적
+      safeAnalyticsClick({
+        button_name: 'leaderboard',
+        screen: 'game',
+      });
+    });
+
+    return buttonContainer;
+  }
+
+  /**
    * 설정 메뉴 토글
    */
   private toggleSettingsMenu(): void {
     if (this.settingsMenu) {
       // 메뉴 닫기
-      this.uiLayer.removeChild(this.settingsMenu);
+      this.removeChild(this.settingsMenu);
       this.settingsMenu.destroy();
       this.settingsMenu = null;
       // BGM 재개
@@ -1820,9 +1916,9 @@ export class OverworldGameScene extends BaseGameScene {
       }
       // BGM 일시정지
       audioManager.pauseAllBGM();
-      // 메뉴 열기
+      // 메뉴 열기 (root에 추가하여 모든 레이어 위에 표시)
       this.settingsMenu = this.createSettingsMenu();
-      this.uiLayer.addChild(this.settingsMenu);
+      this.addChild(this.settingsMenu);
 
       // Analytics: 설정 모달 접근 추적
       GameAnalytics.trackSettingsModalOpen('game');
@@ -2061,19 +2157,23 @@ export class OverworldGameScene extends BaseGameScene {
 
       // Analytics: 승리 이벤트 추적
       // 보스 처치 + Soul 획득 = 게임 승리
+      const finalScore = this.player.getTotalXP();
       GameAnalytics.trackGameEnd('victory', {
         survived_seconds: Math.floor(this.gameTime),
         level: this.player.getLevel(),
         kills: this.enemiesKilled,
-        score: this.enemiesKilled * 100, // 간단한 점수 계산
+        score: finalScore,
       });
 
       // 게임 통계 저장 (스테이지 클리어 UI 버튼 클릭 시 Analytics용)
       this.lastGameStats = {
         result: 'victory',
         level: this.player.getLevel(),
-        score: this.enemiesKilled * 100,
+        score: finalScore,
       };
+
+      // 토스 리더보드에 점수 제출
+      void safeSubmitGameCenterLeaderBoardScore(finalScore.toString());
 
       // 플레이어 UI 다시 표시
       if (this.xpBarContainer) {
@@ -2157,6 +2257,12 @@ export class OverworldGameScene extends BaseGameScene {
     if (this.settingsButton) {
       this.settingsButton.x = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
       this.settingsButton.y = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
+    }
+
+    // 리더보드 버튼 위치 업데이트
+    if (this.leaderboardButton) {
+      this.leaderboardButton.x = this.UI_PADDING + this.UI_SETTINGS_SIZE * 1.5 + 8;
+      this.leaderboardButton.y = this.UI_PADDING + this.UI_SETTINGS_SIZE / 2;
     }
   }
 

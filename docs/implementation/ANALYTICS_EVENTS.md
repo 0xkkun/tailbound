@@ -159,7 +159,7 @@
   survived_seconds: number,            // 게임 내 생존 시간 (초)
   level: number,                       // 플레이어 최종 레벨
   kills: number,                       // 총 처치한 적 수
-  score: number                        // 최종 점수 (kills * 100)
+  score: number                        // 총 획득 경험치
 }
 ```
 
@@ -403,7 +403,7 @@ private handleBossDefeat(): void {
     survived_seconds: Math.floor(this.gameTime),
     level: this.player.getLevel(),
     kills: this.enemiesKilled,
-    score: this.enemiesKilled * 100,
+    score: this.player.getTotalXP(),
   });
 }
 ```
@@ -527,7 +527,7 @@ static trackGameOverAction(
     action,
     previous_result: previousStats.result,
     previous_level: previousStats.level,
-    previous_score: previousStats.score,
+    previous_score: previousStats.score,  // 총 획득 경험치
     ...this.getCommonParams(),
   });
 }
@@ -553,7 +553,7 @@ private handleGameOver(): void {
       GameAnalytics.trackGameOverAction('lobby', {
         result: 'defeat',
         level: this.player.getLevel(),
-        score: this.enemiesKilled * 100,
+        score: this.player.getTotalXP(),
       });
 
       this.onReturnToLobby?.();
@@ -574,7 +574,7 @@ private handleGameOver(): void {
       GameAnalytics.trackGameOverAction('restart', {
         result: 'defeat',
         level: this.player.getLevel(),
-        score: this.enemiesKilled * 100,
+        score: this.player.getTotalXP(),
       });
 
       this.onRestartGame?.();
@@ -939,7 +939,7 @@ npm run dev
 
 ### ✅ 수집하는 데이터
 
-- 게임 플레이 통계 (레벨, 점수, 생존 시간)
+- 게임 플레이 통계 (레벨, 점수(총 획득 경험치), 생존 시간)
 - 선택한 무기/파워업 ID
 - 설정 선호도 (ON/OFF 상태)
 - 화면 진입 기록

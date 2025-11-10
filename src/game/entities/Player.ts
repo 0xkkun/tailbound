@@ -550,6 +550,10 @@ export class Player extends Container {
     return this.levelSystem.getProgress();
   }
 
+  public getTotalXP(): number {
+    return this.levelSystem.getTotalXP();
+  }
+
   public getLevelSystem(): LevelSystem {
     return this.levelSystem;
   }
