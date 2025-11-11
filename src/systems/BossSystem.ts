@@ -357,7 +357,7 @@ export class BossSystem {
 
       // 보스와 플레이어 충돌
       if (checkCircleCollision(this.boss, this.player)) {
-        this.player.takeDamage(this.boss.damage);
+        this.player.takeDamage(this.boss.damage, 'enemy_contact');
       }
     }
 
@@ -379,7 +379,7 @@ export class BossSystem {
 
       // 플레이어 충돌
       if (projectile.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(projectile.damage);
+        this.player.takeDamage(projectile.damage, 'boss_projectile');
         projectile.active = false;
       }
 
@@ -399,7 +399,7 @@ export class BossSystem {
 
       // 플레이어 충돌
       if (projectile.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(projectile.damage);
+        this.player.takeDamage(projectile.damage, 'boss_projectile');
         projectile.active = false;
       }
 
@@ -465,7 +465,7 @@ export class BossSystem {
 
       // 플레이어 충돌 (1회만 데미지)
       if (aoe.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(aoe.damage);
+        this.player.takeDamage(aoe.damage, 'boss_fire_aoe');
       }
 
       // 비활성화 시 제거
@@ -507,7 +507,7 @@ export class BossSystem {
 
     // 보스와 플레이어 충돌 체크
     if (checkCircleCollision(this.boss, this.player)) {
-      this.player.takeDamage(damage);
+      this.player.takeDamage(damage, 'boss_dash');
     }
   }
 
