@@ -10,7 +10,7 @@ import { WhiteTigerBoss } from '@game/entities/enemies/WhiteTigerBoss';
 import { FireAOE } from '@game/entities/FireAOE';
 import { FireballProjectile } from '@game/entities/FireballProjectile';
 import { LightningEffect } from '@game/entities/LightningEffect';
-import type { Player } from '@game/entities/Player';
+import { Player } from '@game/entities/Player';
 import { SpiralChargeEffect } from '@game/entities/SpiralChargeEffect';
 import { AOEWarning } from '@game/entities/warnings/AOEWarning';
 import { WarningLine } from '@game/entities/warnings/WarningLine';
@@ -19,8 +19,7 @@ import { StageClearUI } from '@game/ui/StageClearUI';
 import { checkCircleCollision } from '@game/utils/collision';
 import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
-import type { LevelUpChoice } from '@systems/LevelSystem';
-import { Container, type Spritesheet } from 'pixi.js';
+import { Container } from 'pixi.js';
 
 export class BossSystem {
   // 엔티티
@@ -59,12 +58,8 @@ export class BossSystem {
   private isSoulCollected: boolean = false;
   private bossSpawnTime: number = 0; // 보스 스폰 시간 (Analytics용)
 
-  // spritesheet (경험치 젬용)
-  private spiritEnergySpritesheet: Spritesheet | null = null;
-
   // 콜백
   public onStageClear?: () => void;
-  public onShowLevelUpUI?: (choices: LevelUpChoice[]) => void;
   public onReturnToLobby?: () => void;
 
   constructor(
@@ -73,8 +68,7 @@ export class BossSystem {
     overlayLayer: Container,
     player: Player,
     screenWidth: number,
-    screenHeight: number,
-    spiritEnergySpritesheet?: Spritesheet
+    screenHeight: number
   ) {
     this.gameLayer = gameLayer;
     this.uiLayer = uiLayer;
@@ -82,14 +76,12 @@ export class BossSystem {
     this.player = player;
     this.screenWidth = screenWidth;
     this.screenHeight = screenHeight;
-    this.spiritEnergySpritesheet = spiritEnergySpritesheet || null;
   }
 
   /**
    * 보스 스폰
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async spawnBoss(_x: number, _y: number): Promise<void> {
+  public async spawnBoss(): Promise<void> {
     // 맵 경계 정의 (월드 크기: 3200x2400)
     const WORLD_HEIGHT = 2400;
     const MAP_TOP = 0;
@@ -363,20 +355,20 @@ export class BossSystem {
         }
       }
 
-      // 보스 체력 0 이하 시 처리
-      if (this.boss.health <= 0) {
-        console.log(
-          `[BossSystem] Boss health: ${this.boss.health}, isBossDefeated: ${this.isBossDefeated}`
-        );
-        if (!this.isBossDefeated) {
-          console.log('[BossSystem] Calling handleBossDefeat()');
-          this.handleBossDefeat();
-        }
-      }
-
       // 보스와 플레이어 충돌
       if (checkCircleCollision(this.boss, this.player)) {
         this.player.takeDamage(this.boss.damage, 'enemy_contact');
+      }
+    }
+
+    // 보스 체력 0 이하 시 처리 (active 여부와 관계없이 체크)
+    if (this.boss && this.boss.health <= 0) {
+      console.log(
+        `[BossSystem] Boss health: ${this.boss.health}, isBossDefeated: ${this.isBossDefeated}`
+      );
+      if (!this.isBossDefeated) {
+        console.log('[BossSystem] Calling handleBossDefeat()');
+        this.handleBossDefeat();
       }
     }
 

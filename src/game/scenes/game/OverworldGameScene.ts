@@ -2128,7 +2128,7 @@ export class OverworldGameScene extends BaseGameScene {
       this.killIcon.visible = false;
     }
 
-    // BossSystem 생성 (보스 경험치용으로 spiritEnergySpritesheet3 전달)
+    // BossSystem 생성
     // overlayLayer는 Scene 루트 (this)를 전달하여 safe area 무시
     this.bossSystem = new BossSystem(
       this.gameLayer,
@@ -2136,19 +2136,11 @@ export class OverworldGameScene extends BaseGameScene {
       this, // overlayLayer: Scene 루트
       this.player,
       this.screenWidth,
-      this.screenHeight,
-      this.spiritEnergySpritesheet3 // 보스 경험치는 가장 큰 사이즈 사용
+      this.screenHeight
     );
 
-    // 보스 스폰 (화면 중앙에 스폰)
-    const spawnX = this.screenWidth / 2;
-    const spawnY = this.screenHeight / 2;
-
-    console.log(
-      `[Boss] Spawning at screen center: ${spawnX}, ${spawnY} (Screen: ${this.screenWidth}x${this.screenHeight})`
-    );
-
-    this.bossSystem.spawnBoss(spawnX, spawnY);
+    // 보스 스폰
+    this.bossSystem.spawnBoss();
 
     // 스테이지 클리어 콜백
     this.bossSystem.onStageClear = () => {
@@ -2198,10 +2190,10 @@ export class OverworldGameScene extends BaseGameScene {
     // - 보상 상자에서 Epic 등급 파워업 2개를 선택할 수 있어야 함
     // - LevelSystem에서 Epic 파워업만 필터링하는 로직 추가 필요
     // 위 내용은 잘못된 주석 및 TODO! 앱인토스 혼백 +1 업뎃해야함
-    this.bossSystem.onShowLevelUpUI = (choices) => {
-      console.log('보스 클리어 후 혼백 습득 데이터 저장 필요', choices);
-      // void this.levelUpUI.show(choices);
-    };
+    // this.bossSystem.onShowLevelUpUI = (choices) => {
+    //   console.log('보스 클리어 후 혼백 습득 데이터 저장 필요', choices);
+    //   // void this.levelUpUI.show(choices);
+    // };
 
     // 로비 복귀 콜백 (스테이지 클리어 UI에서)
     this.bossSystem.onReturnToLobby = () => {
