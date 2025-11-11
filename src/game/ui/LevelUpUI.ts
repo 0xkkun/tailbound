@@ -126,7 +126,7 @@ export class LevelUpUI extends Container {
   private createBackgroundBox(): void {
     this.backgroundBox = new Graphics();
     const boxWidth = Math.min(360, window.innerWidth - 40); // Figma 모바일 디자인
-    const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션(120px) + 간격(40px) 여유
+    const boxHeight = Math.min(540, window.innerHeight - 160); // 600 -> 540으로 조정
     const x = (window.innerWidth - boxWidth) / 2;
     const y = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
 
@@ -147,7 +147,7 @@ export class LevelUpUI extends Container {
   private createLineContainer(): void {
     this.lineContainer = new Graphics();
     const boxWidth = Math.min(360, window.innerWidth - 40);
-    const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션 여유
+    const boxHeight = Math.min(540, window.innerHeight - 160); // 600 -> 540으로 조정
     const x = (window.innerWidth - boxWidth) / 2;
     const y = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
 
@@ -180,7 +180,7 @@ export class LevelUpUI extends Container {
     this.titleText.anchor.set(0.5);
 
     // 위치 계산
-    const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션 여유
+    const boxHeight = Math.min(540, window.innerHeight - 160); // 600 -> 540으로 조정
     const boxY = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
     const lineY = boxY + 8;
 
@@ -205,7 +205,7 @@ export class LevelUpUI extends Container {
       console.log('✅ Corner pattern loaded successfully');
 
       const boxWidth = Math.min(360, window.innerWidth - 40);
-      const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션 여유
+      const boxHeight = Math.min(540, window.innerHeight - 160); // 600 -> 540으로 조정
       const boxX = (window.innerWidth - boxWidth) / 2;
       const boxY = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
 
@@ -394,7 +394,7 @@ export class LevelUpUI extends Container {
 
     this.powerupsSection = new Container();
 
-    const boxHeight = Math.min(450, window.innerHeight - 160);
+    const boxHeight = Math.min(540, window.innerHeight - 160); // 600 -> 540으로 조정
     const boxY = (window.innerHeight - boxHeight) / 2 - 60;
 
     // 파워업 섹션 위치 (모달 바깥쪽 아래)
@@ -543,7 +543,7 @@ export class LevelUpUI extends Container {
    */
   private async createCards(): Promise<void> {
     const boxWidth = Math.min(360, window.innerWidth - 40);
-    const boxHeight = Math.min(450, window.innerHeight - 160); // 파워업 섹션 여유
+    const boxHeight = Math.min(540, window.innerHeight - 160); // 600 -> 540으로 조정
     const boxX = (window.innerWidth - boxWidth) / 2;
     const boxY = (window.innerHeight - boxHeight) / 2 - 60; // 위로 조금 올림
 
@@ -557,9 +557,9 @@ export class LevelUpUI extends Container {
     const wrapperX = lineX + 15; // px-[15px]
     const wrapperY = lineY + 70; // 타이틀 아래 위치
     const wrapperWidth = lineWidth - 30; // 좌우 15px씩 패딩
-    const wrapperPaddingY = 32; // py-[32px]
-    const cardHeight = 76; // 카드 높이
-    const cardSpacing = 12; // gap-[12px]
+    const wrapperPaddingY = 28; // 32 -> 28로 조정 (위아래 여백 줄임)
+    const cardHeight = 105; // 120 -> 105로 조정
+    const cardSpacing = 14; // 16 -> 14로 조정
     const wrapperHeight = wrapperPaddingY * 2 + cardHeight * 3 + cardSpacing * 2;
 
     // 카드 래퍼 배경 (Figma: rounded-[2px])
@@ -621,16 +621,16 @@ export class LevelUpUI extends Container {
     card.addChild(bg);
 
     // Figma 디자인 기준 레이아웃
-    const iconSize = 32; // Figma: 32x32 고정
-    const iconX = 12 + iconSize / 2; // 좌측 12px 패딩
-    const textStartX = 12 + iconSize + 8; // 아이콘 + 8px 간격
-    const nameFontSize = 16; // Figma 기준
-    const descFontSize = 12; // Figma 기준
-    const rarityBadgeWidth = 60;
-    const rarityBadgeHeight = 20;
+    const iconSize = 44; // 48 -> 44로 조정
+    const iconX = 14 + iconSize / 2; // 좌측 14px 패딩
+    const textStartX = 14 + iconSize + 10; // 아이콘 + 10px 간격
+    const nameFontSize = 18; // 20 -> 18로 조정
+    const descFontSize = 14; // 15 -> 14로 조정
+    const rarityBadgeWidth = 65; // 70 -> 65로 조정
+    const rarityBadgeHeight = 22; // 24 -> 22로 조정
 
     // 레이아웃 상수
-    const topPadding = 12; // 카드 상단 패딩
+    const topPadding = 14; // 카드 상단 패딩 (16 -> 14)
 
     // 등급 표시 (우측 상단) - Figma 디자인 기준
     const badgeBgColor =
@@ -660,7 +660,7 @@ export class LevelUpUI extends Container {
       text: rarityTextMap[rarity] || 'Base',
       style: {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 12,
+        fontSize: 14, // 12 -> 14로 증가
         fill: 0xffffff,
       },
     });
@@ -751,19 +751,19 @@ export class LevelUpUI extends Container {
       text: isNew ? 'NEW!' : `Lv.${(choice.currentLevel || 0) + 1}`,
       style: {
         fontFamily: 'NeoDunggeunmo',
-        fontSize: 12,
+        fontSize: 13, // 12 -> 13으로 증가
         fill: isNew ? COLORS.NEW_TEXT : COLORS.TEXT,
       },
     });
     levelText.resolution = 2;
     levelText.anchor.set(0.5, 0);
     levelText.x = iconX;
-    levelText.y = iconY + iconSize / 2 + 4; // 아이콘 바로 아래 4px 간격
+    levelText.y = iconY + iconSize / 2 + 5; // 4 -> 5px 간격
     card.addChild(levelText);
 
-    // 텍스트 영역 계산
+    // 텍스트 영역 계산 (라벨 바로 앞까지 최대한 width 사용)
     const rarityBadgeStartX = width - rarityBadgeWidth - 6;
-    const textAreaWidth = rarityBadgeStartX - textStartX - 4; // 라벨 바로 앞까지
+    const textAreaWidth = width - textStartX - 8; // 카드 오른쪽 끝에서 8px만 여백 (Epic 라벨과 겹치지 않도록)
 
     // 파워업 이름 (좌측 정렬, Figma 디자인)
     const nameText = new Text({
@@ -783,8 +783,8 @@ export class LevelUpUI extends Container {
     nameText.y = topPadding;
     card.addChild(nameText);
 
-    // 설명 (좌측 정렬, 이름 아래 8px 간격)
-    const descY = topPadding + nameFontSize + 8;
+    // 설명 (좌측 정렬, 이름 아래 6px 간격)
+    const descY = topPadding + nameFontSize + 6; // 8 -> 6으로 줄임
     const descText = new Text({
       text: choice.description,
       style: {
@@ -794,7 +794,7 @@ export class LevelUpUI extends Container {
         wordWrap: true,
         wordWrapWidth: textAreaWidth,
         align: 'left',
-        lineHeight: 16,
+        lineHeight: 18, // 16 -> 18로 증가 (가독성 향상)
       },
     });
     descText.resolution = 2;
@@ -928,7 +928,7 @@ export class LevelUpUI extends Container {
     // 배경 박스 재생성
     this.backgroundBox.clear();
     const boxWidth = Math.min(360, width - 40);
-    const boxHeight = Math.min(450, height - 160); // 파워업 섹션 여유
+    const boxHeight = Math.min(540, height - 160); // 540으로 조정
     const x = (width - boxWidth) / 2;
     const y = (height - boxHeight) / 2 - 60; // 위로 조금 올림
     this.backgroundBox.rect(x, y, boxWidth, boxHeight);
