@@ -34,7 +34,7 @@ export abstract class BaseGameScene extends Container {
   protected uiLayer: Container;
 
   // 플레이어
-  protected player!: Player;
+  public player!: Player;
 
   // 시스템
   protected cameraSystem: CameraSystem;

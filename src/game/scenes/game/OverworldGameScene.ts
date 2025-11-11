@@ -4,6 +4,7 @@
 import { CDN_ASSETS, CDN_BASE_URL } from '@config/assets.config';
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
+import { FoxTearArtifact } from '@game/artifacts/impl/FoxTearArtifact';
 import { AoEEffect } from '@game/entities/AoEEffect';
 import {
   BaseEnemy,
@@ -46,6 +47,7 @@ import type { PlayerSnapshot } from '@hooks/useGameState';
 import i18n from '@i18n/config';
 import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
+import { ArtifactManager } from '@systems/ArtifactManager';
 import { BossSystem } from '@systems/BossSystem';
 import { CombatSystem } from '@systems/CombatSystem';
 import { PortalSpawner } from '@systems/PortalSpawner';
@@ -65,7 +67,7 @@ import { BaseGameScene } from './BaseGameScene';
 
 export class OverworldGameScene extends BaseGameScene {
   // 엔티티
-  private enemies: BaseEnemy[] = [];
+  public enemies: BaseEnemy[] = []; // IGameScene 인터페이스 구현
   private projectiles: Projectile[] = [];
   private enemyProjectiles: EnemyProjectile[] = [];
   private experienceGems: ExperienceGem[] = [];
@@ -87,6 +89,7 @@ export class OverworldGameScene extends BaseGameScene {
   private spawnSystem: SpawnSystem;
   private portalSpawner: PortalSpawner;
   private bossSystem?: BossSystem;
+  public artifactManager!: ArtifactManager; // TODO: 테스트중 - 유물 전체 적용 후 제거 필요
 
   // 포탈
   private portal: Portal | null = null;
@@ -457,6 +460,12 @@ export class OverworldGameScene extends BaseGameScene {
    * 씬 초기화 (BaseGameScene abstract 메서드 구현)
    */
   protected async initScene(): Promise<void> {
+    // TODO: 테스트중 - 유물 시스템 초기화 (게임 시작 시 FoxTearArtifact 자동 획득)
+    this.artifactManager = new ArtifactManager(this.player, this);
+    const foxTear = new FoxTearArtifact();
+    this.artifactManager.add(foxTear);
+    console.log('[OverworldGameScene] 🦊 FoxTearArtifact 테스트 모드 활성화');
+
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
       console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
@@ -499,6 +508,11 @@ export class OverworldGameScene extends BaseGameScene {
     this.weapons.push(talisman);
     // 초기 무기도 추적
     this.player.trackWeaponAcquisition('weapon_talisman', talisman.level);
+
+    // TODO: 테스트중 - 적 타격 시 유물 이벤트 트리거
+    this.combatSystem.onEnemyHit = (enemy, damage) => {
+      this.artifactManager.triggerHit(enemy, damage);
+    };
 
     // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
     this.combatSystem.onEnemyKilled = (result) => {
@@ -780,6 +794,9 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 게임 시간 증가
     this.gameTime += deltaTime;
+
+    // TODO: 테스트중 - 유물 업데이트
+    this.artifactManager.update(deltaTime);
 
     // 1. 플레이어 업데이트 (오버라이드된 메서드 사용)
     this.updatePlayer(deltaTime);
@@ -1167,8 +1184,11 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 10. 적 업데이트
     for (const enemy of this.enemies) {
-      const playerPos = { x: this.player.x, y: this.player.y };
-      enemy.setTarget(playerPos);
+      // 매혹된 적은 플레이어를 타겟으로 하지 않음 (유물 시스템에서 타겟 관리)
+      if (!enemy.hasStatusEffect('charmed')) {
+        const playerPos = { x: this.player.x, y: this.player.y };
+        enemy.setTarget(playerPos);
+      }
       enemy.update(deltaTime);
     }
 

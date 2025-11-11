@@ -14,6 +14,8 @@ import type { EnemyCategory, FieldEnemyTier, NamedEnemyType } from '@game/data/e
 import { getDirection } from '@game/utils/collision';
 import { audioManager } from '@services/audioManager';
 import type { Vector2 } from '@type/game.types';
+import type { StatusEffect } from '@type/status-effect.types';
+import type { Team } from '@type/team.types';
 import {
   AnimatedSprite,
   Assets,
@@ -62,6 +64,10 @@ export abstract class BaseEnemy extends Container {
   protected knockbackVelocity: Vector2 = { x: 0, y: 0 };
   protected knockbackResistance: number = 1.0; // 넉백 저항 (1.0 = 정상, 0.5 = 절반만 밀림)
   protected knockbackImmunityTimer: number = 0; // 넉백 무적 타이머 (deltaTime으로 감소)
+
+  // 상태 이상 시스템
+  public team: Team = 'enemy'; // 팀 (진영)
+  public statusEffects: Map<string, StatusEffect> = new Map(); // 활성 상태 이상 목록
 
   // 타임아웃 관리 (메모리 누수 방지)
   private flashTimeoutId?: ReturnType<typeof setTimeout>;
@@ -514,12 +520,64 @@ export abstract class BaseEnemy extends Container {
   }
 
   /**
+   * 상태 이상 추가
+   */
+  public addStatusEffect(effect: StatusEffect): void {
+    this.statusEffects.set(effect.type, effect);
+  }
+
+  /**
+   * 상태 이상 제거
+   */
+  public removeStatusEffect(type: string): void {
+    this.statusEffects.delete(type);
+  }
+
+  /**
+   * 특정 상태 이상 보유 여부
+   */
+  public hasStatusEffect(type: string): boolean {
+    return this.statusEffects.has(type);
+  }
+
+  /**
+   * 특정 상태 이상 가져오기
+   */
+  public getStatusEffect(type: string): StatusEffect | undefined {
+    return this.statusEffects.get(type);
+  }
+
+  /**
+   * 상태 이상 업데이트 (매 프레임)
+   */
+  protected updateStatusEffects(): void {
+    const now = performance.now();
+    const toRemove: string[] = [];
+
+    for (const [type, effect] of this.statusEffects) {
+      const elapsed = (now - effect.startTime) / 1000; // ms -> s
+
+      if (elapsed >= effect.duration) {
+        toRemove.push(type);
+      }
+    }
+
+    // 만료된 효과 제거
+    for (const type of toRemove) {
+      this.statusEffects.delete(type);
+    }
+  }
+
+  /**
    * 업데이트
    */
   public update(deltaTime: number): void {
     if (!this.active || !this.targetPosition) {
       return;
     }
+
+    // 상태 이상 업데이트
+    this.updateStatusEffects();
 
     // 넉백 처리
     if (this.updateKnockback(deltaTime)) {
