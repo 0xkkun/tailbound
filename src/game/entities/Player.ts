@@ -8,7 +8,7 @@ import { parsePowerupId, POWERUPS_CONFIG } from '@config/powerups.config';
 import { PLAYER_SPRITE_CONFIG } from '@config/sprite.config';
 import { hapticManager } from '@services/hapticManager';
 import { LevelSystem, type LevelUpChoice } from '@systems/LevelSystem';
-import type { DeathCause, InputState } from '@type/game.types';
+import { DeathCause, InputState } from '@type/game.types';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Text, Texture } from 'pixi.js';
 
 export class Player extends Container {
@@ -258,7 +258,7 @@ export class Player extends Container {
   /**
    * 데미지 받기
    */
-  public takeDamage(amount: number, cause?: DeathCause): void {
+  public takeDamage(amount: number, cause: DeathCause | undefined = undefined): void {
     // 무적 시간이면 무시
     if (this.invincibleTime > 0) {
       return;
