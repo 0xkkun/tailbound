@@ -40,11 +40,6 @@ export class CombatSystem {
           continue;
         }
 
-        // 매혹된 적은 투사체가 맞히지 않음 (아군이므로)
-        if (enemy.hasStatusEffect('charmed')) {
-          continue;
-        }
-
         if (checkCircleCollision(projectile, enemy)) {
           // 데미지 적용 (관통 시 감소 고려)
           const finalDamage = projectile.getCurrentDamage();
