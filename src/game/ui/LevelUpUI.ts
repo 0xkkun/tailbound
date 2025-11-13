@@ -9,6 +9,7 @@ import {
   STAT_ICON_MAP,
   WEAPON_SPRITE_INFO,
 } from '@config/levelup.config';
+import { POWERUPS_CONFIG } from '@config/powerups.config';
 import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
 import type { LevelUpChoice } from '@systems/LevelSystem';
@@ -511,9 +512,16 @@ export class LevelUpUI extends Container {
       } else {
         // 파워업: 누적 수치 표시
         const totalValue = this.powerupTotalValues.get(powerupType) || 0;
-        // 퍼센트로 변환 (0.35 -> 35%)
-        const percentage = Math.round(totalValue * 100);
-        displayText = `+${percentage}%`;
+        const powerupConfig = POWERUPS_CONFIG[powerupType as keyof typeof POWERUPS_CONFIG];
+
+        if (powerupConfig && powerupConfig.valueType === 'flat') {
+          // 절대값 (예: health)
+          displayText = `+${Math.round(totalValue)}`;
+        } else {
+          // 비율값 (예: damage, crit_rate 등)
+          const percentage = Math.round(totalValue * 100);
+          displayText = `+${percentage}%`;
+        }
       }
 
       const levelText = new Text({
