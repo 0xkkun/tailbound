@@ -96,6 +96,11 @@ export class CombatSystem {
         continue;
       }
 
+      // 매혹된 적은 플레이어를 공격하지 않음
+      if (enemy.hasStatusEffect('charmed')) {
+        continue;
+      }
+
       if (checkCircleCollision(enemy, player)) {
         // 플레이어 데미지
         player.takeDamage(enemy.damage);

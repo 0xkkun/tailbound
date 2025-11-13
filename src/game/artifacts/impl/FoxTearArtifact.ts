@@ -1,9 +1,8 @@
 /**
  * 구미호의 눈물 유물
- * 필드몹 매혹 (티어별 확률, 최대 5마리, 3초간 아군으로 전환)
+ * 필드몹 매혹 (10% 확률, 최대 10마리, 5초간 아군으로 전환)
  */
 
-import type { FieldEnemyTier } from '@game/data/enemies';
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import type { StatusEffect } from '@type/status-effect.types';
 import type { Team } from '@type/team.types';
@@ -20,17 +19,11 @@ interface CharmData {
 
 export class FoxTearArtifact extends BaseArtifact {
   // ====== 밸런스 상수 ======
-  private readonly CHARM_DURATION = 3.0; // 3초
+  private readonly CHARM_DURATION = 5.0; // 5초
   private readonly ATTACK_INTERVAL = 1.0; // 1초마다 공격
   private readonly ATTACK_RANGE = 200; // 200px 범위
-  private readonly MAX_CHARMED = 5; // 최대 5마리까지 매혹 가능
-
-  // 티어별 매혹 확률
-  private readonly CHARM_CHANCE_BY_TIER: Record<FieldEnemyTier, number> = {
-    low: 0.1, // 10%
-    medium: 0.05, // 5%
-    high: 0.01, // 1%
-  };
+  private readonly MAX_CHARMED = 10; // 최대 10마리까지 매혹 가능
+  private readonly CHARM_CHANCE = 0.1; // 10% 확률 (모든 티어 동일)
 
   private charmedEnemies: Map<BaseEnemy, CharmData> = new Map();
 
@@ -41,7 +34,7 @@ export class FoxTearArtifact extends BaseArtifact {
       tier: 2,
       rarity: 'rare',
       category: 'debuff',
-      description: '공격 시 필드몹 매혹 (low:10%, mid:5%, high:1%, 최대 5마리, 3초)',
+      description: '공격 시 10% 확률로 일반 요괴 5초간 매혹 (최대 10마리)',
       iconPath: 'assets/artifacts/fox-tear.png',
       color: 0xff69b4,
     });
@@ -62,10 +55,8 @@ export class FoxTearArtifact extends BaseArtifact {
     // 매혹 가능 여부 체크
     if (!this.canCharm(enemy)) return;
 
-    // 티어별 확률 체크 (field 카테고리만 여기까지 오므로 tier는 항상 존재)
-    if (!enemy.tier) return;
-    const charmChance = this.CHARM_CHANCE_BY_TIER[enemy.tier];
-    if (Math.random() >= charmChance) return;
+    // 확률 체크
+    if (Math.random() >= this.CHARM_CHANCE) return;
 
     // 매혹 적용
     this.applyCharm(enemy);
