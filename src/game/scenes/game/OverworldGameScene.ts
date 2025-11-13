@@ -139,6 +139,7 @@ export class OverworldGameScene extends BaseGameScene {
   private leaderboardButton!: Container;
   private settingsMenu: Container | null = null;
   private transitionScene: StageTransitionScene | null = null;
+  private devClearButton?: Container; // 개발 모드 클리어 버튼
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
@@ -476,13 +477,21 @@ export class OverworldGameScene extends BaseGameScene {
 
       // 획득한 파워업 목록 가져오기
       const acquiredPowerups = this.player.getAcquiredPowerups();
+      const powerupTotalValues = this.player.getPowerupTotalValues();
+      const powerupDisplayIds = this.player.getPowerupDisplayIds();
 
       // 조이스틱 상태 리셋 (레벨업 UI 표시 전)
       if (this.virtualJoystick) {
         this.virtualJoystick.reset();
       }
       // await는 콜백 함수를 async로 만들어야 하지만, 레벨업 UI는 비동기로 로드해도 무방
-      void this.levelUpUI.show(choicesWithLevel, level, acquiredPowerups);
+      void this.levelUpUI.show(
+        choicesWithLevel,
+        level,
+        acquiredPowerups,
+        powerupTotalValues,
+        powerupDisplayIds
+      );
     };
 
     // 초기 무기: 부적
@@ -629,6 +638,12 @@ export class OverworldGameScene extends BaseGameScene {
     // 리더보드 버튼 (설정 버튼 오른쪽)
     this.leaderboardButton = this.createLeaderboardButton();
     this.uiLayer.addChild(this.leaderboardButton);
+
+    // 개발 모드: 클리어 테스트 버튼 (하단 중앙)
+    if (import.meta.env.DEV) {
+      this.devClearButton = this.createDevClearButton();
+      this.uiLayer.addChild(this.devClearButton);
+    }
   }
 
   /**
@@ -1503,9 +1518,9 @@ export class OverworldGameScene extends BaseGameScene {
     }
 
     // Submit score to leaderboard
-    const success = await safeSubmitGameCenterLeaderBoardScore(score.toString());
+    const success = await safeSubmitGameCenterLeaderBoardScore(Math.floor(score).toString());
     if (success) {
-      console.log('[Leaderboard] Score submitted successfully:', score);
+      console.log('[Leaderboard] Score submitted successfully:', Math.floor(score));
     }
   }
 
@@ -1656,7 +1671,7 @@ export class OverworldGameScene extends BaseGameScene {
     });
 
     // Analytics: 게임 종료 추적 (defeat)
-    const finalScore = this.player.getTotalXP();
+    const finalScore = Math.floor(this.player.getTotalXP());
     GameAnalytics.trackGameEnd('defeat', {
       survived_seconds: Math.floor(this.gameTime),
       level: this.player.getLevel(),
@@ -1740,7 +1755,7 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 최종 점수 (획득 경험치) 표시
     const scoreText = new Text({
-      text: i18n.t('gameOver.finalScore', { score: finalScore }),
+      text: i18n.t('gameOver.finalScore', { score: finalScore.toLocaleString('ko-KR') }),
       style: {
         fontFamily: 'NeoDunggeunmo',
         fontSize: 36,
@@ -1893,6 +1908,72 @@ export class OverworldGameScene extends BaseGameScene {
         button_name: 'leaderboard',
         screen: 'game',
       });
+    });
+
+    return buttonContainer;
+  }
+
+  /**
+   * 개발 모드: 게임 클리어 테스트 버튼 생성
+   */
+  private createDevClearButton(): Container {
+    const buttonContainer = new Container();
+
+    // 하단 중앙에 배치
+    const buttonWidth = 120;
+    const buttonHeight = 40;
+    buttonContainer.x = this.screenWidth / 2;
+    buttonContainer.y = this.screenHeight - 100;
+    buttonContainer.zIndex = 10000;
+
+    // 버튼 배경
+    const bg = new Graphics();
+    bg.roundRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 8);
+    bg.fill({ color: 0xff6b00, alpha: 0.9 }); // 주황색
+    bg.roundRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 8);
+    bg.stroke({ color: 0xffffff, width: 2 });
+    buttonContainer.addChild(bg);
+
+    // 텍스트
+    const text = new Text({
+      text: 'Clear Test',
+      style: {
+        fontFamily: 'NeoDunggeunmo',
+        fontSize: 16,
+        fill: 0xffffff,
+        fontWeight: 'bold',
+      },
+    });
+    text.resolution = 2;
+    text.anchor.set(0.5);
+    buttonContainer.addChild(text);
+
+    // 인터랙션
+    buttonContainer.eventMode = 'static';
+    buttonContainer.cursor = 'pointer';
+
+    // 호버 효과
+    buttonContainer.on('pointerover', () => {
+      bg.clear();
+      bg.roundRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 8);
+      bg.fill({ color: 0xff8800, alpha: 1.0 });
+      bg.roundRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 8);
+      bg.stroke({ color: 0xffffff, width: 2 });
+    });
+
+    buttonContainer.on('pointerout', () => {
+      bg.clear();
+      bg.roundRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 8);
+      bg.fill({ color: 0xff6b00, alpha: 0.9 });
+      bg.roundRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 8);
+      bg.stroke({ color: 0xffffff, width: 2 });
+    });
+
+    // 클릭 시 보스 처치로 게임 클리어
+    buttonContainer.on('pointerdown', () => {
+      console.log('[DEV] 강제 게임 클리어 실행');
+      this.bossDefeated = true;
+      this.handleGameOver();
     });
 
     return buttonContainer;
@@ -2149,7 +2230,7 @@ export class OverworldGameScene extends BaseGameScene {
 
       // Analytics: 승리 이벤트 추적
       // 보스 처치 + Soul 획득 = 게임 승리
-      const finalScore = this.player.getTotalXP();
+      const finalScore = Math.floor(this.player.getTotalXP());
       GameAnalytics.trackGameEnd('victory', {
         survived_seconds: Math.floor(this.gameTime),
         level: this.player.getLevel(),
@@ -2165,7 +2246,7 @@ export class OverworldGameScene extends BaseGameScene {
       };
 
       // 토스 리더보드에 점수 제출
-      void safeSubmitGameCenterLeaderBoardScore(finalScore.toString());
+      void safeSubmitGameCenterLeaderBoardScore(Math.floor(finalScore).toString());
 
       // 플레이어 UI 다시 표시
       if (this.xpBarContainer) {

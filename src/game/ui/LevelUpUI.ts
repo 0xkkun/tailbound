@@ -9,6 +9,7 @@ import {
   STAT_ICON_MAP,
   WEAPON_SPRITE_INFO,
 } from '@config/levelup.config';
+import { POWERUPS_CONFIG } from '@config/powerups.config';
 import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
 import type { LevelUpChoice } from '@systems/LevelSystem';
@@ -444,13 +445,15 @@ export class LevelUpUI extends Container {
       iconCard.addChild(iconBg);
 
       // 파워업 아이콘 로드 (실제 아이콘 사용)
+      let displayId: string = powerupType; // Initialize with powerupType for error logging
       try {
         // 무기는 powerupType 그대로, 파워업은 전체 ID 사용
-        const displayId = powerupType.startsWith('weapon_')
+        displayId = powerupType.startsWith('weapon_')
           ? powerupType
           : this.powerupDisplayIds.get(powerupType) || powerupType;
 
         const iconPath = this.getIconPath(displayId);
+        // Assets.load는 캐시를 자동으로 처리하므로 안전함
         const baseTexture = await Assets.load(iconPath);
 
         let iconSprite: Sprite;
@@ -481,7 +484,10 @@ export class LevelUpUI extends Container {
 
         iconCard.addChild(iconSprite);
       } catch (error) {
-        console.error(`Failed to load powerup icon: ${powerupType}`, error);
+        console.error(
+          `Failed to load powerup icon: ${powerupType}, displayId: ${displayId}`,
+          error
+        );
         // 폴백: 텍스트 표시
         const iconText = new Text({
           text: powerupType.substring(0, 3).toUpperCase(),
@@ -506,9 +512,16 @@ export class LevelUpUI extends Container {
       } else {
         // 파워업: 누적 수치 표시
         const totalValue = this.powerupTotalValues.get(powerupType) || 0;
-        // 퍼센트로 변환 (0.35 -> 35%)
-        const percentage = Math.round(totalValue * 100);
-        displayText = `+${percentage}%`;
+        const powerupConfig = POWERUPS_CONFIG[powerupType as keyof typeof POWERUPS_CONFIG];
+
+        if (powerupConfig && powerupConfig.valueType === 'flat') {
+          // 절대값 (예: health)
+          displayText = `+${Math.round(totalValue)}`;
+        } else {
+          // 비율값 (예: damage, crit_rate 등)
+          const percentage = Math.round(totalValue * 100);
+          displayText = `+${percentage}%`;
+        }
       }
 
       const levelText = new Text({
@@ -762,7 +775,6 @@ export class LevelUpUI extends Container {
     card.addChild(levelText);
 
     // 텍스트 영역 계산 (라벨 바로 앞까지 최대한 width 사용)
-    const rarityBadgeStartX = width - rarityBadgeWidth - 6;
     const textAreaWidth = width - textStartX - 8; // 카드 오른쪽 끝에서 8px만 여백 (Epic 라벨과 겹치지 않도록)
 
     // 파워업 이름 (좌측 정렬, Figma 디자인)
@@ -911,7 +923,22 @@ export class LevelUpUI extends Container {
       }
     }
 
-    // 5. 기본 아이콘
+    // 5. 파워업 타입만 있는 경우 (집계된 타입: crit_rate, damage_reduction 등)
+    // powerup_ 접두사를 추가해서 다시 매칭 시도
+    if (
+      !choiceId.startsWith('powerup_') &&
+      !choiceId.startsWith('stat_') &&
+      !choiceId.startsWith('weapon_')
+    ) {
+      const powerupId = `powerup_${choiceId}`;
+      for (const [prefix, iconPath] of Object.entries(POWERUP_ICON_MAP)) {
+        if (powerupId.startsWith(prefix)) {
+          return iconPath;
+        }
+      }
+    }
+
+    // 6. 기본 아이콘
     console.warn(`⚠️ 매핑되지 않은 선택지 ID: ${choiceId}`);
     return DEFAULT_ICON;
   }

@@ -151,7 +151,7 @@ export class StageClearUI extends Container {
   private createStats(stats: StageClearStats, fontSize: number): void {
     const statTexts = [
       `클리어 타임: ${stats.clearTime}`,
-      `총 경험치: ${stats.totalXP.toLocaleString()} XP`,
+      `총 경험치: ${Math.floor(stats.totalXP).toLocaleString('ko-KR')} XP`,
       `최종 레벨: ${stats.level}`,
     ];
 

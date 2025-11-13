@@ -55,6 +55,9 @@ export interface PowerupMetadata {
   // 최대치 (min은 쿨타임 전용)
   max?: number;
   min?: number;
+
+  // 수치 타입 ('multiplier': 비율/배수, 'flat': 절대값)
+  valueType: 'multiplier' | 'flat';
 }
 
 /**
@@ -69,6 +72,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.attackPower,
     increment: POWERUP_BALANCE.damage,
     max: PLAYER_BALANCE.maxStats.damageMultiplier,
+    valueType: 'multiplier',
   },
 
   cooldown: {
@@ -78,6 +82,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.attackSpeed,
     increment: POWERUP_BALANCE.cooldown,
     min: PLAYER_BALANCE.minStats.cooldownMultiplier,
+    valueType: 'multiplier',
   },
 
   crit_rate: {
@@ -87,6 +92,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.criticalChance,
     increment: POWERUP_BALANCE.crit_rate,
     max: PLAYER_BALANCE.maxStats.criticalRate,
+    valueType: 'multiplier',
   },
 
   crit_damage: {
@@ -96,6 +102,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.criticalDamage,
     increment: POWERUP_BALANCE.crit_damage,
     max: PLAYER_BALANCE.maxStats.criticalDamage,
+    valueType: 'multiplier',
   },
 
   // 💪 방어 스탯
@@ -106,6 +113,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.healthPlus,
     increment: POWERUP_BALANCE.health,
     max: PLAYER_BALANCE.maxStats.maxHealth,
+    valueType: 'flat',
   },
 
   damage_reduction: {
@@ -115,6 +123,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.damageReduction,
     increment: POWERUP_BALANCE.damage_reduction,
     max: PLAYER_BALANCE.maxStats.damageReduction,
+    valueType: 'multiplier',
   },
 
   breathing: {
@@ -123,6 +132,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     category: 'defense',
     icon: CDN_ASSETS.powerUp.healthGenerate,
     increment: POWERUP_BALANCE.breathing,
+    valueType: 'multiplier',
   },
 
   // ⚙️ 유틸리티 스탯
@@ -133,6 +143,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.moveSpeed,
     increment: POWERUP_BALANCE.speed,
     max: PLAYER_BALANCE.maxStats.speedMultiplier,
+    valueType: 'multiplier',
   },
 
   pickup: {
@@ -142,6 +153,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.magnetic,
     increment: POWERUP_BALANCE.pickup,
     max: PLAYER_BALANCE.maxStats.pickupRangeMultiplier,
+    valueType: 'multiplier',
   },
 
   xp_gain: {
@@ -151,6 +163,7 @@ export const POWERUPS_CONFIG: Record<PowerupType, PowerupMetadata> = {
     icon: CDN_ASSETS.powerUp.experienceBoost,
     increment: POWERUP_BALANCE.xp_gain,
     max: PLAYER_BALANCE.maxStats.xpMultiplier,
+    valueType: 'multiplier',
   },
 } as const;
 
