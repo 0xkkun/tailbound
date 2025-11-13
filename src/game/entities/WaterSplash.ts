@@ -5,6 +5,7 @@
  */
 
 import { WEAPON_BALANCE } from '@config/balance.config';
+import type { ArtifactSystem } from '@systems/ArtifactSystem';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
 import type { BaseEnemy } from './enemies';
@@ -16,6 +17,7 @@ export class WaterSplash extends Container {
   public radius: number;
   public isCritical: boolean = false;
   public playerRef?: Player;
+  public artifactSystem?: ArtifactSystem;
 
   private lifetime: number = 0;
   private maxLifetime: number;
@@ -28,7 +30,13 @@ export class WaterSplash extends Container {
   private color: number;
   private useSprite: boolean = false;
 
-  constructor(x: number, y: number, radius: number, color: number = 0x00bfff) {
+  constructor(
+    x: number,
+    y: number,
+    radius: number,
+    color: number = 0x00bfff,
+    artifactSystem?: ArtifactSystem
+  ) {
     super();
 
     const config = WEAPON_BALANCE.purifying_water;
@@ -37,6 +45,7 @@ export class WaterSplash extends Container {
     this.y = y;
     this.radius = radius;
     this.color = color;
+    this.artifactSystem = artifactSystem;
     this.maxLifetime = config.splashLifetime;
     this.damageInterval = config.damageInterval;
     this.knockbackForce = config.knockbackForce;
@@ -95,6 +104,9 @@ export class WaterSplash extends Container {
           if (distance <= this.radius + enemy.radius) {
             // 피해 적용 (DoT이므로 매 틱마다)
             enemy.takeDamage(this.damage, this.isCritical);
+
+            // 유물 이벤트 트리거
+            this.artifactSystem?.triggerHit(enemy, this.damage);
 
             // 적이 죽었는지 확인
             if (!enemy.isAlive()) {

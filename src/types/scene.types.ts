@@ -4,7 +4,7 @@
 
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import type { Player } from '@game/entities/Player';
-import type { ArtifactManager } from '@systems/ArtifactManager';
+import type { ArtifactSystem } from '@systems/ArtifactSystem';
 import type { Container } from 'pixi.js';
 
 /**
@@ -16,5 +16,5 @@ export interface IGameScene extends Container {
   enemies: BaseEnemy[];
 
   // 시스템
-  artifactManager?: ArtifactManager;
+  artifactSystem?: ArtifactSystem;
 }

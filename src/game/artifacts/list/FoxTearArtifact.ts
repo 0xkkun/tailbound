@@ -34,7 +34,7 @@ export class FoxTearArtifact extends BaseArtifact {
       tier: 2,
       rarity: 'rare',
       category: 'debuff',
-      description: '투사체가 적을 맞출 때 10% 확률로 일반 요괴 5초간 매혹 (최대 10마리)',
+      description: '투사체가 적을 맞출 때 10% 확률로 일반 요괴를 5초간 매혹 (최대 10마리)',
       iconPath: 'assets/artifacts/fox-tear.png',
       color: 0xff69b4,
     });

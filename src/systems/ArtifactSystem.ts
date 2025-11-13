@@ -2,15 +2,13 @@
  * 유물 관리 시스템
  */
 
+import type { IArtifact } from '@game/artifacts/base/IArtifact';
+import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
+import type { Player } from '@game/entities/Player';
+import type { IGameScene } from '@type/scene.types';
 import type { Container } from 'pixi.js';
 
-import type { IGameScene } from '@type/scene.types';
-import type { Player } from '@game/entities/Player';
-import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
-
-import type { IArtifact } from '@game/artifacts/base/IArtifact';
-
-export class ArtifactManager {
+export class ArtifactSystem {
   private artifacts: IArtifact[] = [];
   private readonly maxArtifacts: number = 4;
 
@@ -25,13 +23,13 @@ export class ArtifactManager {
   public add(artifact: IArtifact): boolean {
     // 최대 개수 체크
     if (this.artifacts.length >= this.maxArtifacts) {
-      console.warn('[ArtifactManager] Max artifacts reached (4/4)');
+      console.warn('[ArtifactSystem] Max artifacts reached (4/4)');
       return false;
     }
 
     // 중복 체크
     if (this.has(artifact.data.id)) {
-      console.warn('[ArtifactManager] Artifact already active:', artifact.data.id);
+      console.warn('[ArtifactSystem] Artifact already active:', artifact.data.id);
       return false;
     }
 
@@ -39,7 +37,10 @@ export class ArtifactManager {
     artifact.activate(this.player, this.scene);
     this.artifacts.push(artifact);
 
-    console.log(`[ArtifactManager] Added artifact (${this.artifacts.length}/4):`, artifact.data.name);
+    console.log(
+      `[ArtifactSystem] Added artifact (${this.artifacts.length}/4):`,
+      artifact.data.name
+    );
 
     return true;
   }
@@ -55,7 +56,7 @@ export class ArtifactManager {
     artifact.deactivate(this.player, this.scene);
     this.artifacts.splice(index, 1);
 
-    console.log('[ArtifactManager] Removed artifact:', artifact.data.name);
+    console.log('[ArtifactSystem] Removed artifact:', artifact.data.name);
 
     return true;
   }

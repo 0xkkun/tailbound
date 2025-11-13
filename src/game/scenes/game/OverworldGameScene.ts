@@ -4,7 +4,8 @@
 import { CDN_ASSETS, CDN_BASE_URL } from '@config/assets.config';
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
-import { FoxTearArtifact } from '@game/artifacts/impl/FoxTearArtifact';
+import { ExecutionerAxeArtifact } from '@game/artifacts/list/ExecutionerAxeArtifact';
+import { FoxTearArtifact } from '@game/artifacts/list/FoxTearArtifact';
 import { AoEEffect } from '@game/entities/AoEEffect';
 import {
   BaseEnemy,
@@ -47,7 +48,7 @@ import type { PlayerSnapshot } from '@hooks/useGameState';
 import i18n from '@i18n/config';
 import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
-import { ArtifactManager } from '@systems/ArtifactManager';
+import { ArtifactSystem } from '@systems/ArtifactSystem';
 import { BossSystem } from '@systems/BossSystem';
 import { CombatSystem } from '@systems/CombatSystem';
 import { PortalSpawner } from '@systems/PortalSpawner';
@@ -89,7 +90,7 @@ export class OverworldGameScene extends BaseGameScene {
   private spawnSystem: SpawnSystem;
   private portalSpawner: PortalSpawner;
   private bossSystem?: BossSystem;
-  public artifactManager!: ArtifactManager; // TODO: 테스트중 - 유물 전체 적용 후 제거 필요
+  public artifactSystem!: ArtifactSystem; // TODO: 테스트중 - 유물 전체 적용 후 제거 필요
 
   // 포탈
   private portal: Portal | null = null;
@@ -460,11 +461,13 @@ export class OverworldGameScene extends BaseGameScene {
    * 씬 초기화 (BaseGameScene abstract 메서드 구현)
    */
   protected async initScene(): Promise<void> {
-    // TODO: 테스트중 - 유물 시스템 초기화 (게임 시작 시 FoxTearArtifact 자동 획득)
-    this.artifactManager = new ArtifactManager(this.player, this);
+    // TODO: 테스트중 - 유물 시스템 초기화 (게임 시작 시 유물 자동 획득)
+    this.artifactSystem = new ArtifactSystem(this.player, this);
     const foxTear = new FoxTearArtifact();
-    this.artifactManager.add(foxTear);
-    console.log('[OverworldGameScene] 🦊 FoxTearArtifact 테스트 모드 활성화');
+    const executionerAxe = new ExecutionerAxeArtifact();
+    this.artifactSystem.add(foxTear);
+    this.artifactSystem.add(executionerAxe);
+    console.log('[OverworldGameScene] 🦊 FoxTear & ⚔️ ExecutionerAxe 테스트 모드 활성화');
 
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
@@ -511,7 +514,7 @@ export class OverworldGameScene extends BaseGameScene {
 
     // TODO: 테스트중 - 적 타격 시 유물 이벤트 트리거
     this.combatSystem.onEnemyHit = (enemy, damage) => {
-      this.artifactManager.triggerHit(enemy, damage);
+      this.artifactSystem.triggerHit(enemy, damage);
     };
 
     // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
@@ -796,7 +799,7 @@ export class OverworldGameScene extends BaseGameScene {
     this.gameTime += deltaTime;
 
     // TODO: 테스트중 - 유물 업데이트
-    this.artifactManager.update(deltaTime);
+    this.artifactSystem.update(deltaTime);
 
     // 1. 플레이어 업데이트 (오버라이드된 메서드 사용)
     this.updatePlayer(deltaTime);
@@ -831,7 +834,8 @@ export class OverworldGameScene extends BaseGameScene {
             bottleInfo.x,
             bottleInfo.y,
             bottleInfo.aoeRadius,
-            0x00bfff
+            0x00bfff,
+            this.artifactSystem // ArtifactSystem 주입
           );
           splash.damage = bottleInfo.damage;
           splash.isCritical = bottleInfo.isCritical;
@@ -936,6 +940,9 @@ export class OverworldGameScene extends BaseGameScene {
             enemy.takeDamage(aoe.damage, aoe.isCritical);
             aoe.recordEnemyHit(enemy.id); // 틱 데미지용 기록
 
+            // 유물 이벤트 트리거 (AoE)
+            this.artifactSystem.triggerHit(enemy, aoe.damage);
+
             // 넉백 적용 (AoE 중심에서 바깥쪽으로)
             enemy.applyKnockback({ x: dx, y: dy }, KNOCKBACK_BALANCE.aoe);
 
@@ -1036,6 +1043,9 @@ export class OverworldGameScene extends BaseGameScene {
           enemy.takeDamage(swing.damage, swing.isCritical);
           swing.markEnemyHit(enemyId);
 
+          // 유물 이벤트 트리거 (Melee)
+          this.artifactSystem.triggerHit(enemy, swing.damage);
+
           // 넉백 적용 (휘두르기 중심에서 바깥쪽으로)
           enemy.applyKnockback({ x: dx, y: dy }, KNOCKBACK_BALANCE.melee);
 
@@ -1083,6 +1093,9 @@ export class OverworldGameScene extends BaseGameScene {
                 const finalDamage = orbital.damage * critResult.damageMultiplier;
                 enemy.takeDamage(finalDamage, critResult.isCritical);
                 orbital.recordEnemyHit(enemy.id);
+
+                // 유물 이벤트 트리거 (Orbital)
+                this.artifactSystem.triggerHit(enemy, finalDamage);
 
                 // 넉백 적용 (궤도 위치에서 바깥쪽으로)
                 const knockbackDir = { x: enemy.x - orbital.x, y: enemy.y - orbital.y };
@@ -1144,6 +1157,9 @@ export class OverworldGameScene extends BaseGameScene {
               const finalDamage = blade.damage * critResult.damageMultiplier;
               enemy.takeDamage(finalDamage, critResult.isCritical);
               blade.recordHit(enemy.id); // 타격 기록
+
+              // 유물 이벤트 트리거 (JakduBlade)
+              this.artifactSystem.triggerHit(enemy, finalDamage);
 
               // 넉백 적용 (작두 위치에서 바깥쪽으로)
               const knockbackDir = { x: enemy.x - blade.x, y: enemy.y - blade.y };

@@ -103,7 +103,7 @@ onLevelUp?(level: number): void
 
 **확장 용이성:**
 - 새 유물 추가 시 BaseArtifact 상속 후 필요한 훅만 구현
-- ArtifactManager가 자동으로 이벤트 전파
+- ArtifactSystem가 자동으로 이벤트 전파
 - 유물 간 독립성 보장
 
 ### 4. 구미호의 눈물 구현 ✅
@@ -236,10 +236,10 @@ type ArtifactCategory =
 ### 2. 플레이어-유물 이벤트 연결 (Pending)
 ```typescript
 // 필요 사항:
-- Player 또는 CombatSystem에서 artifactManager.triggerHit() 호출
-- 적 처치 시 artifactManager.triggerKill() 호출
-- 피해 받을 시 artifactManager.triggerTakeDamage() 호출
-- 레벨업 시 artifactManager.triggerLevelUp() 호출
+- Player 또는 CombatSystem에서 artifactSystem.triggerHit() 호출
+- 적 처치 시 artifactSystem.triggerKill() 호출
+- 피해 받을 시 artifactSystem.triggerTakeDamage() 호출
+- 레벨업 시 artifactSystem.triggerLevelUp() 호출
 ```
 
 ### 3. 테스트 (Pending)
@@ -260,7 +260,7 @@ type ArtifactCategory =
 - **O (Open-Closed):** 새 유물 추가 시 기존 코드 수정 불필요
 - **L (Liskov Substitution):** 모든 유물이 IArtifact로 대체 가능
 - **I (Interface Segregation):** 이벤트 훅은 선택적 구현
-- **D (Dependency Inversion):** ArtifactManager는 IArtifact에 의존
+- **D (Dependency Inversion):** ArtifactSystem는 IArtifact에 의존
 
 ### ✅ DRY (Don't Repeat Yourself)
 - 상태 이상 시간 관리 로직을 BaseEnemy에 집중

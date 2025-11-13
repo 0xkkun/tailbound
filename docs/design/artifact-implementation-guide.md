@@ -117,7 +117,7 @@ export abstract class BaseArtifact implements IArtifact {
 ### 🦊 구미호의 눈물 (매혹)
 
 ```typescript
-// src/game/artifacts/impl/FoxTear.ts
+// src/game/artifacts/list/FoxTear.ts
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
@@ -180,7 +180,7 @@ export class FoxTear extends BaseArtifact {
 ### 🪓 망나니의 도끼 (처형)
 
 ```typescript
-// src/game/artifacts/impl/ExecutionerAxe.ts
+// src/game/artifacts/list/ExecutionerAxe.ts
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
@@ -260,7 +260,7 @@ export class ExecutionerAxe extends BaseArtifact {
 ### 😈 탈령의 가면 (버서커)
 
 ```typescript
-// src/game/artifacts/impl/MaskBerserk.ts
+// src/game/artifacts/list/MaskBerserk.ts
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
@@ -354,7 +354,7 @@ export class MaskBerserk extends BaseArtifact {
 ### 📈 척살 (스택)
 
 ```typescript
-// src/game/artifacts/impl/KillStack.ts
+// src/game/artifacts/list/KillStack.ts
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
@@ -427,7 +427,7 @@ export class KillStack extends BaseArtifact {
 ### 🗿 마석 (이동 금지 → 공격력 2배)
 
 ```typescript
-// src/game/artifacts/impl/MagicStone.ts
+// src/game/artifacts/list/MagicStone.ts
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
@@ -604,7 +604,7 @@ export function selectRandomArtifacts(
 ## Step 5: 간단한 관리 시스템
 
 ```typescript
-// src/systems/ArtifactManager.ts
+// src/systems/ArtifactSystem.ts
 
 import type { IArtifact } from '@artifacts/base/IArtifact';
 import type { Player } from '@entities/Player';
@@ -612,7 +612,7 @@ import type { Player } from '@entities/Player';
 /**
  * 유물 관리 (간단 버전)
  */
-export class ArtifactManager {
+export class ArtifactSystem {
   private artifacts: IArtifact[] = [];
   private maxArtifacts: number = 4;
 
@@ -718,41 +718,41 @@ export class ArtifactManager {
 // 게임 씬에서
 
 class GameScene {
-  private artifactManager!: ArtifactManager;
+  private artifactSystem!: ArtifactSystem;
 
   create() {
     // 매니저 생성
-    this.artifactManager = new ArtifactManager(this.player);
+    this.artifactSystem = new ArtifactSystem(this.player);
 
     // 플레이어 이벤트에 연결
     this.player.on('kill', (enemy) => {
-      this.artifactManager.triggerKill(enemy);
+      this.artifactSystem.triggerKill(enemy);
     });
 
     this.player.on('hit', (enemy, damage) => {
-      this.artifactManager.triggerHit(enemy, damage);
+      this.artifactSystem.triggerHit(enemy, damage);
     });
 
     this.player.on('takeDamage', (damage) => {
-      const finalDamage = this.artifactManager.triggerTakeDamage(damage);
+      const finalDamage = this.artifactSystem.triggerTakeDamage(damage);
       // ... 실제 피해 적용
     });
   }
 
   update(delta: number) {
     // 유물 업데이트
-    this.artifactManager.update(delta);
+    this.artifactSystem.update(delta);
   }
 
   // 엘리트 처치 시 호출 (엘리트 시스템에서)
   onEliteKilled(tier: number) {
     // 3개 랜덤 선택
-    const excludeIds = this.artifactManager.getActiveIds();
+    const excludeIds = this.artifactSystem.getActiveIds();
     const choices = selectRandomArtifacts(tier, 3, excludeIds);
 
     // UI 표시
     this.showArtifactSelectionUI(choices, (selected) => {
-      this.artifactManager.add(selected);
+      this.artifactSystem.add(selected);
     });
   }
 }
@@ -764,7 +764,7 @@ class GameScene {
 
 ### ✅ 새 유물 추가
 
-1. **파일 작성**: `src/game/artifacts/impl/MyArtifact.ts`
+1. **파일 작성**: `src/game/artifacts/list/MyArtifact.ts`
 2. **클래스 작성**: `BaseArtifact` 상속
 3. **등록**: `registry.ts`에 임포트 + 배열 추가
 
@@ -786,7 +786,7 @@ class GameScene {
 - [ ] Phase 1: 타입 & 인터페이스 (`IArtifact.ts`)
 - [ ] Phase 2: 베이스 클래스 (`BaseArtifact.ts`)
 - [ ] Phase 3: 등록소 (`registry.ts`)
-- [ ] Phase 4: 매니저 (`ArtifactManager.ts`)
+- [ ] Phase 4: 매니저 (`ArtifactSystem.ts`)
 - [ ] Phase 5: 유물 3개 구현 (프로토타입)
 - [ ] Phase 6: 플레이어 이벤트 연결
 - [ ] Phase 7: 나머지 유물 구현

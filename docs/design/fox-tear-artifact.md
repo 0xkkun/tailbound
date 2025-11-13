@@ -25,7 +25,7 @@
 ## 구현
 
 ```typescript
-// src/game/artifacts/impl/FoxTear.ts
+// src/game/artifacts/list/FoxTear.ts
 
 import { BaseArtifact } from '../base/BaseArtifact';
 import { Graphics } from 'pixi.js';

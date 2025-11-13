@@ -7,7 +7,7 @@
 #### 타입 시스템
 - `IArtifact` 인터페이스: 모든 유물의 표준 인터페이스
 - `BaseArtifact` 추상 클래스: 공통 로직 구현
-- `ArtifactManager`: 유물 생명주기 및 이벤트 관리
+- `ArtifactSystem`: 유물 생명주기 및 이벤트 관리
 
 #### 이벤트 훅 시스템
 ```typescript
@@ -80,15 +80,15 @@ MAX_CHARMED = 5마리
 #### OverworldGameScene
 ```typescript
 // 유물 시스템 초기화
-this.artifactManager = new ArtifactManager(this.player, this);
+this.artifactSystem = new ArtifactSystem(this.player, this);
 
 // 테스트 모드: FoxTearArtifact 자동 획득
 const foxTear = new FoxTearArtifact();
-this.artifactManager.add(foxTear);
+this.artifactSystem.add(foxTear);
 
 // 이벤트 연결
 this.combatSystem.onEnemyHit = (enemy, damage) => {
-  this.artifactManager.triggerHit(enemy, damage);
+  this.artifactSystem.triggerHit(enemy, damage);
 };
 
 // 매혹된 적 타겟팅 방지
@@ -112,7 +112,7 @@ this.onEnemyHit?.(enemy, finalDamage);
 - **O**: 새 유물 추가 시 기존 코드 수정 불필요
 - **L**: 모든 유물이 IArtifact로 대체 가능
 - **I**: 이벤트 훅은 선택적 구현
-- **D**: ArtifactManager는 IArtifact에 의존
+- **D**: ArtifactSystem는 IArtifact에 의존
 
 ### 타입 안전성 ✅
 - `any` 타입 완전 제거
@@ -143,7 +143,7 @@ src/
 │       └── impl/
 │           └── FoxTearArtifact.ts # 구미호 눈물 구현
 ├── systems/
-│   ├── ArtifactManager.ts         # 유물 매니저
+│   ├── ArtifactSystem.ts         # 유물 매니저
 │   └── CombatSystem.ts            # 전투 시스템 (이벤트 추가)
 └── game/
     ├── entities/
@@ -180,7 +180,7 @@ src/
 ### TODO 주석 위치
 ```typescript
 // OverworldGameScene.ts:92
-public artifactManager!: ArtifactManager; // TODO: 테스트중 - 유물 전체 적용 후 제거 필요
+public artifactSystem!: ArtifactSystem; // TODO: 테스트중 - 유물 전체 적용 후 제거 필요
 
 // OverworldGameScene.ts:462
 // TODO: 테스트중 - 유물 시스템 초기화 (게임 시작 시 FoxTearArtifact 자동 획득)
@@ -202,7 +202,7 @@ public artifactManager!: ArtifactManager; // TODO: 테스트중 - 유물 전체 
 ```typescript
 // OverworldGameScene.ts - initScene()
 const foxTear = new FoxTearArtifact();
-this.artifactManager.add(foxTear);
+this.artifactSystem.add(foxTear);
 console.log('[OverworldGameScene] 🦊 FoxTearArtifact 테스트 모드 활성화');
 ```
 

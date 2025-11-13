@@ -4,31 +4,31 @@
 
 ---
 
-## 1단계: 게임 씬에 ArtifactManager 추가
+## 1단계: 게임 씬에 ArtifactSystem 추가
 
 ```typescript
 // src/game/scenes/OverworldGameScene.ts
 
-import { ArtifactManager } from '@systems/ArtifactManager';
-import { FoxTearArtifact } from '@artifacts/impl/FoxTearArtifact';
+import { ArtifactSystem } from '@systems/ArtifactSystem';
+import { FoxTearArtifact } from '@artifacts/list/FoxTearArtifact';
 
 export class OverworldGameScene extends Container {
-  private artifactManager!: ArtifactManager;
+  private artifactSystem!: ArtifactSystem;
 
   async create() {
     // ... 기존 코드 (플레이어 생성 등)
 
     // 유물 매니저 초기화
-    this.artifactManager = new ArtifactManager(this.player, this);
+    this.artifactSystem = new ArtifactSystem(this.player, this);
 
-    console.log('✅ ArtifactManager initialized');
+    console.log('✅ ArtifactSystem initialized');
   }
 
   update(delta: number) {
     // ... 기존 업데이트 로직
 
     // 유물 업데이트
-    this.artifactManager.update(delta);
+    this.artifactSystem.update(delta);
   }
 }
 ```
@@ -51,8 +51,8 @@ export class CombatSystem {
       enemy.takeDamage(damage, this.player);
 
       // 🆕 유물 이벤트 발행: onHit
-      if (this.scene.artifactManager) {
-        this.scene.artifactManager.triggerHit(enemy, damage);
+      if (this.scene.artifactSystem) {
+        this.scene.artifactSystem.triggerHit(enemy, damage);
       }
     }
   }
@@ -69,8 +69,8 @@ export class Player extends Container {
     // ... 기존 경험치 획득 로직
 
     // 🆕 유물 이벤트 발행: onKill
-    if (this.scene?.artifactManager) {
-      this.scene.artifactManager.triggerKill(enemy);
+    if (this.scene?.artifactSystem) {
+      this.scene.artifactSystem.triggerKill(enemy);
     }
   }
 }
@@ -86,8 +86,8 @@ export class BaseEnemy extends Container {
     // ... 기존 사망 처리
 
     // 🆕 유물 이벤트 발행
-    if (this.scene?.artifactManager) {
-      this.scene.artifactManager.triggerKill(this);
+    if (this.scene?.artifactSystem) {
+      this.scene.artifactSystem.triggerKill(this);
     }
 
     this.destroy();
@@ -110,7 +110,7 @@ export class OverworldGameScene extends Container {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'F1') {
         const artifact = new FoxTearArtifact();
-        const added = this.artifactManager.add(artifact);
+        const added = this.artifactSystem.add(artifact);
 
         if (added) {
           console.log('🦊 구미호의 눈물 추가됨!');
@@ -119,13 +119,13 @@ export class OverworldGameScene extends Container {
 
       // F2 키: 현재 유물 목록 출력
       if (e.key === 'F2') {
-        const artifacts = this.artifactManager.getAll();
+        const artifacts = this.artifactSystem.getAll();
         console.log('📜 현재 유물 목록:', artifacts.map(a => a.data.name));
       }
 
       // F3 키: 모든 유물 제거
       if (e.key === 'F3') {
-        this.artifactManager.cleanup();
+        this.artifactSystem.cleanup();
         console.log('🗑️ 모든 유물 제거됨');
       }
     });
@@ -211,7 +211,7 @@ export class BaseEnemy extends Container {
 ### 매혹 확률 높이기 (테스트용)
 
 ```typescript
-// src/game/artifacts/impl/FoxTearArtifact.ts
+// src/game/artifacts/list/FoxTearArtifact.ts
 
 // 테스트용: 확률을 100%로
 private readonly CHARM_CHANCE = 1.0; // 10% → 100%
@@ -229,7 +229,7 @@ private readonly CHARM_DURATION = 10.0; // 3초 → 10초
 ### 콘솔 로그 확인
 
 ```
-✅ ArtifactManager initialized
+✅ ArtifactSystem initialized
 🦊 구미호의 눈물 추가됨!
 💕 [FoxTear] skeleton is charmed!
 💔 [FoxTear] Charm released
@@ -258,7 +258,7 @@ npm run dev
 ## 문제 해결
 
 ### 문제 1: "scene is not defined"
-**해결**: 씬에서 artifactManager를 제대로 초기화했는지 확인
+**해결**: 씬에서 artifactSystem를 제대로 초기화했는지 확인
 
 ### 문제 2: 매혹이 안됨
 **해결**:
