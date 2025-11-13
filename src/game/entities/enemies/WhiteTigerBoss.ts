@@ -350,6 +350,14 @@ export class WhiteTigerBoss extends BaseEnemy {
       this.x += directionX * this.speed * deltaTime;
       this.y += directionY * this.speed * deltaTime;
 
+      // 맵 경계 제한 (4800x3600 월드 크기, 보스 반지름만큼 여유)
+      const WORLD_WIDTH = 4800;
+      const WORLD_HEIGHT = 3600;
+      const margin = this.radius + 50; // 보스 반지름 + 추가 여유 50px
+
+      this.x = Math.max(margin, Math.min(WORLD_WIDTH - margin, this.x));
+      this.y = Math.max(margin, Math.min(WORLD_HEIGHT - margin, this.y));
+
       // 스프라이트 좌우 반전 (idle과 walk 모두)
       const scaleX =
         directionX < 0
@@ -523,10 +531,33 @@ export class WhiteTigerBoss extends BaseEnemy {
         }
         break;
 
-      case 'dashing':
+      case 'dashing': {
         // 돌진 단계 (0.8초)
         this.x += this.dashVelocity.x * deltaTime;
         this.y += this.dashVelocity.y * deltaTime;
+
+        // 맵 경계 제한 (4800x3600 월드 크기)
+        const WORLD_WIDTH = 4800;
+        const WORLD_HEIGHT = 3600;
+        const margin = this.radius + 50; // 보스 반지름 + 추가 여유 50px
+
+        // 경계에 닿으면 돌진 즉시 종료
+        if (
+          this.x <= margin ||
+          this.x >= WORLD_WIDTH - margin ||
+          this.y <= margin ||
+          this.y >= WORLD_HEIGHT - margin
+        ) {
+          // 경계 안쪽으로 위치 고정
+          this.x = Math.max(margin, Math.min(WORLD_WIDTH - margin, this.x));
+          this.y = Math.max(margin, Math.min(WORLD_HEIGHT - margin, this.y));
+          // 돌진 종료
+          this.dashState = 'recovery';
+          this.dashStateTimer = 0;
+          this.dashVelocity = { x: 0, y: 0 };
+          this.switchAnimation(false);
+          break;
+        }
 
         // 돌진 중에는 walk 애니메이션
         this.switchAnimation(true);
@@ -550,6 +581,7 @@ export class WhiteTigerBoss extends BaseEnemy {
           this.switchAnimation(false);
         }
         break;
+      }
 
       case 'recovery':
         // 후딜레이 (0.5초)
