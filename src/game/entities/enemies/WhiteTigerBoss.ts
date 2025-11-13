@@ -6,6 +6,7 @@
  * 2. 번개 돌진 (경고선 → 돌진)
  */
 import { AUDIO_COOLDOWNS, CDN_BASE_URL } from '@config/assets.config';
+import { GAME_CONFIG } from '@config/game.config';
 import { audioManager } from '@services/audioManager';
 import { AnimatedSprite, Assets, Rectangle, Texture } from 'pixi.js';
 
@@ -350,9 +351,9 @@ export class WhiteTigerBoss extends BaseEnemy {
       this.x += directionX * this.speed * deltaTime;
       this.y += directionY * this.speed * deltaTime;
 
-      // 맵 경계 제한 (4800x3600 월드 크기, 보스 반지름만큼 여유)
-      const WORLD_WIDTH = 4800;
-      const WORLD_HEIGHT = 3600;
+      // 맵 경계 제한 (보스 반지름만큼 여유)
+      const WORLD_WIDTH = GAME_CONFIG.world.overworld.width;
+      const WORLD_HEIGHT = GAME_CONFIG.world.overworld.height;
       const margin = this.radius + 50; // 보스 반지름 + 추가 여유 50px
 
       this.x = Math.max(margin, Math.min(WORLD_WIDTH - margin, this.x));
@@ -536,9 +537,9 @@ export class WhiteTigerBoss extends BaseEnemy {
         this.x += this.dashVelocity.x * deltaTime;
         this.y += this.dashVelocity.y * deltaTime;
 
-        // 맵 경계 제한 (4800x3600 월드 크기)
-        const WORLD_WIDTH = 4800;
-        const WORLD_HEIGHT = 3600;
+        // 맵 경계 제한
+        const WORLD_WIDTH = GAME_CONFIG.world.overworld.width;
+        const WORLD_HEIGHT = GAME_CONFIG.world.overworld.height;
         const margin = this.radius + 50; // 보스 반지름 + 추가 여유 50px
 
         // 경계에 닿으면 돌진 즉시 종료
