@@ -1518,9 +1518,9 @@ export class OverworldGameScene extends BaseGameScene {
     }
 
     // Submit score to leaderboard
-    const success = await safeSubmitGameCenterLeaderBoardScore(score.toString());
+    const success = await safeSubmitGameCenterLeaderBoardScore(Math.floor(score).toString());
     if (success) {
-      console.log('[Leaderboard] Score submitted successfully:', score);
+      console.log('[Leaderboard] Score submitted successfully:', Math.floor(score));
     }
   }
 
@@ -1671,7 +1671,7 @@ export class OverworldGameScene extends BaseGameScene {
     });
 
     // Analytics: 게임 종료 추적 (defeat)
-    const finalScore = this.player.getTotalXP();
+    const finalScore = Math.floor(this.player.getTotalXP());
     GameAnalytics.trackGameEnd('defeat', {
       survived_seconds: Math.floor(this.gameTime),
       level: this.player.getLevel(),
@@ -1755,7 +1755,7 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 최종 점수 (획득 경험치) 표시
     const scoreText = new Text({
-      text: i18n.t('gameOver.finalScore', { score: finalScore }),
+      text: i18n.t('gameOver.finalScore', { score: finalScore.toLocaleString('ko-KR') }),
       style: {
         fontFamily: 'NeoDunggeunmo',
         fontSize: 36,
@@ -2230,7 +2230,7 @@ export class OverworldGameScene extends BaseGameScene {
 
       // Analytics: 승리 이벤트 추적
       // 보스 처치 + Soul 획득 = 게임 승리
-      const finalScore = this.player.getTotalXP();
+      const finalScore = Math.floor(this.player.getTotalXP());
       GameAnalytics.trackGameEnd('victory', {
         survived_seconds: Math.floor(this.gameTime),
         level: this.player.getLevel(),
@@ -2246,7 +2246,7 @@ export class OverworldGameScene extends BaseGameScene {
       };
 
       // 토스 리더보드에 점수 제출
-      void safeSubmitGameCenterLeaderBoardScore(finalScore.toString());
+      void safeSubmitGameCenterLeaderBoardScore(Math.floor(finalScore).toString());
 
       // 플레이어 UI 다시 표시
       if (this.xpBarContainer) {
