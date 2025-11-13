@@ -182,13 +182,14 @@ export class FireballProjectile extends Container {
       return true;
     }
 
-    // 월드 좌표에서 더 넓은 범위 허용 (카메라가 움직이므로)
-    const worldBoundary = 3000; // 월드 경계를 3000으로 설정
+    // 월드 크기(3200x2400)보다 넓은 범위 허용 - 맵 밖으로 충분히 나갔을 때만 제거
+    const worldBoundaryX = 3500; // 월드 가로(3200) + 여유(300)
+    const worldBoundaryY = 2700; // 월드 세로(2400) + 여유(300)
     return (
-      this.x < -worldBoundary ||
-      this.x > worldBoundary ||
-      this.y < -worldBoundary ||
-      this.y > worldBoundary
+      this.x < -worldBoundaryX ||
+      this.x > worldBoundaryX * 2 ||
+      this.y < -worldBoundaryY ||
+      this.y > worldBoundaryY * 2
     );
   }
 
