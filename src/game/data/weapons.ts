@@ -16,12 +16,22 @@ export type WeaponType =
   | 'purifying_water';
 
 /**
+ * 무기 카테고리 (무기는 여러 카테고리에 속할 수 있음)
+ */
+export type WeaponCategory =
+  | 'projectile' // 투사체: 직선으로 날아가는 원거리 공격
+  | 'area' // 범위: 넓은 범위에 피해를 주는 공격
+  | 'melee' // 근접: 플레이어 근처에서 접촉 시 피해
+  | 'spell'; // 주문: 마법 기반 공격
+
+/**
  * 무기 데이터 인터페이스
  */
 export interface WeaponData {
   id: WeaponType;
   name: string;
   description: string;
+  categories: WeaponCategory[]; // 무기가 속한 카테고리들 (다중 가능)
   baseDamage: number;
   baseCooldown: number;
   projectileSpeed?: number;
@@ -45,6 +55,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
     id: 'talisman',
     name: '부적',
     description: '가장 가까운 적을 자동으로 추적하는 부적',
+    categories: ['projectile'],
     baseDamage: WEAPON_BALANCE.talisman.baseDamage,
     baseCooldown: WEAPON_BALANCE.talisman.baseCooldown,
     projectileSpeed: WEAPON_BALANCE.talisman.projectileSpeed,
@@ -59,6 +70,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
     id: 'dokkaebi_fire',
     name: '도깨비불',
     description: '3방향으로 빠르게 발사되는 작은 불꽃',
+    categories: ['area', 'spell'],
     baseDamage: WEAPON_BALANCE.dokkaebi_fire.baseDamage,
     baseCooldown: WEAPON_BALANCE.dokkaebi_fire.baseCooldown,
     projectileSpeed: WEAPON_BALANCE.dokkaebi_fire.projectileSpeed,
@@ -73,6 +85,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
     id: 'moktak_sound',
     name: '목탁 소리',
     description: '플레이어 주변의 모든 적에게 피해를 입히는 소리 파동',
+    categories: ['area'],
     baseDamage: WEAPON_BALANCE.moktak_sound.baseDamage,
     baseCooldown: WEAPON_BALANCE.moktak_sound.baseCooldown,
     aoeRadius: WEAPON_BALANCE.moktak_sound.aoeRadius,
@@ -85,6 +98,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
     id: 'jakdu_blade',
     name: '작두날',
     description: '강력한 데미지와 높은 관통력을 가진 회전하는 칼날',
+    categories: ['area', 'melee'],
     baseDamage: WEAPON_BALANCE.jakdu_blade.baseDamage,
     baseCooldown: WEAPON_BALANCE.jakdu_blade.baseCooldown,
     projectileSpeed: WEAPON_BALANCE.jakdu_blade.projectileSpeed,
@@ -99,6 +113,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
     id: 'fan_wind',
     name: '부채바람',
     description: '부채 모양으로 바람을 날려 사거리 내 모든 적을 관통한다',
+    categories: ['projectile', 'area'],
     baseDamage: WEAPON_BALANCE.fan_wind.baseDamage,
     baseCooldown: WEAPON_BALANCE.fan_wind.baseCooldown,
     projectileSpeed: WEAPON_BALANCE.fan_wind.projectileSpeed,
@@ -113,6 +128,7 @@ export const WEAPON_DATA: Record<WeaponType, WeaponData> = {
     id: 'purifying_water',
     name: '정화수',
     description: '가까운 적의 위치에 정화수를 투척하여 범위 피해를 준다',
+    categories: ['area'],
     baseDamage: WEAPON_BALANCE.purifying_water.baseDamage,
     baseCooldown: WEAPON_BALANCE.purifying_water.baseCooldown,
     projectileRadius: WEAPON_BALANCE.purifying_water.projectileRadius,

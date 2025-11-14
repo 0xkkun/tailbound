@@ -25,6 +25,12 @@
     "selected": "선택: {{choiceId}}"
   },
   "weapons": {
+    "categories": {
+      "projectile": "투사체",
+      "area": "범위",
+      "melee": "근접",
+      "spell": "주문"
+    },
     "talisman": {
       "name": "부적",
       "description": "자동으로 가장 가까운 적을 추적하는 부적을 발사합니다."
