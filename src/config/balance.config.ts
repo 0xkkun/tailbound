@@ -62,7 +62,7 @@ export const FIELD_ENEMY_BALANCE = {
   medium: {
     health: 105, // 30 * 3.5
     speed: 100,
-    damage: 35, // 10 * 3.5
+    damage: 30, // 10 * 3.5
     radius: 30,
     xpDrop: 25,
     animationSpeed: 0.15,
@@ -70,7 +70,7 @@ export const FIELD_ENEMY_BALANCE = {
   high: {
     health: 450,
     speed: 100,
-    damage: 75,
+    damage: 55,
     radius: 30,
     xpDrop: 100,
     animationSpeed: 0.2,
@@ -78,55 +78,84 @@ export const FIELD_ENEMY_BALANCE = {
 } as const;
 
 /**
- * 네임드 밸런스 (향후 구현)
+ * 네임드 밸런스 (시간대별 강화)
+ * 보스 체력 3배 증가에 맞춰 재조정
+ * 공격력은 보스보다 낮게 유지 (보스 데미지 60)
+ * - low: 3분 스폰 (기본)
+ * - medium: 6분 스폰 (중간 강화)
+ * - high: 9분 스폰 (최대 강화)
  */
 export const NAMED_ENEMY_BALANCE = {
-  dokkaebi_captain: {
-    health: 500,
-    speed: 95,
-    damage: 35,
-    radius: 50,
-    xpDrop: 200,
+  // 3분 스폰 (기본)
+  low: {
+    health: 1600, // 800 * 2
+    speed: 85,
+    damage: 40,
+    radius: 45,
+    xpDrop: 300,
     animationSpeed: 0.18,
     knockbackResistance: 0.5,
+    projectileDamage: 20,
+    attackCooldown: 2.0, // 기본 공격 쿨타임
+    burstCooldown: 8.0, // 5연발 공격 쿨타임
+    radialCooldown: 12.0, // 원형 공격 쿨타임
   },
-  ghost_general: {
-    health: 600,
-    speed: 80,
-    damage: 40,
-    radius: 48,
-    xpDrop: 250,
-    animationSpeed: 0.15,
-    knockbackResistance: 0.6,
-  },
-  fox_elder: {
-    health: 550,
+  // 6분 스폰 (중간 강화)
+  medium: {
+    health: 2080, // 800 * 2.6
     speed: 90,
-    damage: 38,
-    radius: 46,
-    xpDrop: 220,
-    animationSpeed: 0.17,
-    knockbackResistance: 0.55,
-  },
-  reaper_commander: {
-    health: 700,
-    speed: 120,
-    damage: 45,
-    radius: 52,
-    xpDrop: 300,
+    damage: 60,
+    radius: 45,
+    xpDrop: 390,
     animationSpeed: 0.2,
+    knockbackResistance: 0.6,
+    projectileDamage: 25,
+    attackCooldown: 1.7,
+    burstCooldown: 7.0,
+    radialCooldown: 10.5,
+  },
+  // 9분 스폰 (최대 강화)
+  high: {
+    health: 2560, // 800 * 3.2
+    speed: 95,
+    damage: 75, // 보스(60)보다 낮게
+    radius: 45,
+    xpDrop: 480,
+    animationSpeed: 0.22,
     knockbackResistance: 0.7,
+    projectileDamage: 30, // 보스보다 약하게
+    attackCooldown: 1.4,
+    burstCooldown: 6.0,
+    radialCooldown: 9.0,
   },
 } as const;
+
+/**
+ * 네임드 스폰 타이밍 (초 단위)
+ */
+export const NAMED_SPAWN_TIMES = [180, 360, 540] as const; // 3분, 6분, 9분
+
+/**
+ * 게임 시간에 따라 네임드 밸런스 티어 선택
+ */
+export function getNamedBalancePhase(gameTime: number): 'low' | 'medium' | 'high' {
+  if (gameTime < NAMED_SPAWN_TIMES[1]) {
+    return 'low'; // 3분
+  } else if (gameTime < NAMED_SPAWN_TIMES[2]) {
+    return 'medium'; // 6분
+  } else {
+    return 'high'; // 9분
+  }
+}
 
 /**
  * 보스 밸런스
  */
 export const BOSS_BALANCE = {
   white_tiger: {
-    health: 75000, // 2.5분 전투 목표 (평균 DPS 500 기준, 150초)
-    speed: 90, // 플레이어보다 느리지만 위협적
-    damage: 60, // 접촉 데미지 (플레이어 체력의 1/3~1/2)
+    health: 225000, // 3배 증가 (75000 * 3) - 7.5분 전투 목표
+    speed: 100, // 플레이어보다 느리지만 위협적
+    damage: 80, // 접촉 데미지 (플레이어 체력의 1/3~1/2)
     radius: 110, // 보스 히트박스 (스프라이트 288px의 약 40% 크기)
     xpDrop: 0, // 보스는 경험치를 주지 않음 (특별 보상 제공)
     animationSpeed: 0.15,
