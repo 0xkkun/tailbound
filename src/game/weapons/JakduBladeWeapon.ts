@@ -30,7 +30,6 @@ export class JakduBladeWeapon extends Weapon {
   /**
    * 공격 체크 (타이밍에 맞춰 애니메이션 재생)
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public fire(_playerPos: Vector2, _enemies: BaseEnemy[], player?: Player): never[] {
     if (!this.canFire()) {
       return [];

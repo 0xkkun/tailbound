@@ -80,6 +80,9 @@ export class LevelUpUI extends Container {
   // 콜백
   public onChoiceSelected?: (choiceId: string) => void;
 
+  // Promise resolver for awaiting user selection
+  private selectionResolver?: (choiceId: string) => void;
+
   constructor() {
     super();
 
@@ -276,7 +279,7 @@ export class LevelUpUI extends Container {
   }
 
   /**
-   * 선택지 표시
+   * 선택지 표시 (사용자 선택을 기다림)
    */
   public async show(
     choices: LevelUpChoice[],
@@ -284,7 +287,7 @@ export class LevelUpUI extends Container {
     acquiredPowerups?: Map<string, number>,
     powerupTotalValues?: Map<string, number>,
     powerupDisplayIds?: Map<string, string>
-  ): Promise<void> {
+  ): Promise<string> {
     // RIDIBatang 폰트 로드 대기 (생성자에서 시작된 로드가 완료될 때까지)
     if (LevelUpUI.fontLoadPromise) {
       await LevelUpUI.fontLoadPromise;
@@ -325,6 +328,11 @@ export class LevelUpUI extends Container {
     setTimeout(() => {
       this.isInputBlocked = false;
     }, LevelUpUI.INPUT_BLOCK_DELAY);
+
+    // Promise를 생성하여 사용자 선택을 기다림
+    return new Promise<string>((resolve) => {
+      this.selectionResolver = resolve;
+    });
   }
 
   /**
@@ -333,6 +341,12 @@ export class LevelUpUI extends Container {
   public hide(): void {
     this.visible = false;
     this.clearCards();
+
+    // 메모리 릭 방지: pending Promise 정리
+    if (this.selectionResolver) {
+      console.warn('[LevelUpUI] UI hidden without user selection - cleaning up pending Promise');
+      this.selectionResolver = undefined;
+    }
   }
 
   /**
@@ -855,16 +869,23 @@ export class LevelUpUI extends Container {
    * 선택 처리
    */
   private selectChoice(choiceId: string): void {
-    // 입력 블록 중이면 무시 (오선택 방지)
-    if (this.isInputBlocked) {
+    // 입력 블록 중이거나 이미 처리된 경우 무시 (중복 호출 방지)
+    if (this.isInputBlocked || !this.selectionResolver) {
       return;
     }
+
+    // 즉시 resolver를 제거하여 중복 호출 완전 차단
+    const resolver = this.selectionResolver;
+    this.selectionResolver = undefined;
 
     // Analytics: 레벨업 선택 추적
     const choiceType = choiceId.startsWith('weapon_') ? 'weapon' : 'powerup';
     GameAnalytics.trackLevelUpChoice(choiceType, choiceId, this.playerLevel);
 
-    // 콜백 호출
+    // Promise resolver 호출 (await show()를 해제)
+    resolver(choiceId);
+
+    // 콜백 호출 (기존 방식과의 호환성 유지)
     this.onChoiceSelected?.(choiceId);
 
     // UI 숨김
@@ -1003,6 +1024,12 @@ export class LevelUpUI extends Container {
    * 정리
    */
   public destroy(): void {
+    // 메모리 릭 방지: pending Promise 정리
+    if (this.selectionResolver) {
+      console.warn('[LevelUpUI] Destroyed with pending Promise - cleaning up');
+      this.selectionResolver = undefined;
+    }
+
     this.clearCards();
     this.overlay?.destroy();
     this.backgroundBox?.destroy();

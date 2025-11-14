@@ -70,6 +70,13 @@ export class ArtifactSystem {
   }
 
   /**
+   * 활성 유물 목록 반환
+   */
+  public getActiveArtifacts(): IArtifact[] {
+    return [...this.artifacts]; // 복사본 반환 (외부에서 수정 방지)
+  }
+
+  /**
    * 업데이트
    */
   public update(delta: number): void {

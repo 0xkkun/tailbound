@@ -5,6 +5,7 @@
 
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import { getDistanceSquared } from '@game/utils/collision';
+import type { LevelUpChoice } from '@systems/LevelSystem';
 import gsap from 'gsap';
 import { Graphics } from 'pixi.js';
 
@@ -38,6 +39,12 @@ export class TalryeongMaskArtifact extends BaseArtifact {
   private lastPathfindTime: number = 0;
   private cachedTarget: BaseEnemy | null = null;
   private readonly PATHFIND_INTERVAL = 0.1; // 100ms (10 FPS)
+
+  // 레벨업 큐 (버서커 중 레벨업 저장)
+  private pendingLevelUps: Array<{
+    level: number;
+    choices: LevelUpChoice[];
+  }> = [];
 
   constructor() {
     super({
@@ -289,6 +296,48 @@ export class TalryeongMaskArtifact extends BaseArtifact {
     if (this.player.setControlLocked) {
       this.player.setControlLocked(false);
     }
+
+    // 버서커 중 쌓인 레벨업 반환 (씬에서 처리)
+    this.flushPendingLevelUps();
+  }
+
+  /**
+   * 레벨업 큐에 추가 (버서커 중 호출)
+   */
+  public queueLevelUp(level: number, choices: LevelUpChoice[]): void {
+    this.pendingLevelUps.push({ level, choices });
+
+    if (import.meta.env.DEV) {
+      console.log(
+        `👹 [TalryeongMask] 레벨업 큐 추가: 레벨 ${level} (총 ${this.pendingLevelUps.length}개 대기)`
+      );
+    }
+  }
+
+  /**
+   * 쌓인 레벨업 처리 (버서커 종료 후)
+   */
+  private flushPendingLevelUps(): void {
+    if (this.pendingLevelUps.length === 0) return;
+
+    if (import.meta.env.DEV) {
+      console.log(`👹 [TalryeongMask] 버서커 종료 - ${this.pendingLevelUps.length}개 레벨업 처리`);
+    }
+
+    // 씬이 없으면 경고하고 큐만 비움
+    if (!this.scene) {
+      console.warn(
+        `👹 [TalryeongMask] 씬이 없어 레벨업 큐를 처리할 수 없습니다. (${this.pendingLevelUps.length}개 레벨업 손실)`
+      );
+      this.pendingLevelUps = [];
+      return;
+    }
+
+    // 씬의 onBerserkLevelUpsReady 콜백 호출
+    this.scene.onBerserkLevelUpsReady?.(this.pendingLevelUps);
+
+    // 큐 비우기
+    this.pendingLevelUps = [];
   }
 
   /**

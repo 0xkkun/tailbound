@@ -5,6 +5,7 @@
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import type { Player } from '@game/entities/Player';
 import type { ArtifactSystem } from '@systems/ArtifactSystem';
+import type { LevelUpChoice } from '@systems/LevelSystem';
 import type { Container } from 'pixi.js';
 
 /**
@@ -21,4 +22,7 @@ export interface IGameScene extends Container {
   // 화면 효과 (버서커 모드)
   startBerserkScreenEffect?: () => void;
   stopBerserkScreenEffect?: () => void;
+
+  // 버서커 모드 레벨업 큐 콜백
+  onBerserkLevelUpsReady?: (levelUps: Array<{ level: number; choices: LevelUpChoice[] }>) => void;
 }

@@ -53,9 +53,11 @@ import { GameAnalytics } from '@services/gameAnalytics';
 import { ArtifactSystem } from '@systems/ArtifactSystem';
 import { BossSystem } from '@systems/BossSystem';
 import { CombatSystem } from '@systems/CombatSystem';
+import type { LevelUpChoice } from '@systems/LevelSystem';
 import { PortalSpawner } from '@systems/PortalSpawner';
 import { SpawnSystem } from '@systems/SpawnSystem';
 import type { GameResult } from '@type/game.types';
+import type { IGameScene } from '@type/scene.types';
 import {
   isInTossApp,
   safeAnalyticsClick,
@@ -68,7 +70,7 @@ import { Assets, Container, Graphics, Sprite, Spritesheet, Text } from 'pixi.js'
 
 import { BaseGameScene } from './BaseGameScene';
 
-export class OverworldGameScene extends BaseGameScene {
+export class OverworldGameScene extends BaseGameScene implements IGameScene {
   // 엔티티
   public enemies: BaseEnemy[] = []; // IGameScene 인터페이스 구현
   private projectiles: Projectile[] = [];
@@ -128,6 +130,11 @@ export class OverworldGameScene extends BaseGameScene {
   private readonly BORDER_LEFT_WIDTH = 24 * 2; // 48px
   private readonly BORDER_RIGHT_WIDTH = 24 * 2; // 48px
   private readonly BORDER_BOTTOM_HEIGHT = 48 * 2; // 96px
+
+  // IGameScene 인터페이스 구현
+  public onBerserkLevelUpsReady?: (
+    levelUps: Array<{ level: number; choices: LevelUpChoice[] }>
+  ) => void;
 
   // UI 요소
   private scoreText!: Text;
@@ -479,37 +486,35 @@ export class OverworldGameScene extends BaseGameScene {
     this.player.onLevelUp = (level, choices) => {
       console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
 
-      // 현재 무기 레벨 정보를 선택지에 추가
-      const choicesWithLevel = choices.map((choice) => {
-        if (choice.type === 'weapon') {
-          // 현재 보유한 무기 찾기
-          const existingWeapon = this.weapons.find((w) => w.id === choice.id);
-          return {
-            ...choice,
-            currentLevel: existingWeapon ? existingWeapon.level : 0,
-          };
+      // 버서커 모드 중에는 레벨업 큐에 추가 (나중에 한번에 처리)
+      const talryeongMask = this.artifactSystem
+        .getActiveArtifacts()
+        .find((artifact) => artifact.data.id === 'talryeong_mask') as
+        | TalryeongMaskArtifact
+        | undefined;
+
+      if (talryeongMask?.isBerserkMode()) {
+        if (import.meta.env.DEV) {
+          console.log('👹 [Berserk] 레벨업 큐에 추가');
         }
-        // 파워업과 스탯은 현재 레벨 추적 미구현 (TODO)
-        return { ...choice, currentLevel: 0 };
-      });
-
-      // 획득한 파워업 목록 가져오기
-      const acquiredPowerups = this.player.getAcquiredPowerups();
-      const powerupTotalValues = this.player.getPowerupTotalValues();
-      const powerupDisplayIds = this.player.getPowerupDisplayIds();
-
-      // 조이스틱 상태 리셋 (레벨업 UI 표시 전)
-      if (this.virtualJoystick) {
-        this.virtualJoystick.reset();
+        talryeongMask.queueLevelUp(level, choices);
+        return;
       }
-      // await는 콜백 함수를 async로 만들어야 하지만, 레벨업 UI는 비동기로 로드해도 무방
-      void this.levelUpUI.show(
-        choicesWithLevel,
-        level,
-        acquiredPowerups,
-        powerupTotalValues,
-        powerupDisplayIds
-      );
+
+      // 일반 레벨업 UI 표시
+      void this.showLevelUpUI(level, choices);
+    };
+
+    // 버서커 모드 종료 후 큐에 쌓인 레벨업 처리 콜백
+    this.onBerserkLevelUpsReady = (
+      levelUps: Array<{ level: number; choices: LevelUpChoice[] }>
+    ) => {
+      if (import.meta.env.DEV) {
+        console.log(`👹 [Berserk] 버서커 종료 - ${levelUps.length}개 레벨업 처리 시작`);
+      }
+
+      // 레벨업 UI를 순차적으로 표시
+      this.processLevelUpQueue(levelUps);
     };
 
     // 초기 무기: 부적
@@ -647,10 +652,8 @@ export class OverworldGameScene extends BaseGameScene {
     this.levelUpUI = new LevelUpUI();
     this.addChild(this.levelUpUI);
 
-    // 레벨업 UI 선택 콜백
-    this.levelUpUI.onChoiceSelected = (choiceId: string) => {
-      this.handleLevelUpChoice(choiceId);
-    };
+    // 레벨업 UI 선택 처리는 이제 showLevelUpUI()의 Promise를 통해 처리됨
+    // (onChoiceSelected 콜백은 LevelUpUI 내부에서 호환성을 위해 유지되지만 여기서는 사용하지 않음)
 
     // 포탈 인디케이터
     this.portalIndicator = new PortalIndicator();
@@ -1561,6 +1564,82 @@ export class OverworldGameScene extends BaseGameScene {
     // 조이스틱 상태 리셋 (레벨업 UI가 닫힌 후)
     if (this.virtualJoystick) {
       this.virtualJoystick.reset();
+    }
+  }
+
+  /**
+   * 선택지에 현재 레벨 정보 추가 (무기만 해당)
+   */
+  private enrichChoicesWithLevel(choices: LevelUpChoice[]): LevelUpChoice[] {
+    return choices.map((choice) => {
+      if (choice.type === 'weapon') {
+        const existingWeapon = this.weapons.find((w) => w.id === choice.id);
+        return {
+          ...choice,
+          currentLevel: existingWeapon ? existingWeapon.level : 0,
+        };
+      }
+      return { ...choice, currentLevel: 0 };
+    });
+  }
+
+  /**
+   * 레벨업 UI 표시 (공통 로직) - 사용자 선택을 기다리고 선택 처리
+   */
+  private async showLevelUpUI(level: number, choices: LevelUpChoice[]): Promise<void> {
+    const choicesWithLevel = this.enrichChoicesWithLevel(choices);
+    const acquiredPowerups = this.player.getAcquiredPowerups();
+    const powerupTotalValues = this.player.getPowerupTotalValues();
+    const powerupDisplayIds = this.player.getPowerupDisplayIds();
+
+    // 조이스틱 상태 리셋
+    if (this.virtualJoystick) {
+      this.virtualJoystick.reset();
+    }
+
+    // await로 사용자 선택을 기다리고, 선택된 ID를 받음
+    const choiceId = await this.levelUpUI.show(
+      choicesWithLevel,
+      level,
+      acquiredPowerups,
+      powerupTotalValues,
+      powerupDisplayIds
+    );
+
+    // 사용자가 선택한 파워업/무기 처리
+    this.handleLevelUpChoice(choiceId);
+  }
+
+  /**
+   * 버서커 모드 종료 후 큐에 쌓인 레벨업들을 순차적으로 처리
+   */
+  private async processLevelUpQueue(
+    levelUps: Array<{ level: number; choices: LevelUpChoice[] }>
+  ): Promise<void> {
+    let successCount = 0;
+    let failureCount = 0;
+    const failedLevels: number[] = [];
+
+    for (const levelUpData of levelUps) {
+      try {
+        await this.showLevelUpUI(levelUpData.level, levelUpData.choices);
+        successCount++;
+      } catch (error) {
+        failureCount++;
+        failedLevels.push(levelUpData.level);
+        console.error(`❌ [Berserk] 레벨업 UI 표시 실패 (레벨 ${levelUpData.level}):`, error);
+        // 에러가 발생해도 다음 레벨업 계속 처리
+      }
+    }
+
+    if (import.meta.env.DEV) {
+      if (failureCount > 0) {
+        console.warn(
+          `👹 [Berserk] 레벨업 처리 완료: 성공 ${successCount}개, 실패 ${failureCount}개 (실패 레벨: ${failedLevels.join(', ')})`
+        );
+      } else {
+        console.log(`👹 [Berserk] ${levelUps.length}개 레벨업 모두 성공적으로 처리 완료`);
+      }
     }
   }
 
