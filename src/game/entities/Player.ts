@@ -70,9 +70,19 @@ export class Player extends Container {
   // 입력 상태
   private currentInput: InputState = { x: 0, y: 0 };
   private lastMovingState: boolean = false;
+  private controlLocked: boolean = false; // 조작 불가 상태 (유물: 탈령의 가면)
+
+  // 버서커 모드 UI
+  private berserkTimerBar: Graphics | null = null; // 버서커 타이머 바
+  private originalHealthBarVisible: boolean = false; // 원래 체력바 표시 상태 저장
 
   // 마지막 이동 방향 (작두 같은 무기가 바라보는 방향으로 사용)
   public lastDirection: { x: number; y: number } = { x: 1, y: 0 }; // 기본: 오른쪽
+
+  // 임시 스탯 배율 (유물 등으로 일시적 버프)
+  private tempDamageMultiplier: number = 1.0;
+  private tempSpeedMultiplier: number = 1.0;
+  private tempCooldownMultiplier: number = 1.0;
 
   // 무적 시간 (피격 후)
   private invincibleTime: number = 0;
@@ -251,8 +261,126 @@ export class Player extends Container {
   /**
    * 입력 설정
    */
-  public setInput(input: InputState): void {
+  public setInput(input: InputState, force: boolean = false): void {
+    // 조작 불가 상태면 입력 무시 (force가 true면 강제 설정)
+    if (this.controlLocked && !force) {
+      console.log(
+        `🚫 [Player] Input blocked (controlLocked=${this.controlLocked}, force=${force})`
+      );
+      return; // currentInput을 건드리지 않고 그냥 종료 (AI가 설정한 값 유지)
+    }
     this.currentInput = input;
+    if (force) {
+      console.log(
+        `✅ [Player] Input forced: (${input.x.toFixed(2)}, ${input.y.toFixed(2)}), currentInput: (${this.currentInput.x.toFixed(2)}, ${this.currentInput.y.toFixed(2)})`
+      );
+    }
+  }
+
+  /**
+   * 조작 불가 상태 설정 (유물: 탈령의 가면)
+   */
+  public setControlLocked(locked: boolean): void {
+    this.controlLocked = locked;
+    if (locked) {
+      // 조작 불가 시 입력 초기화
+      this.currentInput = { x: 0, y: 0 };
+    }
+  }
+
+  /**
+   * 조작 불가 상태 확인
+   */
+  public isControlLocked(): boolean {
+    return this.controlLocked;
+  }
+
+  /**
+   * 버서커 모드 타이머 바 표시 (체력바 대신)
+   */
+  public showBerserkTimer(remainingTime: number, maxTime: number): void {
+    // 원래 체력바 상태 저장 후 숨김
+    if (!this.berserkTimerBar) {
+      this.originalHealthBarVisible = this.healthBarBg.visible;
+      this.healthBarBg.visible = false;
+      this.healthBarFill.visible = false;
+    }
+
+    const healthBarWidth = this.radius * 2;
+    const healthBarHeight = GAME_CONFIG.ui.healthBarHeight;
+    const healthBarY = -this.radius - GAME_CONFIG.ui.healthBarOffset;
+
+    // 타이머 바 생성 또는 업데이트
+    if (!this.berserkTimerBar) {
+      this.berserkTimerBar = new Graphics();
+      this.addChild(this.berserkTimerBar);
+    }
+
+    this.berserkTimerBar.clear();
+
+    // 배경 (어두운 빨강)
+    this.berserkTimerBar.rect(-healthBarWidth / 2, healthBarY, healthBarWidth, healthBarHeight);
+    this.berserkTimerBar.fill({ color: 0x660000 });
+
+    // 채움 (밝은 빨강, 시간에 따라 감소)
+    const fillWidth = (remainingTime / maxTime) * healthBarWidth;
+    this.berserkTimerBar.rect(-healthBarWidth / 2, healthBarY, fillWidth, healthBarHeight);
+    this.berserkTimerBar.fill({ color: 0xff0000 });
+  }
+
+  /**
+   * 버서커 모드 타이머 바 제거 (체력바 복구)
+   */
+  public hideBerserkTimer(): void {
+    if (this.berserkTimerBar) {
+      this.berserkTimerBar.destroy();
+      this.berserkTimerBar = null;
+    }
+
+    // 원래 체력바 상태 복구
+    this.healthBarBg.visible = this.originalHealthBarVisible;
+    this.healthBarFill.visible = this.originalHealthBarVisible;
+    this.updateHealthBar(); // 체력바 갱신
+  }
+
+  /**
+   * 임시 스탯 배율 적용 (유물: 탈령의 가면)
+   */
+  public applyStatMultipliers(multipliers: {
+    damage?: number;
+    moveSpeed?: number;
+    cooldown?: number;
+  }): void {
+    if (multipliers.damage !== undefined) {
+      this.tempDamageMultiplier = multipliers.damage;
+    }
+    if (multipliers.moveSpeed !== undefined) {
+      this.tempSpeedMultiplier = multipliers.moveSpeed;
+    }
+    if (multipliers.cooldown !== undefined) {
+      this.tempCooldownMultiplier = multipliers.cooldown;
+    }
+  }
+
+  /**
+   * 최종 데미지 배율 계산 (기본 + 임시)
+   */
+  public getFinalDamageMultiplier(): number {
+    return this.damageMultiplier * this.tempDamageMultiplier;
+  }
+
+  /**
+   * 최종 이동속도 배율 계산 (기본 + 임시)
+   */
+  public getFinalSpeedMultiplier(): number {
+    return this.speedMultiplier * this.tempSpeedMultiplier;
+  }
+
+  /**
+   * 최종 쿨다운 배율 계산 (기본 + 임시)
+   */
+  public getFinalCooldownMultiplier(): number {
+    return this.cooldownMultiplier * this.tempCooldownMultiplier;
   }
 
   /**
@@ -516,17 +644,18 @@ export class Player extends Container {
    */
   public rollCritical(): { isCritical: boolean; damageMultiplier: number } {
     const isCritical = Math.random() < this.criticalRate;
+    const finalDamage = this.getFinalDamageMultiplier(); // 기본 + 임시 배율
     if (isCritical) {
       // 치명타 텍스트 표시
       this.showFloatingText('치명타!', 0xff0000, 18);
       return {
         isCritical: true,
-        damageMultiplier: this.damageMultiplier * this.criticalDamage,
+        damageMultiplier: finalDamage * this.criticalDamage,
       };
     }
     return {
       isCritical: false,
-      damageMultiplier: this.damageMultiplier,
+      damageMultiplier: finalDamage,
     };
   }
 
@@ -668,10 +797,18 @@ export class Player extends Container {
       const directionX = inputLength > 0 ? this.currentInput.x / inputLength : 0;
       const directionY = inputLength > 0 ? this.currentInput.y / inputLength : 0;
 
-      // 스피드 배율 적용 (방향만 사용하므로 항상 동일한 속도)
-      const effectiveSpeed = this.speed * this.speedMultiplier;
+      // 스피드 배율 적용 (기본 + 임시)
+      const effectiveSpeed = this.speed * this.getFinalSpeedMultiplier();
+      const oldX = this.x;
+      const oldY = this.y;
       this.x += directionX * effectiveSpeed * deltaTime;
       this.y += directionY * effectiveSpeed * deltaTime;
+
+      if (this.controlLocked) {
+        console.log(
+          `🎮 [Player] Moving! input:(${this.currentInput.x.toFixed(2)}, ${this.currentInput.y.toFixed(2)}), dir:(${directionX.toFixed(2)}, ${directionY.toFixed(2)}), speed:${effectiveSpeed.toFixed(1)}, delta:${deltaTime.toFixed(3)}, moved:(${(this.x - oldX).toFixed(1)}, ${(this.y - oldY).toFixed(1)})`
+        );
+      }
 
       // 마지막 이동 방향 저장
       this.lastDirection = { x: directionX, y: directionY };

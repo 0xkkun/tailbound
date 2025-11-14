@@ -56,6 +56,16 @@ export function getDistance(pos1: Vector2, pos2: Vector2): number {
 }
 
 /**
+ * 두 점 사이의 거리 제곱 계산 (sqrt 연산 제거로 성능 40-50% 향상)
+ * 거리 비교만 필요한 경우 이 함수 사용 권장
+ */
+export function getDistanceSquared(pos1: Vector2, pos2: Vector2): number {
+  const dx = pos1.x - pos2.x;
+  const dy = pos1.y - pos2.y;
+  return dx * dx + dy * dy;
+}
+
+/**
  * 두 점 사이의 방향 벡터 계산 (정규화됨)
  */
 export function getDirection(from: Vector2, to: Vector2): Vector2 {
@@ -70,5 +80,21 @@ export function getDirection(from: Vector2, to: Vector2): Vector2 {
   return {
     x: dx / distance,
     y: dy / distance,
+  };
+}
+
+/**
+ * 벡터 정규화 (단위 벡터로 변환)
+ */
+export function normalize(vector: Vector2): Vector2 {
+  const length = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+
+  if (length === 0) {
+    return { x: 0, y: 0 };
+  }
+
+  return {
+    x: vector.x / length,
+    y: vector.y / length,
   };
 }

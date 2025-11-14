@@ -6,6 +6,7 @@ import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
 import { ExecutionerAxeArtifact } from '@game/artifacts/list/ExecutionerAxeArtifact';
 import { FoxTearArtifact } from '@game/artifacts/list/FoxTearArtifact';
+import { TalryeongMaskArtifact } from '@game/artifacts/list/TalryeongMaskArtifact';
 import { WEAPON_DATA } from '@game/data/weapons';
 import { AoEEffect } from '@game/entities/AoEEffect';
 import {
@@ -466,9 +467,13 @@ export class OverworldGameScene extends BaseGameScene {
     this.artifactSystem = new ArtifactSystem(this.player, this);
     const foxTear = new FoxTearArtifact();
     const executionerAxe = new ExecutionerAxeArtifact();
+    const talryeongMask = new TalryeongMaskArtifact();
     this.artifactSystem.add(foxTear);
     this.artifactSystem.add(executionerAxe);
-    console.log('[OverworldGameScene] 🦊 FoxTear & ⚔️ ExecutionerAxe 테스트 모드 활성화');
+    this.artifactSystem.add(talryeongMask);
+    console.log(
+      '[OverworldGameScene] 🦊 FoxTear & ⚔️ ExecutionerAxe & 👹 TalryeongMask 테스트 모드 활성화'
+    );
 
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
@@ -520,6 +525,8 @@ export class OverworldGameScene extends BaseGameScene {
 
     // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
     this.combatSystem.onEnemyKilled = (result) => {
+      // 유물 시스템: onKill 트리거
+      this.artifactSystem.triggerKill(result.enemy);
       // 경험치 양에 따라 적절한 스프라이트시트 선택
       let spritesheet: Spritesheet;
       if (result.xpValue >= 100) {
@@ -960,6 +967,9 @@ export class OverworldGameScene extends BaseGameScene {
               // 체력 포션 드랍 확률
               const dropPotion = Math.random() < POTION_BALANCE.dropRate;
 
+              // 유물 시스템: onKill 트리거 (AoE)
+              this.artifactSystem.triggerKill(enemy);
+
               this.combatSystem.onEnemyKilled?.({
                 enemy,
                 position: { x: enemy.x, y: enemy.y },
@@ -1063,6 +1073,9 @@ export class OverworldGameScene extends BaseGameScene {
             // 체력 포션 드랍 확률
             const dropPotion = Math.random() < POTION_BALANCE.dropRate;
 
+            // 유물 시스템: onKill 트리거 (Melee)
+            this.artifactSystem.triggerKill(enemy);
+
             this.combatSystem.onEnemyKilled?.({
               enemy,
               position: { x: enemy.x, y: enemy.y },
@@ -1114,6 +1127,9 @@ export class OverworldGameScene extends BaseGameScene {
 
                   // 체력 포션 드랍 확률
                   const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
+                  // 유물 시스템: onKill 트리거 (Orbital)
+                  this.artifactSystem.triggerKill(enemy);
 
                   this.combatSystem.onEnemyKilled?.({
                     enemy,
@@ -1178,6 +1194,9 @@ export class OverworldGameScene extends BaseGameScene {
 
                 // 체력 포션 드랍 확률
                 const dropPotion = Math.random() < POTION_BALANCE.dropRate;
+
+                // 유물 시스템: onKill 트리거 (Jakdu)
+                this.artifactSystem.triggerKill(enemy);
 
                 this.combatSystem.onEnemyKilled?.({
                   enemy,

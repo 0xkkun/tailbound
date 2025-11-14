@@ -64,9 +64,12 @@ export abstract class Weapon {
 
   /**
    * 쿨다운 리셋
+   * @param player 플레이어 (쿨다운 배율 적용용)
    */
-  protected resetCooldown(): void {
-    this.cooldownTimer = this.cooldown;
+  protected resetCooldown(player?: Player): void {
+    // 플레이어 쿨다운 배율 적용 (기본 + 임시)
+    const cooldownMultiplier = player?.getFinalCooldownMultiplier?.() ?? 1.0;
+    this.cooldownTimer = this.cooldown * cooldownMultiplier;
   }
 
   /**

@@ -90,7 +90,7 @@ export class FanWindWeapon extends Weapon {
       projectiles.push(projectile);
     }
 
-    this.resetCooldown();
+    this.resetCooldown(player);
     return projectiles;
   }
 

@@ -6,11 +6,12 @@ import { CDN_BASE_URL } from '@config/assets.config';
 import { GAME_CONFIG } from '@config/game.config';
 import { Player } from '@game/entities/Player';
 import { VirtualJoystick } from '@game/ui/VirtualJoystick';
+import { normalize } from '@game/utils/collision';
 import type { PlayerSnapshot } from '@hooks/useGameState';
 import { CameraSystem } from '@systems/CameraSystem';
 import type { InputState } from '@type/game.types';
 import { platform } from '@utils/platform';
-import { Assets, Container } from 'pixi.js';
+import { Assets, Container, Graphics } from 'pixi.js';
 
 export interface BaseGameSceneConfig {
   screenWidth: number;
@@ -46,6 +47,10 @@ export abstract class BaseGameScene extends Container {
   // 게임 루프
   private gameLoopId?: number;
   private lastTime: number = 0;
+
+  // 화면 효과 (버서커 모드)
+  private redOverlay?: Container;
+  private cameraShake: { x: number; y: number; intensity: number } = { x: 0, y: 0, intensity: 0 };
 
   // 준비 상태
   protected isReady: boolean = false;
@@ -212,14 +217,8 @@ export abstract class BaseGameScene extends Container {
     if (this.keys.has('w') || this.keys.has('arrowup')) y -= 1;
     if (this.keys.has('s') || this.keys.has('arrowdown')) y += 1;
 
-    // 정규화
-    if (x !== 0 || y !== 0) {
-      const length = Math.sqrt(x * x + y * y);
-      x /= length;
-      y /= length;
-    }
-
-    return { x, y };
+    // 정규화 (대각선 이동 속도 보정)
+    return normalize({ x, y });
   }
 
   /**
@@ -249,8 +248,14 @@ export abstract class BaseGameScene extends Container {
     // 씬별 업데이트 (플레이어 이동 제어 포함)
     await this.updateScene(deltaTime);
 
-    // 카메라는 항상 업데이트
-    this.cameraSystem.followTarget(this.player.x, this.player.y);
+    // 카메라 흔들림 업데이트
+    this.updateCameraShake(deltaTime);
+
+    // 카메라는 항상 업데이트 (흔들림 포함)
+    this.cameraSystem.followTarget(
+      this.player.x + this.cameraShake.x,
+      this.player.y + this.cameraShake.y
+    );
     this.cameraSystem.applyToContainer(this.gameLayer);
   }
 
@@ -263,8 +268,13 @@ export abstract class BaseGameScene extends Container {
       this.virtualJoystick.update();
     }
 
-    const input = this.getInputState();
-    this.player.setInput(input);
+    // 조작 불가 상태가 아닐 때만 사용자 입력 적용
+    // (버서커 모드 등에서 AI가 컨트롤할 때는 사용자 입력을 아예 호출하지 않음)
+    if (!this.player.isControlLocked()) {
+      const input = this.getInputState();
+      this.player.setInput(input);
+    }
+
     this.player.update(deltaTime);
 
     // 월드 경계 제한
@@ -300,6 +310,59 @@ export abstract class BaseGameScene extends Container {
    */
   public getPlayer(): Player {
     return this.player;
+  }
+
+  /**
+   * 버서커 모드 화면 효과 시작 (레드 오버레이 + 카메라 쉐이크)
+   */
+  public startBerserkScreenEffect(): void {
+    // 레드 오버레이 생성
+    if (!this.redOverlay) {
+      this.redOverlay = new Container();
+      const overlay = new Graphics();
+      overlay.rect(0, 0, this.screenWidth, this.screenHeight);
+      overlay.fill({ color: 0xff0000, alpha: 0.2 }); // 붉은색 20% 투명도
+      this.redOverlay.addChild(overlay);
+      this.redOverlay.zIndex = 9999; // 최상위 레이어
+      this.uiLayer.addChild(this.redOverlay);
+    }
+
+    // 카메라 쉐이크 활성화
+    this.cameraShake.intensity = 5; // 흔들림 강도
+  }
+
+  /**
+   * 버서커 모드 화면 효과 종료
+   */
+  public stopBerserkScreenEffect(): void {
+    // 레드 오버레이 제거
+    if (this.redOverlay) {
+      this.uiLayer.removeChild(this.redOverlay);
+      this.redOverlay.destroy({ children: true });
+      this.redOverlay = undefined;
+    }
+
+    // 카메라 쉐이크 비활성화
+    this.cameraShake.intensity = 0;
+    this.cameraShake.x = 0;
+    this.cameraShake.y = 0;
+  }
+
+  /**
+   * 카메라 쉐이크 업데이트
+   */
+  private updateCameraShake(deltaTime: number): void {
+    if (this.cameraShake.intensity > 0) {
+      // 랜덤한 방향으로 흔들림
+      const angle = Math.random() * Math.PI * 2;
+      this.cameraShake.x = Math.cos(angle) * this.cameraShake.intensity;
+      this.cameraShake.y = Math.sin(angle) * this.cameraShake.intensity;
+    } else {
+      this.cameraShake.x = 0;
+      this.cameraShake.y = 0;
+    }
+
+    void deltaTime; // 미사용 경고 제거
   }
 
   /**

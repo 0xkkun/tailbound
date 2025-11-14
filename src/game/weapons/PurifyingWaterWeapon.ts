@@ -112,7 +112,7 @@ export class PurifyingWaterWeapon extends Weapon {
     this.bottles.push(...newBottles);
 
     // 쿨다운 리셋
-    this.resetCooldown();
+    this.resetCooldown(player);
 
     return newBottles;
   }

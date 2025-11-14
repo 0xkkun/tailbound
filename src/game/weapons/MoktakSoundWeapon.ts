@@ -89,7 +89,7 @@ export class MoktakSoundWeapon extends Weapon {
     // 틱 데미지 설정
     effect.setTickInterval(MOKTAK_CONSTANTS.TICK_INTERVAL);
 
-    this.resetCooldown();
+    this.resetCooldown(player);
 
     console.log(
       `🔔 목탁 소리 발동! (범위: ${finalRadius.toFixed(0)}px, 데미지: ${finalDamage.toFixed(1)})`

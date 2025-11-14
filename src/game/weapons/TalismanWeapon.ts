@@ -98,7 +98,7 @@ export class TalismanWeapon extends Weapon {
     }
 
     // 쿨다운 리셋
-    this.resetCooldown();
+    this.resetCooldown(player);
 
     return projectiles;
   }

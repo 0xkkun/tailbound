@@ -17,4 +17,8 @@ export interface IGameScene extends Container {
 
   // 시스템
   artifactSystem?: ArtifactSystem;
+
+  // 화면 효과 (버서커 모드)
+  startBerserkScreenEffect?: () => void;
+  stopBerserkScreenEffect?: () => void;
 }
