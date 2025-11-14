@@ -13,6 +13,7 @@ import {
   GrimReaperEnemy,
   MaidenGhostEnemy,
   MaskEnemy,
+  NamedEnemy,
   SkeletonEnemy,
   TotemEnemy,
   WaterGhostEnemy,
@@ -24,6 +25,7 @@ import { FireAOE } from '@game/entities/FireAOE';
 import { FireballProjectile } from '@game/entities/FireballProjectile';
 import { HealthPotion } from '@game/entities/HealthPotion';
 import { MeleeSwing } from '@game/entities/MeleeSwing';
+import { NamedProjectile } from '@game/entities/NamedProjectile';
 import { Player } from '@game/entities/Player';
 import { Portal } from '@game/entities/Portal';
 import { Projectile } from '@game/entities/Projectile';
@@ -48,6 +50,7 @@ import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
 import { BossSystem } from '@systems/BossSystem';
 import { CombatSystem } from '@systems/CombatSystem';
+import { NamedSpawnSystem } from '@systems/NamedSpawnSystem';
 import { PortalSpawner } from '@systems/PortalSpawner';
 import { SpawnSystem } from '@systems/SpawnSystem';
 import type { GameResult } from '@type/game.types';
@@ -85,6 +88,7 @@ export class OverworldGameScene extends BaseGameScene {
   // 시스템
   private combatSystem: CombatSystem;
   private spawnSystem: SpawnSystem;
+  private namedSpawnSystem!: NamedSpawnSystem; // initScene()에서 초기화
   private portalSpawner: PortalSpawner;
   private bossSystem?: BossSystem;
 
@@ -170,6 +174,7 @@ export class OverworldGameScene extends BaseGameScene {
       this.BORDER_RIGHT_WIDTH,
       this.BORDER_BOTTOM_HEIGHT
     );
+    // namedSpawnSystem은 initScene()에서 초기화 (player 생성 후)
     this.portalSpawner = new PortalSpawner();
   }
 
@@ -193,6 +198,8 @@ export class OverworldGameScene extends BaseGameScene {
       GrimReaperEnemy.preloadSprites(),
       TotemEnemy.preloadSprites(),
       WaterGhostEnemy.preloadSprites(),
+      NamedEnemy.preloadSprites(), // 네임드 몬스터
+      NamedProjectile.preloadSprite(), // 네임드 투사체
       Assets.load(`${CDN_BASE_URL}/assets/tile/tile1.png`), // 바닥 타일 1 (32x48)
       Assets.load(`${CDN_BASE_URL}/assets/tile/tile2.png`), // 바닥 타일 2 (32x48)
       Assets.load(`${CDN_BASE_URL}/assets/tile/tile3.png`), // 바닥 타일 3 (32x32)
@@ -457,6 +464,16 @@ export class OverworldGameScene extends BaseGameScene {
    * 씬 초기화 (BaseGameScene abstract 메서드 구현)
    */
   protected async initScene(): Promise<void> {
+    // 네임드 스폰 시스템 초기화 (player 생성 후)
+    this.namedSpawnSystem = new NamedSpawnSystem(
+      this.gameLayer,
+      this.player,
+      this.screenWidth,
+      this.screenHeight,
+      GAME_CONFIG.world.overworld.width,
+      GAME_CONFIG.world.overworld.height
+    );
+
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
       console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
@@ -1192,6 +1209,16 @@ export class OverworldGameScene extends BaseGameScene {
     const playerPos = { x: this.player.x, y: this.player.y };
     if (!this.bossSystem || !this.bossSystem.active) {
       this.spawnSystem.update(deltaTime, this.enemies, this.gameTime, playerPos);
+      // 네임드 몬스터 스폰 시스템 업데이트
+      this.namedSpawnSystem.update(deltaTime);
+
+      // 네임드 몬스터를 enemies 배열에 통합 (전투 시스템에서 처리)
+      const namedEnemies = this.namedSpawnSystem.getNamedEnemies();
+      for (const named of namedEnemies) {
+        if (!this.enemies.includes(named)) {
+          this.enemies.push(named);
+        }
+      }
     }
 
     // 새로 생성된 적 게임 레이어에 추가

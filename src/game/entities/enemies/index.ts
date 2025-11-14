@@ -10,6 +10,7 @@ export { FoxEnemy } from './FoxEnemy';
 export { GrimReaperEnemy } from './GrimReaperEnemy';
 export { MaidenGhostEnemy } from './MaidenGhostEnemy';
 export { MaskEnemy } from './MaskEnemy';
+export { NamedEnemy } from './NamedEnemy';
 export { SkeletonEnemy } from './SkeletonEnemy';
 export { TotemEnemy } from './TotemEnemy';
 export { WaterGhostEnemy } from './WaterGhostEnemy';
