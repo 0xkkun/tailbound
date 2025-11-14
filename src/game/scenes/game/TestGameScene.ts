@@ -231,6 +231,14 @@ export class TestGameScene extends OverworldGameScene {
     ];
     yPos = this.addButtonRow(this.debugPanel, bossButtons, panelWidth, yPos, padding);
 
+    // 네임드 몬스터 소환 버튼
+    const namedButtons = [
+      { label: '네임드(3분)', action: () => this.cheatSpawnNamed(1) },
+      { label: '네임드(6분)', action: () => this.cheatSpawnNamed(2) },
+      { label: '네임드(9분)', action: () => this.cheatSpawnNamed(3) },
+    ];
+    yPos = this.addButtonRow(this.debugPanel, namedButtons, panelWidth, yPos, padding);
+
     yPos += 10;
 
     // 스탯 섹션
@@ -473,6 +481,47 @@ export class TestGameScene extends OverworldGameScene {
     for (const enemy of this.enemies) {
       enemy.health = 0;
     }
+  }
+
+  /**
+   * 치트: 네임드 몬스터 소환
+   * @param phase 1=3분(초반), 2=6분(중간), 3=9분(최대)
+   */
+  private cheatSpawnNamed(phase: 1 | 2 | 3): void {
+    console.log(`[치트] 네임드 몬스터 소환 (Phase ${phase})`);
+
+    // namedSpawnSystem에 접근하여 수동으로 스폰
+    // @ts-expect-error - private 필드 접근
+    const namedSystem = this.namedSpawnSystem;
+
+    console.log('[치트] namedSpawnSystem 상태:', {
+      exists: !!namedSystem,
+      namedSystem,
+    });
+
+    if (!namedSystem) {
+      console.error('[치트] namedSpawnSystem을 찾을 수 없습니다');
+      return;
+    }
+
+    // gameTime을 해당 페이즈 시간으로 임시 설정
+    const phaseTime = phase === 1 ? 180 : phase === 2 ? 360 : 540;
+    // @ts-expect-error - private 필드 접근
+    const originalTime = this.gameTime;
+    // @ts-expect-error - private 필드 접근
+    this.gameTime = phaseTime;
+
+    console.log('[치트] gameTime 설정:', { original: originalTime, phase: phaseTime });
+
+    // namedSystem의 spawnNamedEnemies 메서드를 직접 호출
+    // @ts-expect-error - private 메서드 접근
+    namedSystem.spawnNamedEnemies();
+
+    // gameTime 복원
+    // @ts-expect-error - private 필드 접근
+    this.gameTime = originalTime;
+
+    console.log(`[치트] 네임드 몬스터 2마리 소환 완료 (Phase ${phase})`);
   }
 
   /**
