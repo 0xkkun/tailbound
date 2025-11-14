@@ -5,8 +5,7 @@
 
 import type { WeaponCategory } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
-import gsap from 'gsap';
-import { Graphics } from 'pixi.js';
+import { AnimatedSprite, Assets, type Container, Rectangle, Texture } from 'pixi.js';
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
@@ -60,73 +59,77 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
    * 적 처형 (즉사)
    */
   private executeEnemy(enemy: BaseEnemy, originalDamage: number): void {
+    console.log(
+      `⚔️ [ExecutionerAxe] EXECUTED! (Original: ${originalDamage.toFixed(1)}, Execute: ${enemy.health.toFixed(1)})`
+    );
+
+    // 처형 이펙트 (적이 죽기 전에 위치와 parent 저장)
+    const enemyX = enemy.x;
+    const enemyY = enemy.y;
+    const enemyParent = enemy.parent;
+
     // 남은 체력만큼 추가 데미지 (즉사 처리)
     const executeDamage = enemy.health;
     enemy.takeDamage(executeDamage, true);
 
-    console.log(
-      `⚔️ [ExecutionerAxe] EXECUTED! (Original: ${originalDamage.toFixed(1)}, Execute: ${executeDamage.toFixed(1)})`
-    );
-
-    // 처형 이펙트
-    this.showExecuteEffect(enemy);
+    // 이펙트 표시 (저장된 위치 사용)
+    if (enemyParent) {
+      this.showExecuteEffect(enemyX, enemyY, enemyParent);
+    }
   }
 
   /**
-   * 처형 이펙트 (빨간 X 표시)
+   * 처형 이펙트 (스프라이트시트 애니메이션)
    */
-  private showExecuteEffect(enemy: BaseEnemy): void {
-    if (!enemy.parent) return;
+  private async showExecuteEffect(x: number, y: number, parent: Container): Promise<void> {
+    try {
+      // 스프라이트시트 로드 (로컬 경로)
+      const texture = await Assets.load('/assets/effects/execution.png');
 
-    // 빨간 X 표시
-    const xMark = new Graphics();
-    const size = 40;
-    xMark.moveTo(-size, -size);
-    xMark.lineTo(size, size);
-    xMark.moveTo(size, -size);
-    xMark.lineTo(-size, size);
-    xMark.stroke({ width: 10, color: 0xff0000, alpha: 1 });
+      // 프레임 생성 (69x60, 30프레임, 6열 x 5행)
+      const frameWidth = 69;
+      const frameHeight = 60;
+      const totalFrames = 30;
+      const columns = 6;
 
-    // 외곽선 추가
-    xMark.moveTo(-size, -size);
-    xMark.lineTo(size, size);
-    xMark.moveTo(size, -size);
-    xMark.lineTo(-size, size);
-    xMark.stroke({ width: 14, color: 0x000000, alpha: 0.5 });
+      const frames: Texture[] = [];
+      for (let i = 0; i < totalFrames; i++) {
+        const col = i % columns;
+        const row = Math.floor(i / columns);
+        const frameX = col * frameWidth;
+        const frameY = row * frameHeight;
 
-    xMark.x = enemy.x;
-    xMark.y = enemy.y;
-    xMark.scale.set(0);
-    xMark.zIndex = 1000;
+        const frame = new Texture({
+          source: texture.source,
+          frame: new Rectangle(frameX, frameY, frameWidth, frameHeight),
+        });
+        frames.push(frame);
+      }
 
-    enemy.parent.addChild(xMark);
+      // 애니메이션 스프라이트 생성
+      const executionEffect = new AnimatedSprite(frames);
+      executionEffect.anchor.set(0.5);
+      executionEffect.x = x;
+      executionEffect.y = y;
+      executionEffect.scale.set(2.0); // 2배 크기
+      executionEffect.animationSpeed = 0.5; // 30fps 기준 (0.5 = 15fps)
+      executionEffect.loop = false;
+      executionEffect.zIndex = 1000;
 
-    // X 표시 애니메이션
-    gsap.to(xMark.scale, {
-      x: 1.5,
-      y: 1.5,
-      duration: 0.2,
-      ease: 'back.out(2)',
-    });
+      parent.addChild(executionEffect);
 
-    gsap.to(xMark, {
-      rotation: Math.PI / 2, // 90도 회전
-      duration: 0.2,
-      ease: 'power2.out',
-    });
+      // 애니메이션 재생
+      executionEffect.play();
 
-    gsap.to(xMark, {
-      alpha: 0,
-      duration: 0.3,
-      delay: 0.2,
-      onComplete: () => {
-        if (!xMark.destroyed) {
-          gsap.killTweensOf(xMark);
-          gsap.killTweensOf(xMark.scale);
-          xMark.destroy();
+      // 애니메이션 종료 후 정리
+      executionEffect.onComplete = () => {
+        if (!executionEffect.destroyed) {
+          executionEffect.destroy({ children: true });
         }
-      },
-    });
+      };
+    } catch (error) {
+      console.error('[ExecutionerAxe] Failed to load execution effect:', error);
+    }
   }
 
   /**
