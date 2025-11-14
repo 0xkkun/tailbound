@@ -5,6 +5,7 @@
  * 사용: 목탁 소리, 폭발, 마법진 등
  */
 
+import type { WeaponCategory } from '@game/data/weapons';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
 export class AoEEffect extends Container {
@@ -12,6 +13,9 @@ export class AoEEffect extends Container {
   public damage: number = 0;
   public radius: number = 100;
   public isCritical: boolean = false;
+
+  // 무기 카테고리 (유물 시스템용)
+  public weaponCategories?: WeaponCategory[];
 
   private lifetime: number = 0;
   private maxLifetime: number = 0.5; // 0.5초 동안 표시

@@ -61,6 +61,9 @@ export class FanWindWeapon extends Weapon {
         0x87ceeb // 하늘색 (부채바람 색상)
       );
 
+      // 무기 카테고리 설정 (유물 시스템용)
+      projectile.weaponCategories = this.weaponData.categories;
+
       // 치명타 판정 및 데미지 계산
       if (player) {
         const critResult = player.rollCritical();

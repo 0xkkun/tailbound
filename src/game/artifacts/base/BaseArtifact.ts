@@ -2,12 +2,11 @@
  * 유물 베이스 클래스
  */
 
-import type { Container } from 'pixi.js';
-
+import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
+import type { Player } from '@game/entities/Player';
 import type { ArtifactData } from '@type/artifact.types';
 import type { IGameScene } from '@type/scene.types';
-import type { Player } from '@game/entities/Player';
-import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
+import type { Container } from 'pixi.js';
 
 import type { IArtifact } from './IArtifact';
 
@@ -43,14 +42,17 @@ export abstract class BaseArtifact implements IArtifact {
     this.cleanup();
     this.active = false;
 
-    console.log(`❌ [Artifact] Deactivated: ${this.data.name}`);
+    console.log(
+      `❌ [Artifact] Deactivated: ${this.data.name}, player: ${player.name}, scene: ${scene.name}`
+    );
   }
 
   /**
    * 매 프레임 업데이트 (기본: 아무것도 안함)
    */
-  public update(delta: number): void {
+  public update(_delta: number): void {
     // 필요한 유물만 오버라이드
+    void _delta;
   }
 
   /**

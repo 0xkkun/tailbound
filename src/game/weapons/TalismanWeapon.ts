@@ -2,7 +2,7 @@ import { CDN_BASE_URL } from '@config/assets.config';
 /**
  * 부적 무기 (투사체 발사)
  */
-import { calculateWeaponStats } from '@game/data/weapons';
+import { calculateWeaponStats, WEAPON_DATA } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
 import { Projectile } from '@game/entities/Projectile';
@@ -72,6 +72,9 @@ export class TalismanWeapon extends Weapon {
         direction,
         0xffff00 // 노란색
       );
+
+      // 무기 카테고리 설정 (유물 시스템용)
+      projectile.weaponCategories = WEAPON_DATA.talisman.categories;
 
       // 치명타 판정 및 데미지 계산
       if (player) {

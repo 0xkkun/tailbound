@@ -14,7 +14,13 @@ export type ArtifactRarity = 'common' | 'rare' | 'epic' | 'legendary' | 'cursed'
  * - summon: 소환물 (동료, 터렛, 오브 등)
  * - special: 특수 효과 (조건부 발동, 복합 효과 등)
  */
-export type ArtifactCategory = 'offensive' | 'defensive' | 'utility' | 'debuff' | 'summon' | 'special';
+export type ArtifactCategory =
+  | 'offensive'
+  | 'defensive'
+  | 'utility'
+  | 'debuff'
+  | 'summon'
+  | 'special';
 
 /**
  * 유물 메타데이터

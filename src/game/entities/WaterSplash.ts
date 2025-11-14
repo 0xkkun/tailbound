@@ -5,6 +5,7 @@
  */
 
 import { WEAPON_BALANCE } from '@config/balance.config';
+import type { WeaponCategory } from '@game/data/weapons';
 import type { ArtifactSystem } from '@systems/ArtifactSystem';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
@@ -18,6 +19,9 @@ export class WaterSplash extends Container {
   public isCritical: boolean = false;
   public playerRef?: Player;
   public artifactSystem?: ArtifactSystem;
+
+  // 무기 카테고리 (유물 시스템용)
+  public weaponCategories?: WeaponCategory[];
 
   private lifetime: number = 0;
   private maxLifetime: number;

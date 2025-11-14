@@ -5,6 +5,7 @@
  * OrbitalEntity와 달리 회전하지 않고 고정된 상대 위치를 유지
  */
 
+import type { WeaponCategory } from '@game/data/weapons';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
 import type { Player } from './Player';
@@ -27,6 +28,9 @@ export class AttachedEntity extends Container {
   public radius: number = 64; // 충돌 판정 크기 (원형, 하위 호환)
   public radiusX: number = 64; // 타원형 히트박스의 가로 반지름
   public radiusY: number = 64; // 타원형 히트박스의 세로 반지름
+
+  // 무기 카테고리 (유물 시스템용)
+  public weaponCategories?: WeaponCategory[];
 
   protected attachmentPosition: AttachmentPosition;
   protected offsetDistance: number;

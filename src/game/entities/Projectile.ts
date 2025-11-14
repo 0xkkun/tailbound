@@ -3,6 +3,7 @@
  */
 
 import { GAME_CONFIG } from '@config/game.config';
+import type { WeaponCategory } from '@game/data/weapons';
 import type { Vector2 } from '@type/game.types';
 import { AnimatedSprite, Assets, Container, Graphics, Rectangle, Texture } from 'pixi.js';
 
@@ -34,6 +35,9 @@ export class Projectile extends Container {
   // 치명타 및 흡혈 (파워업 시스템)
   public isCritical: boolean = false; // 치명타 여부
   public playerRef?: Player; // Player 참조 (흡혈용)
+
+  // 무기 카테고리 (유물 시스템용)
+  public weaponCategories?: WeaponCategory[];
 
   // 시각 효과
   private visual: Graphics | AnimatedSprite;

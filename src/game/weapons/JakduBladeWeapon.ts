@@ -6,7 +6,7 @@
  */
 import { CDN_BASE_URL } from '@config/assets.config';
 import { WEAPON_BALANCE } from '@config/balance.config';
-import { calculateWeaponStats } from '@game/data/weapons';
+import { calculateWeaponStats, WEAPON_DATA } from '@game/data/weapons';
 import { AttachedEntity } from '@game/entities/AttachedEntity';
 import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
@@ -75,6 +75,9 @@ export class JakduBladeWeapon extends Weapon {
         radiusY: this.attackRadius * 1.0, // 세로는 기본 크기 (하단 포함)
         color: 0xff0000,
       });
+
+      // 무기 카테고리 설정 (유물 시스템용)
+      blade.weaponCategories = WEAPON_DATA.jakdu_blade.categories;
 
       // 작두 스프라이트 로드 (3x3 = 9 프레임, 각 프레임 128x128)
       await blade.loadSpriteSheet(`${CDN_BASE_URL}/assets/weapon/jakdu.png`, 128, 128, 9, 3, {

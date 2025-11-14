@@ -5,6 +5,7 @@
  * 사용: 작두날, 칼, 창 등
  */
 
+import type { WeaponCategory } from '@game/data/weapons';
 import { Container, Graphics } from 'pixi.js';
 
 export class MeleeSwing extends Container {
@@ -14,6 +15,9 @@ export class MeleeSwing extends Container {
   public startAngle: number = 0;
   public sweepAngle: number = Math.PI; // 180도 (라디안)
   public isCritical: boolean = false;
+
+  // 무기 카테고리 (유물 시스템용)
+  public weaponCategories?: WeaponCategory[];
 
   private lifetime: number = 0;
   private maxLifetime: number = 0.3; // 0.3초 동안 휘두르기

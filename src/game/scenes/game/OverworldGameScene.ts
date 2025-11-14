@@ -6,6 +6,7 @@ import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
 import { ExecutionerAxeArtifact } from '@game/artifacts/list/ExecutionerAxeArtifact';
 import { FoxTearArtifact } from '@game/artifacts/list/FoxTearArtifact';
+import { WEAPON_DATA } from '@game/data/weapons';
 import { AoEEffect } from '@game/entities/AoEEffect';
 import {
   BaseEnemy,
@@ -513,8 +514,8 @@ export class OverworldGameScene extends BaseGameScene {
     this.player.trackWeaponAcquisition('weapon_talisman', talisman.level);
 
     // TODO: 테스트중 - 적 타격 시 유물 이벤트 트리거
-    this.combatSystem.onEnemyHit = (enemy, damage) => {
-      this.artifactSystem.triggerHit(enemy, damage);
+    this.combatSystem.onEnemyHit = (enemy, damage, weaponCategories) => {
+      this.artifactSystem.triggerHit(enemy, damage, weaponCategories);
     };
 
     // 적 처치 시 경험치 젬 및 포션 드롭 콜백 설정
@@ -840,6 +841,9 @@ export class OverworldGameScene extends BaseGameScene {
           splash.damage = bottleInfo.damage;
           splash.isCritical = bottleInfo.isCritical;
 
+          // 무기 카테고리 설정 (유물 시스템용)
+          splash.weaponCategories = WEAPON_DATA.purifying_water.categories;
+
           // 스플래시 스프라이트 로드 (purifying-water-spike.png: 64x48, 16프레임, 1024x48 horizontal strip)
           splash.loadSpriteSheet(
             `${CDN_BASE_URL}/assets/weapon/purifying-water-spike.png`,
@@ -941,7 +945,7 @@ export class OverworldGameScene extends BaseGameScene {
             aoe.recordEnemyHit(enemy.id); // 틱 데미지용 기록
 
             // 유물 이벤트 트리거 (AoE)
-            this.artifactSystem.triggerHit(enemy, aoe.damage);
+            this.artifactSystem.triggerHit(enemy, aoe.damage, aoe.weaponCategories);
 
             // 넉백 적용 (AoE 중심에서 바깥쪽으로)
             enemy.applyKnockback({ x: dx, y: dy }, KNOCKBACK_BALANCE.aoe);
@@ -1044,7 +1048,7 @@ export class OverworldGameScene extends BaseGameScene {
           swing.markEnemyHit(enemyId);
 
           // 유물 이벤트 트리거 (Melee)
-          this.artifactSystem.triggerHit(enemy, swing.damage);
+          this.artifactSystem.triggerHit(enemy, swing.damage, swing.weaponCategories);
 
           // 넉백 적용 (휘두르기 중심에서 바깥쪽으로)
           enemy.applyKnockback({ x: dx, y: dy }, KNOCKBACK_BALANCE.melee);
@@ -1095,7 +1099,7 @@ export class OverworldGameScene extends BaseGameScene {
                 orbital.recordEnemyHit(enemy.id);
 
                 // 유물 이벤트 트리거 (Orbital)
-                this.artifactSystem.triggerHit(enemy, finalDamage);
+                this.artifactSystem.triggerHit(enemy, finalDamage, orbital.weaponCategories);
 
                 // 넉백 적용 (궤도 위치에서 바깥쪽으로)
                 const knockbackDir = { x: enemy.x - orbital.x, y: enemy.y - orbital.y };
@@ -1159,7 +1163,7 @@ export class OverworldGameScene extends BaseGameScene {
               blade.recordHit(enemy.id); // 타격 기록
 
               // 유물 이벤트 트리거 (JakduBlade)
-              this.artifactSystem.triggerHit(enemy, finalDamage);
+              this.artifactSystem.triggerHit(enemy, finalDamage, blade.weaponCategories);
 
               // 넉백 적용 (작두 위치에서 바깥쪽으로)
               const knockbackDir = { x: enemy.x - blade.x, y: enemy.y - blade.y };

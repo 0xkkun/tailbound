@@ -3,6 +3,7 @@
  */
 
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
+import type { WeaponCategory } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
 import type { Projectile } from '@game/entities/Projectile';
@@ -20,7 +21,11 @@ export class CombatSystem {
   // 적 처치 콜백
   public onEnemyKilled?: (result: KillResult) => void;
   // TODO: 테스트중 - 적 타격 콜백 (유물 시스템용)
-  public onEnemyHit?: (enemy: BaseEnemy, damage: number) => void;
+  public onEnemyHit?: (
+    enemy: BaseEnemy,
+    damage: number,
+    weaponCategories?: WeaponCategory[]
+  ) => void;
 
   /**
    * 전투 시스템 업데이트
@@ -47,7 +52,7 @@ export class CombatSystem {
           enemy.takeDamage(finalDamage, projectile.isCritical);
 
           // TODO: 테스트중 - 적 타격 콜백 호출 (유물 시스템용)
-          this.onEnemyHit?.(enemy, finalDamage);
+          this.onEnemyHit?.(enemy, finalDamage, projectile.weaponCategories);
 
           // 넉백 적용 (투사체 방향으로 밀어냄)
           const knockbackDir = {

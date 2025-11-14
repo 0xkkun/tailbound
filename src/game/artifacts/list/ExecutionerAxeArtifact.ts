@@ -3,6 +3,7 @@
  * 체력이 낮은 적 즉시 처형 (체력 20% 이하 시 즉사)
  */
 
+import type { WeaponCategory } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import gsap from 'gsap';
 import { Graphics } from 'pixi.js';
@@ -21,7 +22,7 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
       tier: 3,
       rarity: 'epic',
       category: 'offensive',
-      description: '일반 요괴의 체력이 20% 이하일 때 즉시 처형',
+      description: '[근접 무기] 일반 요괴의 체력이 20% 이하일 때 즉시 처형',
       iconPath: 'assets/artifacts/executioner-axe.png',
       color: 0x8b0000, // 다크 레드
     });
@@ -30,7 +31,12 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
   /**
    * 적을 맞을 때마다 호출
    */
-  public onHit(enemy: BaseEnemy, damage: number): void {
+  public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+    // 근접 무기만 처형 발동
+    if (!weaponCategories || !weaponCategories.includes('melee')) {
+      return;
+    }
+
     // 이미 죽은 적은 제외
     if (!enemy.isAlive()) return;
 

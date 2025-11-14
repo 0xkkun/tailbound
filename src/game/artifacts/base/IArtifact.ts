@@ -2,12 +2,12 @@
  * 유물 인터페이스
  */
 
-import type { Container } from 'pixi.js';
-
+import type { WeaponCategory } from '@game/data/weapons';
+import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
+import type { Player } from '@game/entities/Player';
 import type { ArtifactData } from '@type/artifact.types';
 import type { IGameScene } from '@type/scene.types';
-import type { Player } from '@game/entities/Player';
-import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
+import type { Container } from 'pixi.js';
 
 export interface IArtifact {
   /** 유물 메타데이터 */
@@ -27,7 +27,7 @@ export interface IArtifact {
 
   /** 이벤트 훅 (선택적) */
   onKill?(enemy: BaseEnemy): void;
-  onHit?(enemy: BaseEnemy, damage: number): void;
+  onHit?(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void;
   onTakeDamage?(damage: number, source: Container): number;
   onLevelUp?(level: number): void;
 

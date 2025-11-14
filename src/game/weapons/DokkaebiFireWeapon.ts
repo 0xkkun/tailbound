@@ -6,7 +6,7 @@
  */
 import { AUDIO_COOLDOWNS, CDN_BASE_URL } from '@config/assets.config';
 import { WEAPON_BALANCE } from '@config/balance.config';
-import { calculateWeaponStats } from '@game/data/weapons';
+import { calculateWeaponStats, WEAPON_DATA } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies';
 import { OrbitalEntity } from '@game/entities/OrbitalEntity';
 import type { Player } from '@game/entities/Player';
@@ -78,6 +78,9 @@ export class DokkaebiFireWeapon extends Weapon {
       orbital.blinkEnabled = !isMaxCount; // 5개 이상이면 깜박임 비활성화
       orbital.blinkOnDuration = blinkOnDuration; // 레벨에 따라 조정된 간격
       orbital.blinkOffDuration = blinkOffDuration;
+
+      // 무기 카테고리 설정 (유물 시스템용)
+      orbital.weaponCategories = WEAPON_DATA.dokkaebi_fire.categories;
 
       // 도깨비불 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 48x48)
       // radius 설정 후 로드하므로 스프라이트 크기가 radius에 맞춰짐

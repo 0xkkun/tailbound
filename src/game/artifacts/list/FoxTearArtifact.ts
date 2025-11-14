@@ -3,6 +3,7 @@
  * 필드몹 매혹 (10% 확률, 최대 10마리, 5초간 아군으로 전환)
  */
 
+import type { WeaponCategory } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import type { StatusEffect } from '@type/status-effect.types';
 import type { Team } from '@type/team.types';
@@ -34,7 +35,7 @@ export class FoxTearArtifact extends BaseArtifact {
       tier: 2,
       rarity: 'rare',
       category: 'debuff',
-      description: '투사체가 적을 맞출 때 10% 확률로 일반 요괴를 5초간 매혹 (최대 10마리)',
+      description: '[투사체 무기] 적을 맞출 때 10% 확률로 일반 요괴를 5초간 매혹 (최대 10마리)',
       iconPath: 'assets/artifacts/fox-tear.png',
       color: 0xff69b4,
     });
@@ -43,8 +44,13 @@ export class FoxTearArtifact extends BaseArtifact {
   /**
    * 적을 맞을 때마다 호출
    */
-  public onHit(enemy: BaseEnemy, _damage: number): void {
+  public onHit(enemy: BaseEnemy, _damage: number, weaponCategories?: WeaponCategory[]): void {
     console.log(`💕 [FoxTear] Enemy hit: ${enemy.id} (damage: ${_damage})`);
+
+    // 투사체 무기만 매혹 발동
+    if (!weaponCategories || !weaponCategories.includes('projectile')) {
+      return;
+    }
 
     // 이미 매혹된 적은 제외
     if (enemy.hasStatusEffect('charmed')) return;

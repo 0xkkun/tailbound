@@ -5,7 +5,7 @@ import { CDN_BASE_URL } from '@config/assets.config';
  * 타입: 광역 (AoE)
  * 주기적으로 발동되는 음파 공격
  */
-import { calculateWeaponStats } from '@game/data/weapons';
+import { calculateWeaponStats, WEAPON_DATA } from '@game/data/weapons';
 import { AoEEffect } from '@game/entities/AoEEffect';
 import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
@@ -73,6 +73,9 @@ export class MoktakSoundWeapon extends Weapon {
       MOKTAK_CONSTANTS.COLOR
     );
     effect.isCritical = isCritical;
+
+    // 무기 카테고리 설정 (유물 시스템용)
+    effect.weaponCategories = WEAPON_DATA.moktak_sound.categories;
 
     // 목탁 스프라이트 로드
     await effect.loadSpriteSheet(

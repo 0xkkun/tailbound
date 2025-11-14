@@ -3,6 +3,7 @@
  */
 
 import type { IArtifact } from '@game/artifacts/base/IArtifact';
+import type { WeaponCategory } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import type { Player } from '@game/entities/Player';
 import type { IGameScene } from '@type/scene.types';
@@ -89,9 +90,9 @@ export class ArtifactSystem {
   /**
    * 이벤트: 적 타격
    */
-  public triggerHit(enemy: BaseEnemy, damage: number): void {
+  public triggerHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
     for (const artifact of this.artifacts) {
-      artifact.onHit?.(enemy, damage);
+      artifact.onHit?.(enemy, damage, weaponCategories);
     }
   }
 
