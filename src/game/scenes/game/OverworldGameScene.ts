@@ -75,6 +75,7 @@ import {
   safeOpenGameCenterLeaderboard,
   safeSubmitGameCenterLeaderBoardScore,
 } from '@utils/tossAppBridge';
+import gsap from 'gsap';
 import { Assets, Container, Graphics, Sprite, Spritesheet, Text } from 'pixi.js';
 
 import { BaseGameScene } from './BaseGameScene';
@@ -1806,9 +1807,69 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
         );
         // 초기화 실패는 무기가 이미 교체되었으므로 경고만 출력
       }
+
+      // 6. 진화 이펙트 재생 (유물 아이콘 스케일업 + 페이드아웃)
+      await this.playEvolutionEffect(evolutionData.requiredArtifactId);
     } catch (error) {
       console.error(`❌ [Evolution] 무기 진화 실패: ${weapon.name} (${weapon.id})`, error);
       // 전체 진화 프로세스 실패 - 무기 상태 롤백은 복잡하므로 현재는 스킵
+    }
+  }
+
+  /**
+   * 진화 이펙트 재생
+   * 유물 아이콘을 화면 중앙에 표시하고 스케일 업 + 페이드 아웃 애니메이션
+   */
+  private async playEvolutionEffect(artifactId: string): Promise<void> {
+    try {
+      // 활성 유물 목록에서 해당 유물 찾기
+      const artifact = this.artifactSystem
+        .getActiveArtifacts()
+        .find((a) => a.data.id === artifactId);
+      if (!artifact) {
+        console.warn(`[EvolutionEffect] Artifact not found: ${artifactId}`);
+        return;
+      }
+
+      const iconPath = artifact.data.iconPath;
+      if (!iconPath) {
+        console.warn(`[EvolutionEffect] Icon path not found for artifact: ${artifactId}`);
+        return;
+      }
+
+      // 유물 아이콘 스프라이트 생성
+      const texture = await Assets.load(iconPath);
+      const sprite = new Sprite(texture);
+
+      // 화면 중앙에 배치 (UI 좌표계 기준)
+      sprite.anchor.set(0.5);
+      sprite.x = this.screenWidth / 2;
+      sprite.y = this.screenHeight / 2;
+
+      // 높은 zIndex로 설정하여 모든 요소 위에 표시
+      sprite.zIndex = 10000;
+
+      // UI 레이어에 추가 (카메라 영향 받지 않음)
+      this.uiLayer.addChild(sprite);
+
+      // GSAP 애니메이션: 스케일 업 + 페이드 아웃 (1.5초)
+      return new Promise<void>((resolve) => {
+        gsap.to(sprite, {
+          scale: 2.5,
+          alpha: 0,
+          duration: 1.5,
+          ease: 'power2.out',
+          onComplete: () => {
+            // 애니메이션 완료 후 스프라이트 제거
+            this.uiLayer.removeChild(sprite);
+            sprite.destroy();
+            console.log(`✨ [EvolutionEffect] Effect complete: ${artifact.data.name}`);
+            resolve();
+          },
+        });
+      });
+    } catch (error) {
+      console.error('[EvolutionEffect] Failed to play evolution effect:', error);
     }
   }
 
