@@ -1,790 +1,905 @@
-# 유물 시스템 구현 가이드
+# 유물 구현 가이드
 
-> 플러그인 방식의 모듈화된 유물 시스템 - 쉬운 추가/제거/수정
-
-**작성일**: 2025-11-11
-**목적**: 엘리트와 독립적인 유물 시스템 구축
+> 새로운 유물을 추가하는 방법과 무기 진화 시스템 연동 가이드
 
 ---
 
-## 핵심 설계 원칙
+## 목차
 
-1. **독립성**: 각 유물은 자신만의 파일
-2. **플러그인**: 배열에 추가/삭제만 하면 끝
-3. **명확성**: 수정 포인트가 한 곳에 모여있음
-4. **타입 안전**: TypeScript로 실수 방지
+1. [개요](#개요)
+2. [유물 추가 체크리스트](#유물-추가-체크리스트)
+3. [단계별 구현 가이드](#단계별-구현-가이드)
+4. [유물 타입별 구현 방법](#유물-타입별-구현-방법)
+5. [무기 진화 유물 구현](#무기-진화-유물-구현)
+6. [예제 코드](#예제-코드)
 
 ---
 
-## 파일 구조
+## 개요
+
+### 유물 시스템 아키텍처
 
 ```
-src/game/artifacts/
-├── base/
-│   ├── IArtifact.ts          # 인터페이스
-│   └── BaseArtifact.ts       # 베이스 클래스
-├── impl/
-│   ├── FoxTear.ts            # 구미호의 눈물
-│   ├── ExecutionerAxe.ts     # 망나니의 도끼
-│   ├── MaskBerserk.ts        # 탈령의 가면
-│   └── ...                   # 각 유물별 파일
-└── registry.ts               # 유물 등록 (여기만 수정!)
+┌─────────────────────────────────────────┐
+│   game/artifacts/base/IArtifact.ts      │
+│   - 유물 인터페이스 정의                 │
+│   - 이벤트 훅 시그니처                   │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│   game/artifacts/base/BaseArtifact.ts   │
+│   - 공통 로직 구현                       │
+│   - activate/deactivate                  │
+│   - 기본 update 루프                     │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│   game/artifacts/list/[Name].ts         │
+│   - 개별 유물 로직 구현                  │
+│   - 이벤트 훅 오버라이드                 │
+│   - 밸런스 상수 정의                     │
+└─────────────────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│   systems/ArtifactSystem.ts             │
+│   - 유물 생명주기 관리                   │
+│   - 이벤트 트리거링                      │
+│   - 플레이어/씬 연동                     │
+└─────────────────────────────────────────┘
 ```
+
+### 설계 원칙
+
+1. **이벤트 기반 설계**: 게임 이벤트에 반응하는 훅(hook) 패턴 사용
+2. **상태 캡슐화**: 유물 내부 상태는 private으로 관리
+3. **메모리 안전**: cleanup() 메서드로 리소스 정리 보장
+4. **확장 가능**: 새 유물 추가 시 기존 코드 수정 최소화
 
 ---
 
-## Step 1: 인터페이스 정의
+## 유물 추가 체크리스트
+
+### 1. 파일 생성
+- [ ] `src/game/artifacts/list/[YourArtifact].ts` 생성
+- [ ] `src/config/assets.config.ts`에 아이콘 경로 추가
+- [ ] `public/assets/artifacts/[artifact-icon].png` 추가 (32x32 권장)
+
+### 2. 데이터 정의
+- [ ] `ArtifactData` 메타데이터 작성 (id, name, tier, rarity, description)
+- [ ] 밸런스 상수 정의 (private readonly)
+- [ ] 카테고리 설정 (offensive, defensive, utility, debuff)
+
+### 3. 로직 구현
+- [ ] 필요한 이벤트 훅 구현 (onHit, onKill, update 등)
+- [ ] 이펙트/시각 효과 추가
+- [ ] cleanup() 메서드로 리소스 정리
+
+### 4. 게임 씬 등록
+- [ ] `OverworldGameScene.ts`에 유물 클래스 import
+- [ ] `initializeArtifacts()` 메서드에 인스턴스 추가
+- [ ] 디버그용 즉시 획득 코드 추가 (선택)
+
+### 5. 테스트
+- [ ] 유물 획득 시 activate 동작 확인
+- [ ] 이벤트 트리거 정상 작동 확인
+- [ ] cleanup 시 메모리 누수 없는지 확인
+- [ ] 게임 밸런스 테스트
+
+---
+
+## 단계별 구현 가이드
+
+### Step 1: 파일 생성 및 기본 구조
 
 ```typescript
-// src/game/artifacts/base/IArtifact.ts
+/**
+ * [유물 이름] 유물
+ * [간단한 설명 - 한 줄]
+ */
 
-export interface ArtifactData {
-  id: string; // 'fox_tear'
-  name: string; // '구미호의 눈물'
-  tier: 1 | 2 | 3 | 4; // 등장 시기
-  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'cursed';
-  description: string; // 효과 설명
-  iconPath: string; // 아이콘 경로
-  color: number; // 테마 색상 (0xff69b4)
-}
-
-export interface IArtifact {
-  readonly data: ArtifactData;
-  active: boolean;
-
-  // 라이프사이클
-  activate(player: Player): void;
-  deactivate(player: Player): void;
-  update(delta: number): void;
-
-  // 이벤트 훅 (필요한 것만 구현)
-  onKill?(enemy: Enemy): void;
-  onHit?(enemy: Enemy, damage: number): void;
-  onTakeDamage?(damage: number): number; // 수정된 피해 반환
-  onLevelUp?(level: number): void;
-
-  // 정리
-  cleanup(): void;
-}
-```
-
----
-
-## Step 2: 베이스 클래스
-
-```typescript
-// src/game/artifacts/base/BaseArtifact.ts
-
-export abstract class BaseArtifact implements IArtifact {
-  public active: boolean = false;
-  protected player?: Player;
-
-  constructor(public readonly data: ArtifactData) {}
-
-  public activate(player: Player): void {
-    if (this.active) return;
-
-    this.player = player;
-    this.active = true;
-
-    console.log(`✅ [Artifact] ${this.data.name} activated`);
-  }
-
-  public deactivate(player: Player): void {
-    if (!this.active) return;
-
-    this.cleanup();
-    this.active = false;
-
-    console.log(`❌ [Artifact] ${this.data.name} deactivated`);
-  }
-
-  public update(delta: number): void {
-    // 기본 구현: 아무것도 안함
-    // 필요한 유물만 오버라이드
-  }
-
-  public cleanup(): void {
-    this.player = undefined;
-  }
-}
-```
-
----
-
-## Step 3: 유물 구현 예시
-
-### 🦊 구미호의 눈물 (매혹)
-
-```typescript
-// src/game/artifacts/list/FoxTear.ts
+import { LOCAL_ASSETS } from '@config/assets.config';
+import type { WeaponCategory } from '@game/data/weapons';
+import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
-export class FoxTear extends BaseArtifact {
-  private readonly CHARM_CHANCE = 0.1; // 10% 확률
-  private readonly CHARM_DURATION = 3.0; // 3초
-  private readonly SLOW_AMOUNT = 0.5; // 50% 감속
+export class YourArtifactName extends BaseArtifact {
+  // ====== 밸런스 상수 ======
+  private readonly SOME_VALUE = 10;
 
   constructor() {
     super({
-      id: 'fox_tear',
-      name: '구미호의 눈물',
+      id: 'your_artifact_id',
+      name: '유물 이름',
       tier: 2,
       rarity: 'rare',
-      description: '공격 시 10% 확률로 적 매혹 (3초간 이동속도 -50%)',
-      iconPath: 'assets/artifacts/fox_tear.png',
-      color: 0xff69b4, // 핑크
+      category: 'offensive',
+      description: '유물 설명 (효과, 수치 포함)',
+      iconPath: LOCAL_ASSETS.yourArtifactIcon,
+      color: 0xff0000, // 시각 효과 색상 (hex)
     });
-  }
-
-  // 적을 맞출 때마다 호출됨
-  public onHit(enemy: Enemy, damage: number): void {
-    if (Math.random() < this.CHARM_CHANCE) {
-      this.applyCharm(enemy);
-    }
-  }
-
-  private applyCharm(enemy: Enemy): void {
-    // 적에게 매혹 상태 추가
-    enemy.addStatusEffect({
-      type: 'charm',
-      duration: this.CHARM_DURATION,
-      speedMultiplier: this.SLOW_AMOUNT,
-    });
-
-    // 하트 이펙트
-    this.showHeartEffect(enemy);
-  }
-
-  private showHeartEffect(enemy: Enemy): void {
-    // 적 머리 위에 하트 (Graphics로 간단하게)
-    const heart = new Graphics();
-    heart.moveTo(0, -10);
-    heart.bezierCurveTo(0, -15, 10, -15, 10, -5);
-    heart.bezierCurveTo(10, 0, 0, 5, 0, 10);
-    heart.bezierCurveTo(0, 5, -10, 0, -10, -5);
-    heart.bezierCurveTo(-10, -15, 0, -15, 0, -10);
-    heart.fill(0xff69b4);
-
-    heart.x = enemy.x;
-    heart.y = enemy.y - enemy.radius - 30;
-    enemy.parent.addChild(heart);
-
-    // 3초 후 제거
-    setTimeout(() => heart.destroy(), 3000);
   }
 }
 ```
 
-### 🪓 망나니의 도끼 (처형)
+### Step 2: 밸런스 상수 정의
+
+**권장 패턴**: 상수는 `private readonly`로 선언하여 불변성 보장
 
 ```typescript
-// src/game/artifacts/list/ExecutionerAxe.ts
+export class YourArtifact extends BaseArtifact {
+  // ====== 밸런스 상수 ======
+  private readonly DAMAGE_MULTIPLIER = 1.5;  // 150% 데미지
+  private readonly TRIGGER_CHANCE = 0.1;     // 10% 확률
+  private readonly DURATION = 3.0;           // 3초 지속
+  private readonly MAX_TARGETS = 5;          // 최대 5개 대상
 
-import { BaseArtifact } from '../base/BaseArtifact';
+  // ... 생성자
+}
+```
 
-export class ExecutionerAxe extends BaseArtifact {
-  private readonly EXECUTE_THRESHOLD = 0.05; // 5% 이하
+### Step 3: 이벤트 훅 구현
 
-  constructor() {
-    super({
-      id: 'executioner_axe',
-      name: '망나니의 도끼',
-      tier: 2,
-      rarity: 'epic',
-      description: '체력 5% 이하 적 즉시 처형',
-      iconPath: 'assets/artifacts/executioner_axe.png',
-      color: 0x8b0000, // 진한 빨강
-    });
+#### 사용 가능한 이벤트 훅
+
+| 훅 | 호출 시점 | 사용 예시 |
+|---|---|---|
+| `onHit(enemy, damage, weaponCategories?)` | 적을 공격할 때마다 | 디버프, 추가 피해, 확률 효과 |
+| `onKill(enemy)` | 적을 처치했을 때 | 체력 회복, 버프, 폭발 효과 |
+| `onTakeDamage(damage, source)` | 플레이어가 피격당할 때 | 방어막, 피해 감소, 반사 |
+| `onLevelUp(level)` | 플레이어 레벨업 시 | 스탯 증가, 특수 능력 해금 |
+| `update(delta)` | 매 프레임 (60fps) | 지속 효과, 타이머, 쿨다운 |
+
+#### onHit 구현 예시 (조건부 효과)
+
+```typescript
+public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+  // 1. 무기 카테고리 필터링 (투사체만 발동)
+  if (!weaponCategories || !weaponCategories.includes('projectile')) {
+    return;
   }
 
-  public onHit(enemy: Enemy, damage: number): void {
-    const hpPercent = enemy.hp / enemy.maxHp;
+  // 2. 대상 검증 (보스는 제외)
+  if (enemy.category === 'boss') return;
 
-    if (hpPercent > 0 && hpPercent <= this.EXECUTE_THRESHOLD) {
-      this.execute(enemy);
+  // 3. 확률 체크
+  if (Math.random() >= this.TRIGGER_CHANCE) return;
+
+  // 4. 효과 적용
+  this.applyEffect(enemy);
+}
+```
+
+#### update 구현 예시 (지속 효과)
+
+```typescript
+export class YourArtifact extends BaseArtifact {
+  private activeEffects: Map<BaseEnemy, number> = new Map();
+
+  public update(delta: number): void {
+    const toRemove: BaseEnemy[] = [];
+
+    for (const [enemy, remainingTime] of this.activeEffects.entries()) {
+      // 타이머 감소
+      const newTime = remainingTime - delta;
+
+      if (newTime <= 0 || !enemy.isAlive()) {
+        toRemove.push(enemy);
+      } else {
+        this.activeEffects.set(enemy, newTime);
+        // 매 프레임 효과 적용
+        this.applyPerFrameEffect(enemy, delta);
+      }
+    }
+
+    // 만료된 효과 정리
+    for (const enemy of toRemove) {
+      this.removeEffect(enemy);
+    }
+  }
+}
+```
+
+### Step 4: cleanup() 구현 (메모리 안전)
+
+**필수**: 모든 내부 상태를 정리하여 메모리 누수 방지
+
+```typescript
+public cleanup(): void {
+  super.cleanup(); // 부모 클래스 cleanup 호출
+
+  // 타이머 정리
+  if (this.intervalId !== null) {
+    clearInterval(this.intervalId);
+    this.intervalId = null;
+  }
+
+  // 시각 효과 제거
+  for (const effect of this.activeEffects.values()) {
+    if (!effect.destroyed) {
+      effect.destroy();
     }
   }
 
-  private execute(enemy: Enemy): void {
-    // 즉사
-    enemy.hp = 0;
-    enemy.die();
+  // 컬렉션 비우기
+  this.activeEffects.clear();
+}
+```
 
-    // X자 이펙트
+### Step 5: 게임 씬에 등록
+
+**파일**: `src/game/scenes/game/OverworldGameScene.ts`
+
+```typescript
+// 1. Import 추가
+import { YourArtifact } from '@game/artifacts/list/YourArtifact';
+
+// 2. initializeArtifacts() 메서드에 추가
+private initializeArtifacts(): void {
+  this.artifactSystem.registerArtifact(new YourArtifact());
+  // ... 기존 유물들
+}
+
+// 3. 디버그용 즉시 획득 (선택)
+if (DEBUG_MODE) {
+  this.artifactSystem.grantArtifact('your_artifact_id', this.player, this);
+}
+```
+
+---
+
+## 유물 타입별 구현 방법
+
+### 1. Offensive (공격형)
+
+**특징**: 데미지 증가, 치명타, 추가 효과
+
+**예시**: 처형인의 도끼 (체력 낮은 적 즉사)
+
+```typescript
+export class ExecutionerAxeArtifact extends BaseArtifact {
+  private readonly EXECUTE_THRESHOLD = 0.2; // 20% 이하
+
+  public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+    // 근접 무기만
+    if (!weaponCategories?.includes('melee')) return;
+
+    // 필드몹만 (보스 제외)
+    if (enemy.category !== 'field') return;
+
+    // 체력 체크
+    const healthRatio = enemy.health / enemy.maxHealth;
+    if (healthRatio > this.EXECUTE_THRESHOLD) return;
+
+    // 즉사 처리
+    enemy.takeDamage(enemy.health, true);
     this.showExecuteEffect(enemy);
   }
+}
+```
 
-  private showExecuteEffect(enemy: Enemy): void {
-    const x = new Graphics();
+### 2. Debuff (디버프형)
 
-    // 왼쪽 위 → 오른쪽 아래
-    x.moveTo(-30, -30);
-    x.lineTo(30, 30);
+**특징**: 적 약화, 상태 이상, 군중 제어
 
-    // 오른쪽 위 → 왼쪽 아래
-    x.moveTo(30, -30);
-    x.lineTo(-30, 30);
+**예시**: 구미호의 눈물 (매혹 효과)
 
-    x.stroke({ width: 5, color: 0xff0000 });
+```typescript
+export class FoxTearArtifact extends BaseArtifact {
+  private readonly CHARM_DURATION = 5.0;
+  private readonly CHARM_CHANCE = 0.1;
+  private charmedEnemies: Map<BaseEnemy, CharmData> = new Map();
 
-    x.x = enemy.x;
-    x.y = enemy.y;
-    enemy.parent.addChild(x);
+  public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+    // 투사체만
+    if (!weaponCategories?.includes('projectile')) return;
 
-    // 애니메이션: 확대 + 페이드
-    const startTime = Date.now();
-    const duration = 500;
+    // 확률 체크
+    if (Math.random() >= this.CHARM_CHANCE) return;
 
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = elapsed / duration;
-
-      if (progress >= 1) {
-        x.destroy();
-        return;
-      }
-
-      x.scale.set(1 + progress * 0.5);
-      x.alpha = 1 - progress;
-
-      requestAnimationFrame(animate);
+    // 상태 이상 적용
+    const statusEffect: StatusEffect = {
+      type: 'charmed',
+      duration: this.CHARM_DURATION,
+      startTime: performance.now(),
+      source: this.data.id,
     };
 
-    animate();
-  }
-}
-```
+    enemy.addStatusEffect(statusEffect);
+    enemy.team = 'charmed'; // 팀 전환
 
-### 😈 탈령의 가면 (버서커)
-
-```typescript
-// src/game/artifacts/list/MaskBerserk.ts
-
-import { BaseArtifact } from '../base/BaseArtifact';
-
-export class MaskBerserk extends BaseArtifact {
-  private killCount: number = 0;
-  private readonly KILL_THRESHOLD = 50; // 50킬
-
-  private berserkActive: boolean = false;
-  private berserkTimer: number = 0;
-  private readonly BERSERK_DURATION = 5.0; // 5초
-  private readonly DAMAGE_BOOST = 3.0; // 3배
-
-  private originalDamageMultiplier: number = 1.0;
-  private originalControlsLocked: boolean = false;
-
-  constructor() {
-    super({
-      id: 'mask_berserk',
-      name: '탈령의 가면',
-      tier: 3,
-      rarity: 'legendary',
-      description: '적 50마리 처치 시 5초간 버서커 (조작 불가, 공격력 3배)',
-      iconPath: 'assets/artifacts/mask_berserk.png',
-      color: 0xff0000,
-    });
-  }
-
-  public onKill(enemy: Enemy): void {
-    if (this.berserkActive) return;
-
-    this.killCount++;
-
-    if (this.killCount >= this.KILL_THRESHOLD) {
-      this.activateBerserk();
-      this.killCount = 0;
-    }
+    this.charmedEnemies.set(enemy, {...});
   }
 
   public update(delta: number): void {
-    if (!this.berserkActive || !this.player) return;
+    // 매혹된 적들의 행동 제어
+    for (const [enemy, data] of this.charmedEnemies.entries()) {
+      if (!enemy.hasStatusEffect('charmed')) {
+        this.removeCharm(enemy);
+        continue;
+      }
 
-    this.berserkTimer += delta;
-
-    if (this.berserkTimer >= this.BERSERK_DURATION) {
-      this.deactivateBerserk();
+      // 아군으로 전환된 적이 다른 적 공격
+      this.updateCharmedBehavior(enemy, data, delta);
     }
-  }
-
-  private activateBerserk(): void {
-    if (!this.player) return;
-
-    this.berserkActive = true;
-    this.berserkTimer = 0;
-
-    // 공격력 증가
-    this.originalDamageMultiplier = this.player.damageMultiplier;
-    this.player.damageMultiplier *= this.DAMAGE_BOOST;
-
-    // 조작 불가
-    this.originalControlsLocked = this.player.controlsLocked || false;
-    this.player.controlsLocked = true;
-
-    // 시각 효과
-    this.player.tint = 0xff0000;
-
-    console.log('🔴 [Berserk] ACTIVATED!');
-  }
-
-  private deactivateBerserk(): void {
-    if (!this.player) return;
-
-    this.berserkActive = false;
-
-    // 복구
-    this.player.damageMultiplier = this.originalDamageMultiplier;
-    this.player.controlsLocked = this.originalControlsLocked;
-    this.player.tint = 0xffffff;
-
-    console.log('⚪ [Berserk] Deactivated');
-  }
-
-  public cleanup(): void {
-    super.cleanup();
-    this.killCount = 0;
-    this.berserkActive = false;
-    this.berserkTimer = 0;
   }
 }
 ```
 
-### 📈 척살 (스택)
+### 3. Defensive (방어형)
+
+**특징**: 피해 감소, 방어막, 회복
+
+**예시**: 탈령 마스크 (피해 감소)
 
 ```typescript
-// src/game/artifacts/list/KillStack.ts
+export class DefensiveArtifact extends BaseArtifact {
+  private readonly DAMAGE_REDUCTION = 0.15; // 15% 감소
+
+  public onTakeDamage(damage: number, source: Container): number {
+    const reducedDamage = damage * (1 - this.DAMAGE_REDUCTION);
+
+    // 방어 이펙트 표시
+    this.showShieldEffect();
+
+    // 감소된 데미지 반환
+    return reducedDamage;
+  }
+}
+```
+
+### 4. Utility (유틸리티형)
+
+**특징**: 이동속도, 경험치, 골드, 범위
+
+**예시**: 스탯 증가 유물
+
+```typescript
+export class UtilityArtifact extends BaseArtifact {
+  private readonly SPEED_BONUS = 1.2; // 20% 증가
+
+  public activate(player: Player, scene: IGameScene): void {
+    super.activate(player, scene);
+
+    // 플레이어 스탯 증가
+    player.moveSpeed *= this.SPEED_BONUS;
+  }
+
+  public deactivate(player: Player, scene: IGameScene): void {
+    // 스탯 복구
+    if (this.player) {
+      this.player.moveSpeed /= this.SPEED_BONUS;
+    }
+
+    super.deactivate(player, scene);
+  }
+}
+```
+
+---
+
+## 무기 진화 유물 구현
+
+### 개요
+
+특정 무기를 진화시키는 유물은 다음 두 가지 역할을 합니다:
+
+1. **진화 조건 충족**: 무기 레벨 7 + 유물 보유
+2. **진화 트리거**: `weaponEvolution.ts`의 진화 맵에 등록
+
+### 진화 유물 구현 체크리스트
+
+- [ ] 유물 클래스 생성 (`src/game/artifacts/list/[Name].ts`)
+- [ ] 에셋 추가 (`LOCAL_ASSETS`에 아이콘, 진화 무기 스프라이트)
+- [ ] 진화 맵 등록 (`src/game/data/weaponEvolution.ts`)
+- [ ] 진화 무기 클래스 생성 (`src/game/weapons/evolved/[Name].ts`)
+- [ ] 밸런스 설정 (`config/balance.config.ts` - WEAPON_EVOLUTION_BALANCE)
+
+### Step 1: 진화 유물 클래스 생성
+
+```typescript
+/**
+ * 청자 상감운학문 매병 유물
+ * 정화수 무기 진화 조건
+ */
+
+import { LOCAL_ASSETS } from '@config/assets.config';
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
-export class KillStack extends BaseArtifact {
-  private stacks: number = 0;
-  private readonly MAX_STACKS = 100;
-  private readonly DAMAGE_PER_STACK = 0.01; // 1%
+export class CeladonCraneVaseArtifact extends BaseArtifact {
+  constructor() {
+    super({
+      id: 'celadon_crane_vase',
+      name: '청자 상감운학문 매병',
+      tier: 3,
+      rarity: 'epic',
+      category: 'offensive',
+      description: '정화수 무기를 진화시킵니다 (레벨 7 필요)',
+      iconPath: LOCAL_ASSETS.celadonCraneVaseArtifact,
+      color: 0x87ceeb, // 하늘색
+    });
+  }
+
+  // 진화 유물은 별도 로직이 필요 없음
+  // weaponEvolution.ts에서 자동으로 처리됨
+}
+```
+
+### Step 2: 에셋 등록
+
+**파일**: `src/config/assets.config.ts`
+
+```typescript
+export const LOCAL_ASSETS = {
+  // 유물 아이콘 (32x32)
+  celadonCraneVaseArtifact: '/assets/artifacts/celadon-crane-vase.png',
+
+  // ... 기타 에셋
+} as const;
+```
+
+### Step 3: 진화 맵 등록
+
+**파일**: `src/game/data/weaponEvolution.ts`
+
+```typescript
+import { PurifyingWaterEvolvedWeapon } from '@game/weapons/evolved/PurifyingWaterEvolvedWeapon';
+
+export const WEAPON_EVOLUTION_MAP: Record<string, WeaponEvolutionData> = {
+  weapon_purifying_water: {
+    weaponId: 'weapon_purifying_water',
+    requiredLevel: 7,
+    requiredArtifactId: 'celadon_crane_vase', // 유물 ID와 일치!
+    evolvedWeaponName: '청자 상감운학문 매병',
+    evolvedWeaponFactory: PurifyingWaterEvolvedWeapon,
+    enabled: true,
+  },
+};
+```
+
+### Step 4: 진화 무기 클래스 생성
+
+**파일**: `src/game/weapons/evolved/PurifyingWaterEvolvedWeapon.ts`
+
+```typescript
+/**
+ * 정화수 진화 무기 - 청자 상감운학문 매병
+ *
+ * 타입: 투척형 (Throwable)
+ * 진화 조건: 정화수 레벨 7 + 청자 상감운학문 매병 유물 보유
+ * 강화 효과: 데미지 140%, 범위 증가, 투척 개수 증가, 지속시간 증가, 플레이어 귀환
+ */
+import { LOCAL_ASSETS } from '@config/assets.config';
+import { WEAPON_BALANCE, WEAPON_EVOLUTION_BALANCE } from '@config/balance.config';
+import { calculateWeaponStats } from '@game/data/weapons';
+import type { BaseEnemy } from '@game/entities/enemies';
+import type { Player } from '@game/entities/Player';
+import type { WaterBottle } from '@game/entities/WaterBottle';
+import type { WaterSplash } from '@game/entities/WaterSplash';
+import type { Vector2 } from '@type/game.types';
+
+import { PurifyingWaterWeapon } from '../PurifyingWaterWeapon';
+
+export class PurifyingWaterEvolvedWeapon extends PurifyingWaterWeapon {
+  // 진화 무기 밸런스 (중앙 집중식 관리)
+  private readonly balance = WEAPON_EVOLUTION_BALANCE.purifying_water;
+
+  constructor(baseLevel: number = 7) {
+    super();
+
+    // 진화 무기 플래그 설정
+    this.isEvolved = true;
+
+    // 기존 레벨 복원
+    this.level = baseLevel;
+
+    // 스탯 업데이트
+    this.updateEvolvedStats();
+
+    // 이름 변경
+    this.name = '청자 상감운학문 매병';
+
+    console.log(
+      `✨ [PurifyingWaterEvolved] 정화수 진화! Lv.${this.level}`
+    );
+  }
+
+  /**
+   * 진화 무기 스탯 업데이트
+   */
+  private updateEvolvedStats(): void {
+    const stats = calculateWeaponStats('purifying_water', this.level);
+    const config = WEAPON_BALANCE.purifying_water;
+
+    // 데미지 증가
+    this.damage = stats.damage * this.balance.damageMultiplier;
+
+    // 범위 증가
+    const aoeSteps = Math.floor((this.level - 1) / config.levelScaling.aoeRadiusIncreaseInterval);
+    const baseRadius = config.aoeRadius + aoeSteps * config.levelScaling.aoeRadiusPerLevel;
+    this.aoeRadius = baseRadius * this.balance.aoeMultiplier;
+  }
+
+  /**
+   * 물병 발사 (진화 에셋 적용)
+   */
+  public async fire(
+    playerPos: Vector2,
+    enemies: BaseEnemy[],
+    player?: Player
+  ): Promise<WaterBottle[]> {
+    // 부모 클래스의 fire 호출
+    const bottles = await super.fire(playerPos, enemies, player);
+
+    // 진화 에셋으로 교체 (매병 에셋)
+    for (const bottle of bottles) {
+      await bottle.loadSprite(LOCAL_ASSETS.celadonCraneVaseArtifact);
+    }
+
+    return bottles;
+  }
+
+  /**
+   * 레벨업 (진화 무기 배율 적용)
+   */
+  public levelUp(): void {
+    this.level++;
+    this.updateEvolvedStats();
+
+    console.log(
+      `✨ [PurifyingWaterEvolved] 레벨 ${this.level}!`
+    );
+  }
+}
+```
+
+### Step 5: 밸런스 설정
+
+**파일**: `src/config/balance.config.ts`
+
+```typescript
+export const WEAPON_EVOLUTION_BALANCE = {
+  purifying_water: {
+    damageMultiplier: 1.4,        // 140% 데미지
+    aoeMultiplier: 1.2,           // 120% 범위
+    throwIncrease: 1,             // +1 투척
+    maxThrowIncrease: 1,          // 최대 +1
+    lifetimeMultiplier: 1.5,      // 150% 지속시간
+    returnSpeed: 200,             // 귀환 속도 (px/s)
+  },
+  // ... 다른 진화 무기들
+} as const;
+```
+
+### 진화 시스템 동작 흐름
+
+```
+1. 플레이어가 유물 획득
+   └─> artifactSystem.grantArtifact('celadon_crane_vase')
+
+2. 무기가 레벨 7 도달
+   └─> weapon.levelUp() -> level = 7
+
+3. 진화 조건 체크 (매 프레임)
+   └─> canEvolve(weaponId, level, artifactIds)
+       └─> level >= 7 && artifactIds.includes('celadon_crane_vase')
+
+4. 진화 트리거
+   └─> evolveWeapon(weapon, player)
+       └─> weapon.onBeforeEvolution?.() // 정리
+       └─> new PurifyingWaterEvolvedWeapon(weapon.level)
+       └─> weapon.onAfterEvolution?.() // 초기화
+
+5. 진화 완료
+   └─> 무기 교체, 에셋 변경, 스탯 증가
+```
+
+---
+
+## 예제 코드
+
+### 예제 1: 간단한 공격형 유물 (확률 효과)
+
+```typescript
+/**
+ * 불꽃의 인장 유물
+ * 10% 확률로 적 점화 (3초간 DoT)
+ */
+
+import { LOCAL_ASSETS } from '@config/assets.config';
+import type { WeaponCategory } from '@game/data/weapons';
+import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
+import type { StatusEffect } from '@type/status-effect.types';
+
+import { BaseArtifact } from '../base/BaseArtifact';
+
+export class FireSealArtifact extends BaseArtifact {
+  // 밸런스 상수
+  private readonly IGNITE_CHANCE = 0.1;     // 10%
+  private readonly IGNITE_DURATION = 3.0;   // 3초
+  private readonly IGNITE_DPS = 20;         // 초당 20 피해
 
   constructor() {
     super({
-      id: 'kill_stack',
-      name: '척살',
+      id: 'fire_seal',
+      name: '불꽃의 인장',
       tier: 2,
-      rarity: 'epic',
-      description: '적 처치 시 공격력 +1% (최대 100%). 피격 시 모든 스택 손실',
-      iconPath: 'assets/artifacts/kill_stack.png',
-      color: 0x8b0000,
+      rarity: 'rare',
+      category: 'offensive',
+      description: '적을 맞출 때 10% 확률로 3초간 점화 (초당 20 피해)',
+      iconPath: LOCAL_ASSETS.fireSealArtifact,
+      color: 0xff4500,
     });
   }
 
-  public activate(player: Player): void {
-    super.activate(player);
+  public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+    // 확률 체크
+    if (Math.random() >= this.IGNITE_CHANCE) return;
 
-    // 스탯 증가 적용
-    this.updateDamage();
-  }
+    // 상태 이상 적용
+    const statusEffect: StatusEffect = {
+      type: 'ignited',
+      duration: this.IGNITE_DURATION,
+      startTime: performance.now(),
+      source: this.data.id,
+      data: { dps: this.IGNITE_DPS },
+    };
 
-  public onKill(enemy: Enemy): void {
-    this.stacks = Math.min(this.MAX_STACKS, this.stacks + 1);
-    this.updateDamage();
-  }
+    enemy.addStatusEffect(statusEffect);
 
-  public onTakeDamage(damage: number): number {
-    // 스택 초기화
-    this.stacks = 0;
-    this.updateDamage();
-
-    return damage; // 피해는 그대로
-  }
-
-  private updateDamage(): void {
-    if (!this.player) return;
-
-    // 기존 보너스 제거
-    const currentBonus = (this.stacks - 1) * this.DAMAGE_PER_STACK;
-    this.player.damageMultiplier -= currentBonus;
-
-    // 새 보너스 적용
-    const newBonus = this.stacks * this.DAMAGE_PER_STACK;
-    this.player.damageMultiplier += newBonus;
-
-    // UI 업데이트 (있다면)
-    // this.scene.artifactUI.updateStack(this.data.id, this.stacks);
-  }
-
-  public cleanup(): void {
-    super.cleanup();
-
-    // 보너스 제거
-    if (this.player) {
-      const bonus = this.stacks * this.DAMAGE_PER_STACK;
-      this.player.damageMultiplier -= bonus;
-    }
-
-    this.stacks = 0;
+    console.log(`🔥 [FireSeal] Enemy ignited!`);
   }
 }
 ```
 
-### 🗿 마석 (이동 금지 → 공격력 2배)
+### 예제 2: 복잡한 디버프 유물 (매혹 + AI 제어)
+
+구미호의 눈물 전체 코드 참조:
+- [FoxTearArtifact.ts](../../src/game/artifacts/list/FoxTearArtifact.ts)
+
+**핵심 패턴**:
+1. `Map<BaseEnemy, Data>` 구조로 다중 대상 추적
+2. `update(delta)` 루프에서 AI 행동 제어
+3. `cleanup()` 메서드로 interval, 시각 효과 정리
+4. 상태 이상 시스템 연동 (`addStatusEffect`, `hasStatusEffect`)
+
+### 예제 3: 시각 효과가 있는 유물 (처형 이펙트)
 
 ```typescript
-// src/game/artifacts/list/MagicStone.ts
+/**
+ * 처형 이펙트 (AnimatedSprite)
+ */
+private async showExecuteEffect(x: number, y: number, parent: Container): Promise<void> {
+  try {
+    // 스프라이트시트 로드
+    const texture = await Assets.load(LOCAL_ASSETS.executionEffect);
 
-import { BaseArtifact } from '../base/BaseArtifact';
+    // 프레임 생성 (69x60, 30프레임, 6열)
+    const frameWidth = 69;
+    const frameHeight = 60;
+    const totalFrames = 30;
+    const columns = 6;
 
-export class MagicStone extends BaseArtifact {
-  private readonly STATIONARY_DURATION = 2.0; // 2초
-  private readonly DAMAGE_BOOST = 2.0; // 2배
+    const frames: Texture[] = [];
+    for (let i = 0; i < totalFrames; i++) {
+      const col = i % columns;
+      const row = Math.floor(i / columns);
+      const frameX = col * frameWidth;
+      const frameY = row * frameHeight;
 
-  private stationaryTimer: number = 0;
-  private isStationary: boolean = false;
-  private boosted: boolean = false;
-
-  constructor() {
-    super({
-      id: 'magic_stone',
-      name: '마석',
-      tier: 3,
-      rarity: 'epic',
-      description: '이동속도 -50%. 2초 정지 시 공격력 2배',
-      iconPath: 'assets/artifacts/magic_stone.png',
-      color: 0x8a2be2, // 보라
-    });
-  }
-
-  public activate(player: Player): void {
-    super.activate(player);
-
-    // 이동속도 감소
-    player.speedMultiplier *= 0.5;
-  }
-
-  public update(delta: number): void {
-    if (!this.player) return;
-
-    // 이동 중인지 체크
-    const isMoving = this.player.currentInput.x !== 0 || this.player.currentInput.y !== 0;
-
-    if (isMoving) {
-      // 이동 중이면 타이머 리셋
-      this.stationaryTimer = 0;
-      this.isStationary = false;
-
-      if (this.boosted) {
-        this.removeDamageBoost();
-      }
-    } else {
-      // 정지 중
-      this.stationaryTimer += delta;
-
-      if (this.stationaryTimer >= this.STATIONARY_DURATION && !this.boosted) {
-        this.applyDamageBoost();
-      }
-    }
-  }
-
-  private applyDamageBoost(): void {
-    if (!this.player || this.boosted) return;
-
-    this.player.damageMultiplier *= this.DAMAGE_BOOST;
-    this.boosted = true;
-
-    // 시각 효과 (보라색 아우라)
-    this.player.tint = 0x8a2be2;
-
-    console.log('💎 [Magic Stone] Boosted!');
-  }
-
-  private removeDamageBoost(): void {
-    if (!this.player || !this.boosted) return;
-
-    this.player.damageMultiplier /= this.DAMAGE_BOOST;
-    this.boosted = false;
-
-    // 원래대로
-    this.player.tint = 0xffffff;
-
-    console.log('⚪ [Magic Stone] Boost removed');
-  }
-
-  public cleanup(): void {
-    super.cleanup();
-
-    if (this.player) {
-      // 이동속도 복구
-      this.player.speedMultiplier /= 0.5;
-
-      // 공격력 복구
-      if (this.boosted) {
-        this.player.damageMultiplier /= this.DAMAGE_BOOST;
-      }
+      const frame = new Texture({
+        source: texture.source,
+        frame: new Rectangle(frameX, frameY, frameWidth, frameHeight),
+      });
+      frames.push(frame);
     }
 
-    this.stationaryTimer = 0;
-    this.boosted = false;
+    // 애니메이션 생성
+    const executionEffect = new AnimatedSprite(frames);
+    executionEffect.anchor.set(0.5);
+    executionEffect.x = x;
+    executionEffect.y = y;
+    executionEffect.scale.set(2.0);
+    executionEffect.animationSpeed = 0.5;
+    executionEffect.loop = false;
+    executionEffect.zIndex = 1000;
+
+    parent.addChild(executionEffect);
+    executionEffect.play();
+
+    // 애니메이션 종료 후 정리
+    executionEffect.onComplete = () => {
+      if (!executionEffect.destroyed) {
+        executionEffect.destroy({ children: true });
+      }
+    };
+  } catch (error) {
+    console.error('[ExecuteEffect] Load failed:', error);
   }
 }
 ```
 
 ---
 
-## Step 4: 유물 등록소
+## 베스트 프랙티스
+
+### 1. 밸런스 상수 관리
 
 ```typescript
-// src/game/artifacts/registry.ts
-
-import { FoxTear } from './impl/FoxTear';
-import { ExecutionerAxe } from './impl/ExecutionerAxe';
-import { MaskBerserk } from './impl/MaskBerserk';
-import { KillStack } from './impl/KillStack';
-import { MagicStone } from './impl/MagicStone';
-// ... 나머지 임포트
-
-import type { IArtifact } from './base/IArtifact';
-
-/**
- * 🎯 유물 등록소
- *
- * ✅ 새 유물 추가:
- * 1. impl/ 폴더에 새 유물 클래스 작성
- * 2. 이 파일에서 임포트
- * 3. ARTIFACTS 배열에 추가
- *
- * ❌ 유물 제거:
- * 1. ARTIFACTS 배열에서 삭제 (또는 주석)
- *
- * 🔧 유물 수정:
- * 1. impl/ 파일에서 직접 수정
- */
-export const ARTIFACTS: Array<new () => IArtifact> = [
-  // Tier 1 (2분)
-  // ... (기본 유물들)
-
-  // Tier 2 (4분)
-  FoxTear, // 구미호의 눈물
-  ExecutionerAxe, // 망나니의 도끼
-  KillStack, // 척살
-
-  // Tier 3 (6분)
-  MaskBerserk, // 탈령의 가면
-  MagicStone, // 마석
-
-  // Tier 4 (8분)
-  // ... (최종 유물들)
-];
-
-/**
- * 티어별 유물 필터링
- */
-export function getArtifactsByTier(tier: number): IArtifact[] {
-  return ARTIFACTS.map((ArtifactClass) => new ArtifactClass()).filter(
-    (artifact) => artifact.data.tier === tier
-  );
+// ✅ Good: private readonly로 불변성 보장
+export class GoodArtifact extends BaseArtifact {
+  private readonly DAMAGE_BONUS = 1.5;
+  private readonly TRIGGER_CHANCE = 0.1;
 }
 
-/**
- * 랜덤 선택 (중복 제외)
- */
-export function selectRandomArtifacts(
-  tier: number,
-  count: number,
-  excludeIds: string[] = []
-): IArtifact[] {
-  const pool = getArtifactsByTier(tier).filter((a) => !excludeIds.includes(a.data.id));
-
-  // 셔플
-  const shuffled = pool.sort(() => Math.random() - 0.5);
-
-  return shuffled.slice(0, Math.min(count, pool.length));
+// ❌ Bad: 매직 넘버, 변경 가능
+export class BadArtifact extends BaseArtifact {
+  public onHit(enemy: BaseEnemy) {
+    if (Math.random() < 0.1) { // 매직 넘버
+      enemy.takeDamage(damage * 1.5);
+    }
+  }
 }
 ```
 
----
-
-## Step 5: 간단한 관리 시스템
+### 2. 메모리 관리
 
 ```typescript
-// src/systems/ArtifactSystem.ts
+// ✅ Good: cleanup에서 모든 리소스 정리
+public cleanup(): void {
+  super.cleanup();
 
-import type { IArtifact } from '@artifacts/base/IArtifact';
-import type { Player } from '@entities/Player';
+  // 타이머 정리
+  if (this.interval) clearInterval(this.interval);
 
-/**
- * 유물 관리 (간단 버전)
- */
-export class ArtifactSystem {
-  private artifacts: IArtifact[] = [];
+  // 시각 효과 제거
+  this.effects.forEach(e => e.destroy());
 
-  constructor(private player: Player) {}
+  // 컬렉션 비우기
+  this.activeTargets.clear();
+}
 
-  /**
-   * 유물 추가
-   */
-  public add(artifact: IArtifact): boolean {
-    // 중복 체크
-    if (this.has(artifact.data.id)) {
-      console.warn('❌ Artifact already active');
-      return false;
-    }
-
-    // 활성화
-    artifact.activate(this.player);
-    this.artifacts.push(artifact);
-
-    return true;
-  }
-
-  /**
-   * 유물 제거
-   */
-  public remove(artifactId: string): boolean {
-    const index = this.artifacts.findIndex((a) => a.data.id === artifactId);
-    if (index === -1) return false;
-
-    const artifact = this.artifacts[index];
-    artifact.deactivate(this.player);
-    this.artifacts.splice(index, 1);
-
-    return true;
-  }
-
-  /**
-   * 보유 여부
-   */
-  public has(artifactId: string): boolean {
-    return this.artifacts.some((a) => a.data.id === artifactId);
-  }
-
-  /**
-   * 업데이트
-   */
-  public update(delta: number): void {
-    for (const artifact of this.artifacts) {
-      artifact.update(delta);
-    }
-  }
-
-  /**
-   * 이벤트 발행
-   */
-  public triggerKill(enemy: Enemy): void {
-    for (const artifact of this.artifacts) {
-      artifact.onKill?.(enemy);
-    }
-  }
-
-  public triggerHit(enemy: Enemy, damage: number): void {
-    for (const artifact of this.artifacts) {
-      artifact.onHit?.(enemy, damage);
-    }
-  }
-
-  public triggerTakeDamage(damage: number): number {
-    let finalDamage = damage;
-
-    for (const artifact of this.artifacts) {
-      if (artifact.onTakeDamage) {
-        finalDamage = artifact.onTakeDamage(finalDamage);
-      }
-    }
-
-    return finalDamage;
-  }
-
-  /**
-   * 정리
-   */
-  public cleanup(): void {
-    for (const artifact of this.artifacts) {
-      artifact.deactivate(this.player);
-    }
-    this.artifacts = [];
-  }
+// ❌ Bad: 리소스 누수
+public cleanup(): void {
+  super.cleanup();
+  // interval, effects가 정리되지 않음!
 }
 ```
 
----
-
-## 사용 예시
+### 3. 조건 검증 순서
 
 ```typescript
-// 게임 씬에서
+// ✅ Good: 빠른 체크를 먼저 (Early Return)
+public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+  // 1. 가장 빠른 체크: 카테고리
+  if (!weaponCategories?.includes('projectile')) return;
 
-class GameScene {
-  private artifactSystem!: ArtifactSystem;
+  // 2. 확률 체크 (Math.random은 저렴)
+  if (Math.random() >= this.CHANCE) return;
 
-  create() {
-    // 매니저 생성
-    this.artifactSystem = new ArtifactSystem(this.player);
+  // 3. 비용 높은 체크: 적 상태
+  if (enemy.hasStatusEffect('immune')) return;
 
-    // 플레이어 이벤트에 연결
-    this.player.on('kill', (enemy) => {
-      this.artifactSystem.triggerKill(enemy);
-    });
+  // 4. 실제 로직 (무거운 연산)
+  this.applyComplexEffect(enemy);
+}
+```
 
-    this.player.on('hit', (enemy, damage) => {
-      this.artifactSystem.triggerHit(enemy, damage);
-    });
+### 4. 타입 안전성
 
-    this.player.on('takeDamage', (damage) => {
-      const finalDamage = this.artifactSystem.triggerTakeDamage(damage);
-      // ... 실제 피해 적용
-    });
+```typescript
+// ✅ Good: 옵셔널 파라미터 검증
+public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+  if (!weaponCategories) return;
+
+  if (weaponCategories.includes('projectile')) {
+    // 안전하게 사용
   }
+}
 
-  update(delta: number) {
-    // 유물 업데이트
-    this.artifactSystem.update(delta);
-  }
-
-  // 엘리트 처치 시 호출 (엘리트 시스템에서)
-  onEliteKilled(tier: number) {
-    // 3개 랜덤 선택
-    const excludeIds = this.artifactSystem.getActiveIds();
-    const choices = selectRandomArtifacts(tier, 3, excludeIds);
-
-    // UI 표시
-    this.showArtifactSelectionUI(choices, (selected) => {
-      this.artifactSystem.add(selected);
-    });
+// ❌ Bad: 검증 없이 사용 (런타임 에러 위험)
+public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+  if (weaponCategories.includes('projectile')) { // weaponCategories가 undefined면 에러!
+    // ...
   }
 }
 ```
 
 ---
 
-## 추가/제거/수정 플로우
+## 트러블슈팅
 
-### ✅ 새 유물 추가
+### 문제 1: 유물이 활성화되지 않음
 
-1. **파일 작성**: `src/game/artifacts/list/MyArtifact.ts`
-2. **클래스 작성**: `BaseArtifact` 상속
-3. **등록**: `registry.ts`에 임포트 + 배열 추가
+**원인**: `initializeArtifacts()`에 등록 안됨
 
-### ❌ 유물 제거
+**해결**:
+```typescript
+// OverworldGameScene.ts
+private initializeArtifacts(): void {
+  this.artifactSystem.registerArtifact(new YourArtifact()); // 추가!
+}
+```
 
-1. `registry.ts`에서 배열에서 삭제 (또는 주석)
+### 문제 2: 진화가 트리거되지 않음
 
-### 🔧 유물 수정
+**원인**: 진화 맵의 ID가 유물 ID와 불일치
 
-1. 해당 유물 파일(`impl/XXX.ts`)에서 직접 수정
-2. 상수 값만 바꾸면 밸런스 조정 끝!
+**해결**:
+```typescript
+// weaponEvolution.ts
+weapon_purifying_water: {
+  requiredArtifactId: 'celadon_crane_vase', // 유물 constructor의 id와 일치해야 함!
+}
+
+// CeladonCraneVaseArtifact.ts
+constructor() {
+  super({
+    id: 'celadon_crane_vase', // 여기와 일치!
+  });
+}
+```
+
+### 문제 3: 메모리 누수 (FPS 저하)
+
+**원인**: cleanup()에서 interval, 시각 효과 정리 안됨
+
+**해결**:
+```typescript
+public cleanup(): void {
+  super.cleanup();
+
+  // interval 정리
+  if (this.updateInterval) {
+    clearInterval(this.updateInterval);
+    this.updateInterval = null;
+  }
+
+  // 시각 효과 정리
+  this.visualEffects.forEach(effect => {
+    if (!effect.destroyed) {
+      effect.destroy({ children: true });
+    }
+  });
+  this.visualEffects.clear();
+}
+```
+
+### 문제 4: onHit이 너무 자주 호출됨 (성능 저하)
+
+**원인**: 조건 검증 순서가 비효율적
+
+**해결**:
+```typescript
+// ✅ Good: 빠른 체크를 먼저
+public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {
+  // 1. 가장 빠른 체크
+  if (!weaponCategories?.includes('melee')) return;
+
+  // 2. 확률 체크
+  if (Math.random() >= 0.1) return;
+
+  // 3. 무거운 로직 (위 조건을 통과한 경우만)
+  this.expensiveOperation(enemy);
+}
+```
 
 ---
 
-## 체크리스트
+## 참고 자료
 
-구현 순서:
-
-- [ ] Phase 1: 타입 & 인터페이스 (`IArtifact.ts`)
-- [ ] Phase 2: 베이스 클래스 (`BaseArtifact.ts`)
-- [ ] Phase 3: 등록소 (`registry.ts`)
-- [ ] Phase 4: 매니저 (`ArtifactSystem.ts`)
-- [ ] Phase 5: 유물 3개 구현 (프로토타입)
-- [ ] Phase 6: 플레이어 이벤트 연결
-- [ ] Phase 7: 나머지 유물 구현
+- [무기 구현 가이드](./weapon-implementation-guide.md)
+- [상태 이상 시스템](../../src/type/status-effect.types.ts)
+- [BaseArtifact 소스코드](../../src/game/artifacts/base/BaseArtifact.ts)
+- [IArtifact 인터페이스](../../src/game/artifacts/base/IArtifact.ts)
+- [진화 시스템 데이터](../../src/game/data/weaponEvolution.ts)
 
 ---
 
-**작성자**: 개발팀
+**작성일**: 2025-01-XX
 **버전**: 1.0
-**최종 수정**: 2025-11-11
+**작성자**: Claude Code
