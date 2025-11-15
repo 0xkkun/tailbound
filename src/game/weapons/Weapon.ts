@@ -10,6 +10,7 @@ import type { Projectile } from '@game/entities/Projectile';
 import type { WaterBottle } from '@game/entities/WaterBottle';
 import type { WaterSplash } from '@game/entities/WaterSplash';
 import type { Vector2 } from '@type/game.types';
+import type { Container } from 'pixi.js';
 
 // 무기가 발사할 수 있는 엔티티 타입들
 export type WeaponEntity = Projectile | AoEEffect | MeleeSwing | WaterSplash | WaterBottle;
@@ -23,13 +24,13 @@ export interface WeaponLifecycle {
    * 진화 전 정리 작업 (기존 무기의 엔티티 제거 등)
    * @param gameLayer 게임 레이어 (엔티티 제거용)
    */
-  onBeforeEvolution?(gameLayer: unknown): void;
+  onBeforeEvolution?(gameLayer: Container): void;
 
   /**
    * 진화 후 초기화 작업 (새로운 엔티티 생성 등)
    * @param gameLayer 게임 레이어 (엔티티 추가용)
    */
-  onAfterEvolution?(gameLayer: unknown): Promise<void>;
+  onAfterEvolution?(gameLayer: Container): Promise<void>;
 }
 
 export abstract class Weapon implements WeaponLifecycle {
