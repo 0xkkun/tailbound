@@ -11,7 +11,6 @@ import type { Container } from 'pixi.js';
 
 export class ArtifactSystem {
   private artifacts: IArtifact[] = [];
-  private readonly maxArtifacts: number = 4;
 
   constructor(
     private player: Player,
@@ -22,12 +21,6 @@ export class ArtifactSystem {
    * 유물 추가
    */
   public add(artifact: IArtifact): boolean {
-    // 최대 개수 체크
-    if (this.artifacts.length >= this.maxArtifacts) {
-      console.warn('[ArtifactSystem] Max artifacts reached (4/4)');
-      return false;
-    }
-
     // 중복 체크
     if (this.has(artifact.data.id)) {
       console.warn('[ArtifactSystem] Artifact already active:', artifact.data.id);
@@ -38,10 +31,7 @@ export class ArtifactSystem {
     artifact.activate(this.player, this.scene);
     this.artifacts.push(artifact);
 
-    console.log(
-      `[ArtifactSystem] Added artifact (${this.artifacts.length}/4):`,
-      artifact.data.name
-    );
+    console.log(`[ArtifactSystem] Added artifact (${this.artifacts.length}):`, artifact.data.name);
 
     return true;
   }

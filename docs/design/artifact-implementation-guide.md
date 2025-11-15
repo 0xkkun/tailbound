@@ -39,13 +39,13 @@ src/game/artifacts/
 // src/game/artifacts/base/IArtifact.ts
 
 export interface ArtifactData {
-  id: string;              // 'fox_tear'
-  name: string;            // '구미호의 눈물'
-  tier: 1 | 2 | 3 | 4;    // 등장 시기
+  id: string; // 'fox_tear'
+  name: string; // '구미호의 눈물'
+  tier: 1 | 2 | 3 | 4; // 등장 시기
   rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'cursed';
-  description: string;     // 효과 설명
-  iconPath: string;        // 아이콘 경로
-  color: number;           // 테마 색상 (0xff69b4)
+  description: string; // 효과 설명
+  iconPath: string; // 아이콘 경로
+  color: number; // 테마 색상 (0xff69b4)
 }
 
 export interface IArtifact {
@@ -560,13 +560,13 @@ export const ARTIFACTS: Array<new () => IArtifact> = [
   // ... (기본 유물들)
 
   // Tier 2 (4분)
-  FoxTear,              // 구미호의 눈물
-  ExecutionerAxe,       // 망나니의 도끼
-  KillStack,            // 척살
+  FoxTear, // 구미호의 눈물
+  ExecutionerAxe, // 망나니의 도끼
+  KillStack, // 척살
 
   // Tier 3 (6분)
-  MaskBerserk,          // 탈령의 가면
-  MagicStone,           // 마석
+  MaskBerserk, // 탈령의 가면
+  MagicStone, // 마석
 
   // Tier 4 (8분)
   // ... (최종 유물들)
@@ -576,9 +576,9 @@ export const ARTIFACTS: Array<new () => IArtifact> = [
  * 티어별 유물 필터링
  */
 export function getArtifactsByTier(tier: number): IArtifact[] {
-  return ARTIFACTS
-    .map(ArtifactClass => new ArtifactClass())
-    .filter(artifact => artifact.data.tier === tier);
+  return ARTIFACTS.map((ArtifactClass) => new ArtifactClass()).filter(
+    (artifact) => artifact.data.tier === tier
+  );
 }
 
 /**
@@ -589,8 +589,7 @@ export function selectRandomArtifacts(
   count: number,
   excludeIds: string[] = []
 ): IArtifact[] {
-  const pool = getArtifactsByTier(tier)
-    .filter(a => !excludeIds.includes(a.data.id));
+  const pool = getArtifactsByTier(tier).filter((a) => !excludeIds.includes(a.data.id));
 
   // 셔플
   const shuffled = pool.sort(() => Math.random() - 0.5);
@@ -614,7 +613,6 @@ import type { Player } from '@entities/Player';
  */
 export class ArtifactSystem {
   private artifacts: IArtifact[] = [];
-  private maxArtifacts: number = 4;
 
   constructor(private player: Player) {}
 
@@ -622,12 +620,6 @@ export class ArtifactSystem {
    * 유물 추가
    */
   public add(artifact: IArtifact): boolean {
-    // 최대 개수 체크
-    if (this.artifacts.length >= this.maxArtifacts) {
-      console.warn('❌ Max artifacts reached');
-      return false;
-    }
-
     // 중복 체크
     if (this.has(artifact.data.id)) {
       console.warn('❌ Artifact already active');
@@ -645,7 +637,7 @@ export class ArtifactSystem {
    * 유물 제거
    */
   public remove(artifactId: string): boolean {
-    const index = this.artifacts.findIndex(a => a.data.id === artifactId);
+    const index = this.artifacts.findIndex((a) => a.data.id === artifactId);
     if (index === -1) return false;
 
     const artifact = this.artifacts[index];
@@ -659,7 +651,7 @@ export class ArtifactSystem {
    * 보유 여부
    */
   public has(artifactId: string): boolean {
-    return this.artifacts.some(a => a.data.id === artifactId);
+    return this.artifacts.some((a) => a.data.id === artifactId);
   }
 
   /**
