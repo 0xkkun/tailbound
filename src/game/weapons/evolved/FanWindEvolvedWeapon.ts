@@ -72,7 +72,8 @@ export class FanWindEvolvedWeapon extends FanWindWeapon {
     for (const projectile of projectiles) {
       projectile.damageDecayMin = WEAPON_BALANCE.fan_wind.damageDecayMin + 0.1;
       // 진화 에셋으로 교체
-      projectile.loadSpriteSheet(CDN_ASSETS.weapon.wind, 96, 96, 12, 12);
+      projectile.loadSpriteSheet(CDN_ASSETS.weapon.wind_evolved, 32, 32, 12, 12);
+      projectile.scale.set(3);
 
       // 분열 효과: 수명 종료 시 3개로 분열
       projectile.onExpire = (expiredProjectile: Projectile) => {
@@ -93,8 +94,7 @@ export class FanWindEvolvedWeapon extends FanWindWeapon {
   ): void {
     const splitCount = 3;
     const angleStep = (Math.PI * 2) / splitCount; // 120도 (2π/3)
-    const splitDamageMultiplier = 0.7; // 분열 투사체는 70% 데미지
-    const splitSizeMultiplier = 0.6; // 분열 투사체는 60% 크기
+    const splitDamageMultiplier = 0.3; // 분열 투사체는 30% 데미지
 
     // 원본 투사체의 진행 방향을 기준으로 회전
     const baseAngle = Math.atan2(originalProjectile.y, originalProjectile.x);
@@ -134,19 +134,17 @@ export class FanWindEvolvedWeapon extends FanWindWeapon {
       // 투사체 속성 설정
       splitProjectile.speed = weaponData.projectileSpeed || 350;
       splitProjectile.lifeTime = (weaponData.projectileLifetime || 1.2) * 0.7; // 분열 투사체는 수명 70%
-      splitProjectile.radius = (weaponData.projectileRadius || 15) * splitSizeMultiplier; // 크기 60%
       splitProjectile.piercing = Infinity;
 
       // 관통 데미지 감소 활성화
       splitProjectile.damageDecayEnabled = true;
       splitProjectile.damageDecayMin = WEAPON_BALANCE.fan_wind.damageDecayMin + 0.1;
 
-      // 진화 에셋 사용 (크기 60%)
-      splitProjectile.loadSpriteSheet(CDN_ASSETS.weapon.wind, 96, 96, 12, 12);
+      // 서브 무기 에셋 사용 (32x32, 17프레임)
+      splitProjectile.loadSpriteSheet(CDN_ASSETS.weapon.windSub, 32, 32, 17, 17);
 
       // 분열 투사체 크기 및 색상 조정
-      splitProjectile.scale.set(splitSizeMultiplier); // 60% 크기
-      splitProjectile.tint = 0x7ec8e3; // 흐려진 하늘색 (Pale Sky Blue) - 에너지 분산 표현
+      splitProjectile.scale.set(1.5);
 
       // 분열 투사체 저장소에 추가 (게임 씬에서 가져갈 수 있도록)
       this.splitProjectiles.push(splitProjectile);

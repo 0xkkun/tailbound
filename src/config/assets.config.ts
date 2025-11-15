@@ -55,8 +55,9 @@ export const CDN_ASSETS = {
     mocktak_evolved: `${CDN_BASE_URL}/assets/weapon/mocktak-evolved.png`,
     talisman_evolved: `${CDN_BASE_URL}/assets/weapon/talisman-evolved.png`,
     jakdu_evolved: `${CDN_BASE_URL}/assets/weapon/jakdu-evolved.png`,
+    wind_evolved: `${CDN_BASE_URL}/assets/weapon/wind-evolved.png`,
+    windSub: `${CDN_BASE_URL}/assets/weapon/wind-sub.png`, // 부채바람 진화 시 생기는 서브 무기 이미지
     // TODO: 에셋 준비되면 추가
-    // wind_evolved: `${CDN_BASE_URL}/assets/weapon/wind-evolved.png`,
     // purifyingWater_evolved: `${CDN_BASE_URL}/assets/weapon/purifying-water-evolved.png`,
   },
 
@@ -262,6 +263,8 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.weapon.mocktak_evolved,
     CDN_ASSETS.weapon.talisman_evolved,
     CDN_ASSETS.weapon.jakdu_evolved,
+    CDN_ASSETS.weapon.wind_evolved,
+    CDN_ASSETS.weapon.windSub,
     // CDN_ASSETS.weapon.wind_evolved,
     // CDN_ASSETS.weapon.purifyingWater_evolved,
     CDN_ASSETS.drop.spiritEnergy1,
