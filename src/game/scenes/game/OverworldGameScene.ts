@@ -48,6 +48,7 @@ import { PortalIndicator } from '@game/ui/PortalIndicator';
 import { checkCircleCollision, checkEllipseCircleCollision } from '@game/utils/collision';
 import { DokkaebiFireWeapon } from '@game/weapons/DokkaebiFireWeapon';
 import { FanWindEvolvedWeapon } from '@game/weapons/evolved/FanWindEvolvedWeapon';
+import { PurifyingWaterEvolvedWeapon } from '@game/weapons/evolved/PurifyingWaterEvolvedWeapon';
 import { FanWindWeapon } from '@game/weapons/FanWindWeapon';
 import { JakduBladeWeapon } from '@game/weapons/JakduBladeWeapon';
 import { MoktakSoundWeapon } from '@game/weapons/MoktakSoundWeapon';
@@ -880,17 +881,21 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           // 무기 카테고리 설정 (유물 시스템용)
           splash.weaponCategories = WEAPON_DATA.purifying_water.categories;
 
-          // 스플래시 스프라이트 로드 (purifying-water-spike.png: 64x48, 16프레임, 1024x48 horizontal strip)
-          splash.loadSpriteSheet(
-            `${CDN_BASE_URL}/assets/weapon/purifying-water-spike.png`,
-            64,
-            48,
-            16,
-            16
-          );
+          // 진화 무기: 귀환 메커니즘 설정 + 에셋 교체
+          if (weapon instanceof PurifyingWaterEvolvedWeapon) {
+            weapon.setupSplashReturn(splash, this.player);
+            // TODO: 진화 무기 에셋 사용
+            // splash.loadSprite(LOCAL_ASSETS.celadonCraneVaseArtifact);
+          }
+          splash.loadSpriteSheet(CDN_ASSETS.weapon.purifyingWaterSpike, 64, 48, 16, 16);
 
           this.waterSplashes.push(splash);
           this.gameLayer.addChild(splash);
+        }
+
+        // 진화 무기: 비활성 스플래시 정리
+        if (weapon instanceof PurifyingWaterEvolvedWeapon) {
+          weapon.cleanupSplashes();
         }
       }
 

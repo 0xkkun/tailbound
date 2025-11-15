@@ -617,6 +617,8 @@ export const WEAPON_EVOLUTION_BALANCE = {
     aoeMultiplier: 1.2, // 범위 120%
     throwIncrease: 1, // 투척 개수 +1
     maxThrowIncrease: 1, // 최대 투척 개수 상한 +1
+    lifetimeMultiplier: 1.5, // 지속시간 150% (1.2초 → 1.8초)
+    returnSpeed: 400, // 귀환 속도 (px/s)
   },
 
   // 도깨비불 → 금관총 금관

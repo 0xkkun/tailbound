@@ -71,9 +71,10 @@ export class WaterBottle extends Container {
   /**
    * 스프라이트 로드 (32x32 물병)
    */
-  public async loadSprite(): Promise<void> {
+  public async loadSprite(customAssetPath?: string): Promise<void> {
     try {
-      const texture = await Assets.load(CDN_ASSETS.weapon.purifyingWater);
+      const assetPath = customAssetPath || CDN_ASSETS.weapon.purifyingWater;
+      const texture = await Assets.load(assetPath);
 
       this.visual = new AnimatedSprite([texture]);
       this.visual.anchor.set(0.5);

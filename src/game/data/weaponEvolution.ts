@@ -10,11 +10,9 @@ import { DokkaebiFireEvolvedWeapon } from '@game/weapons/evolved/DokkaebiFireEvo
 import { FanWindEvolvedWeapon } from '@game/weapons/evolved/FanWindEvolvedWeapon';
 import { JakduBladeEvolvedWeapon } from '@game/weapons/evolved/JakduBladeEvolvedWeapon';
 import { MoktakSoundEvolvedWeapon } from '@game/weapons/evolved/MoktakSoundEvolvedWeapon';
+import { PurifyingWaterEvolvedWeapon } from '@game/weapons/evolved/PurifyingWaterEvolvedWeapon';
 import { TalismanEvolvedWeapon } from '@game/weapons/evolved/TalismanEvolvedWeapon';
 import type { Weapon } from '@game/weapons/Weapon';
-
-// TODO: 정수 무기 활성화 시 주석 해제
-// import { PurifyingWaterEvolvedWeapon } from '@game/weapons/evolved/PurifyingWaterEvolvedWeapon';
 
 /**
  * 진화 무기 생성자 타입
@@ -74,14 +72,14 @@ export const WEAPON_EVOLUTION_MAP: Record<string, WeaponEvolutionData> = {
     evolvedWeaponFactory: FanWindEvolvedWeapon,
     enabled: true,
   },
-  // weapon_purifying_water: {
-  //   weaponId: 'weapon_purifying_water',
-  //   requiredLevel: 7,
-  //   requiredArtifactId: 'celadon_crane_vase',
-  //   evolvedWeaponName: '청자 상감운학문 매병',
-  //   evolvedWeaponFactory: PurifyingWaterEvolvedWeapon,
-  //   enabled: false,
-  // },
+  weapon_purifying_water: {
+    weaponId: 'weapon_purifying_water',
+    requiredLevel: 7,
+    requiredArtifactId: 'celadon_crane_vase',
+    evolvedWeaponName: '청자 상감운학문 매병',
+    evolvedWeaponFactory: PurifyingWaterEvolvedWeapon,
+    enabled: true,
+  },
 };
 
 /**

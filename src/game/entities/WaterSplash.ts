@@ -34,6 +34,12 @@ export class WaterSplash extends Container {
   private color: number;
   private useSprite: boolean = false;
 
+  // 진화 전용: 플레이어 귀환 메커니즘
+  public shouldReturnToPlayer: boolean = false; // 귀환 모드 활성화 여부
+  public onReturnComplete?: () => void; // 귀환 완료 콜백 (쿨다운 감소 등)
+  private isReturning: boolean = false; // 귀환 중 상태
+  private returnSpeed: number = 200; // 귀환 속도 (px/s) - 천천히
+
   constructor(
     x: number,
     y: number,
@@ -69,8 +75,62 @@ export class WaterSplash extends Container {
     const killedEnemies: BaseEnemy[] = [];
     this.lifetime += deltaTime;
 
-    // 수명 체크 (조기 리턴으로 불필요한 연산 방지)
-    if (this.lifetime >= this.maxLifetime) {
+    // 귀환 모드: 착지 직후부터 플레이어로 천천히 귀환
+    if (this.shouldReturnToPlayer && !this.isReturning) {
+      // 플레이어 참조 검증 BEFORE 상태 변경 (fail-fast)
+      if (!this.playerRef) {
+        console.warn('💧⚠️ [WaterSplash] No player reference for return, disabling return mode');
+        this.shouldReturnToPlayer = false; // 귀환 모드 비활성화
+        // 일반 모드로 계속 진행
+      } else {
+        this.isReturning = true;
+        console.log(
+          `💧🔄 [WaterSplash] 플레이어 귀환 시작! (${this.x.toFixed(0)}, ${this.y.toFixed(0)})`
+        );
+      }
+    }
+
+    // 귀환 중: 플레이어로 이동 (지속시간 동안 데미지 주면서 천천히 이동)
+    if (this.isReturning) {
+      // 이미 위에서 검증했지만 defensive check
+      if (!this.playerRef) {
+        console.warn('💧⚠️ [WaterSplash] Player reference lost during return, deactivating');
+        this.active = false;
+        return killedEnemies;
+      }
+
+      const dx = this.playerRef.x - this.x;
+      const dy = this.playerRef.y - this.y;
+      const distanceSquared = dx * dx + dy * dy;
+      const arrivalThresholdSquared = 20 * 20; // 400
+
+      // 플레이어 도달 체크 (squared distance 사용 - sqrt 제거)
+      if (distanceSquared < arrivalThresholdSquared || this.lifetime >= this.maxLifetime) {
+        this.active = false;
+        if (this.onReturnComplete) {
+          this.onReturnComplete();
+        }
+        console.log(`💧✨ [WaterSplash] 플레이어 귀환 완료!`);
+        return killedEnemies;
+      }
+
+      // 플레이어 방향으로 이동 (overshoot 방지)
+      // sqrt는 정규화할 때만 계산
+      const distance = Math.sqrt(distanceSquared);
+      const moveDistance = Math.min(this.returnSpeed * deltaTime, distance);
+      if (distance > 0) {
+        this.x += (dx / distance) * moveDistance;
+        this.y += (dy / distance) * moveDistance;
+      }
+
+      // 귀환 중에는 약간 투명하게 (70% 불투명도)
+      this.alpha = 0.7;
+
+      // 귀환 중에도 데미지 처리 (아래로 계속)
+    }
+
+    // 일반 모드: 수명 체크
+    if (this.lifetime >= this.maxLifetime && !this.shouldReturnToPlayer) {
       this.active = false;
       return killedEnemies;
     }
@@ -131,8 +191,11 @@ export class WaterSplash extends Container {
     }
 
     // 페이드아웃 (설치형이므로 천천히)
-    const progress = this.lifetime / this.maxLifetime;
-    this.alpha = this.useSprite ? 1 - progress * 0.3 : 1 - progress * 0.5;
+    // 귀환 모드에서는 alpha가 이미 0.7로 고정되어 있으므로 일반 모드만 적용
+    if (!this.isReturning) {
+      const progress = this.lifetime / this.maxLifetime;
+      this.alpha = this.useSprite ? 1 - progress * 0.3 : 1 - progress * 0.5;
+    }
 
     return killedEnemies;
   }
@@ -147,6 +210,38 @@ export class WaterSplash extends Container {
       this.visual.fill({ color: this.color, alpha: 0.5 });
       this.visual.circle(0, 0, this.radius);
       this.visual.stroke({ width: 3, color: this.color, alpha: 0.9 });
+    }
+  }
+
+  /**
+   * 단일 스프라이트 로드 (진화 무기용 - 정적 텍스처)
+   */
+  public async loadSprite(path: string): Promise<void> {
+    try {
+      const texture = await Assets.load(path);
+
+      // Graphics 제거하고 AnimatedSprite로 교체
+      this.removeChild(this.visual);
+      if (this.visual instanceof Graphics) {
+        this.visual.destroy();
+      }
+
+      // 단일 텍스처도 AnimatedSprite로 감싸기 (일관된 타입)
+      this.visual = new AnimatedSprite([texture]);
+      this.visual.anchor.set(0.5);
+      this.visual.loop = false; // 정적 이미지
+
+      // 반지름에 맞춰 스케일 조정
+      const spriteSize = Math.max(texture.width, texture.height);
+      const targetScale = (this.radius * 2) / spriteSize;
+      this.visual.scale.set(targetScale);
+
+      this.addChild(this.visual);
+      this.useSprite = true;
+
+      console.log(`💧 정화수 단일 스프라이트 로드: ${path}`);
+    } catch (error) {
+      console.warn('정화수 단일 스프라이트 로드 실패:', error);
     }
   }
 
@@ -202,6 +297,20 @@ export class WaterSplash extends Container {
     } catch (error) {
       console.warn('정화수 스프라이트 시트 로드 실패:', error);
     }
+  }
+
+  /**
+   * 지속시간 설정 (진화 무기용)
+   */
+  public setMaxLifetime(lifetime: number): void {
+    this.maxLifetime = lifetime;
+  }
+
+  /**
+   * 귀환 속도 설정 (진화 무기용)
+   */
+  public setReturnSpeed(speed: number): void {
+    this.returnSpeed = speed;
   }
 
   /**
