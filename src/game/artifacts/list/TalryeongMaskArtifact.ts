@@ -57,6 +57,7 @@ export class TalryeongMaskArtifact extends BaseArtifact {
         '50마리 처치 시 5초간 버서커 모드 (조작 불가, 무적, 공격력 500%, 이동속도 300%, 쿨다운 50%, 종료 후 체력 50 고정, 재사용 30초)',
       iconPath: 'assets/artifacts/talryeong-mask.png',
       color: 0x8b0000, // 다크 레드
+      weaponCategories: [], // 플레이어 강화 (모든 무기)
     });
   }
 

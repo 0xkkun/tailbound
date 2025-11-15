@@ -13,11 +13,12 @@ export class CeladonCraneVaseArtifact extends BaseArtifact {
       id: 'celadon_crane_vase',
       name: '청자 상감운학문 매병',
       tier: 2,
-      rarity: 'rare',
+      rarity: 'legendary',
       category: 'evolution',
-      description: '[정화수] 정화수 무기 레벨 7 달성 시 진화',
+      description: '정화수 Lv.7 달성 시 진화',
       iconPath: CDN_ASSETS.artifact.celadonCraneVase,
       color: 0xffd700, // 골드
+      weaponCategories: ['purifying_water'], // 정화수
     });
   }
 

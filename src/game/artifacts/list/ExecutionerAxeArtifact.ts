@@ -25,6 +25,7 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
       description: '[근접 무기] 일반 요괴의 체력이 20% 이하일 때 즉시 처형',
       iconPath: CDN_ASSETS.artifact.executionerAxe,
       color: 0x8b0000, // 다크 레드
+      weaponCategories: ['melee'], // 근접 무기만
     });
   }
 
@@ -85,7 +86,7 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
   private async showExecuteEffect(x: number, y: number, parent: Container): Promise<void> {
     try {
       // 스프라이트시트 로드 (로컬 경로)
-      const texture = await Assets.load(LOCAL_ASSETS.executionEffect);
+      const texture = await Assets.load(CDN_ASSETS.effect.execution);
 
       // 프레임 생성 (69x60, 30프레임, 6열 x 5행)
       const frameWidth = 69;

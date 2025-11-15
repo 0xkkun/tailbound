@@ -13,11 +13,12 @@ export class CrownOfSillaArtifact extends BaseArtifact {
       id: 'crown_of_silla',
       name: '금관총 금관',
       tier: 2,
-      rarity: 'rare',
+      rarity: 'legendary',
       category: 'evolution',
-      description: '[도깨비불] 도깨비불 무기 레벨 7 달성 시 진화',
+      description: '도깨비불 Lv.7 달성 시 진화',
       iconPath: CDN_ASSETS.artifact.crownOfSilla,
       color: 0xffd700, // 골드
+      weaponCategories: ['dokkaebi_fire'], // 도깨비불
     });
   }
 

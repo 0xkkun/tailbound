@@ -13,11 +13,12 @@ export class PensiveBuddhaArtifact extends BaseArtifact {
       id: 'pensive_buddha',
       name: '금동미륵보살반가사유상',
       tier: 2,
-      rarity: 'rare',
+      rarity: 'legendary',
       category: 'evolution',
-      description: '[목탁소리] 목탁소리 무기 레벨 7 달성 시 진화',
+      description: '목탁소리 Lv.7 달성 시 진화',
       iconPath: CDN_ASSETS.artifact.pensiveBuddha,
       color: 0xffd700, // 골드
+      weaponCategories: ['moktak_sound'], // 목탁소리
     });
   }
 

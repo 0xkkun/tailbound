@@ -13,11 +13,12 @@ export class FineLineMirrorArtifact extends BaseArtifact {
       id: 'fine_line_mirror',
       name: '정문경',
       tier: 2,
-      rarity: 'rare',
+      rarity: 'legendary',
       category: 'evolution',
-      description: '[부적] 부적 무기 레벨 7 달성 시 진화',
+      description: '부적 Lv.7 달성 시 진화',
       iconPath: CDN_ASSETS.artifact.fineLineMirror,
       color: 0xffd700, // 골드
+      weaponCategories: ['talisman'], // 부적
     });
   }
 

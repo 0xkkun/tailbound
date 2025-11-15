@@ -13,11 +13,12 @@ export class BaekjeIncenseBurnerArtifact extends BaseArtifact {
       id: 'baekje_incense_burner',
       name: '백제 금동대향로',
       tier: 2,
-      rarity: 'rare',
+      rarity: 'legendary',
       category: 'evolution',
-      description: '[작두] 작두 무기 레벨 7 달성 시 진화',
+      description: '작두날 Lv.7 달성 시 진화',
       iconPath: CDN_ASSETS.artifact.baekjeIncenseBurner,
       color: 0xffd700, // 골드
+      weaponCategories: ['jakdu_blade'], // 작두날
     });
   }
 

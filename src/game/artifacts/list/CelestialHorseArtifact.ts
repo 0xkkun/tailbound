@@ -13,11 +13,12 @@ export class CelestialHorseArtifact extends BaseArtifact {
       id: 'celestial_horse',
       name: '천마총 천마도',
       tier: 2,
-      rarity: 'rare',
+      rarity: 'legendary',
       category: 'evolution',
-      description: '[부채바람] 부채바람 무기 레벨 7 달성 시 진화',
+      description: '부채바람 Lv.7 달성 시 진화',
       iconPath: CDN_ASSETS.artifact.celestialHorse,
       color: 0xffd700, // 골드
+      weaponCategories: ['fan_wind'], // 부채바람
     });
   }
 

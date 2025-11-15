@@ -2,6 +2,8 @@
  * 유물 시스템 타입 정의
  */
 
+import type { WeaponCategory, WeaponType } from '@game/data/weapons';
+
 export type ArtifactTier = 1 | 2 | 3 | 4;
 export type ArtifactRarity = 'common' | 'rare' | 'epic' | 'legendary' | 'cursed';
 
@@ -36,4 +38,10 @@ export interface ArtifactData {
   description: string;
   iconPath: string;
   color: number;
+  /**
+   * 유물이 적용되는 무기 카테고리
+   * - undefined 또는 빈 배열: 모든 무기에 적용 (플레이어 강화 등)
+   * - 특정 카테고리: 해당 무기만 강화
+   */
+  weaponCategories?: WeaponCategory[] | WeaponType[];
 }
