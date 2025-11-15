@@ -3,6 +3,7 @@
  * 필드몹 매혹 (10% 확률, 최대 10마리, 5초간 아군으로 전환)
  */
 
+import { LOCAL_ASSETS } from '@config/assets.config';
 import type { WeaponCategory } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import type { StatusEffect } from '@type/status-effect.types';
@@ -36,7 +37,7 @@ export class FoxTearArtifact extends BaseArtifact {
       rarity: 'rare',
       category: 'debuff',
       description: '[투사체 무기] 적을 맞출 때 10% 확률로 일반 요괴를 5초간 매혹 (최대 10마리)',
-      iconPath: 'assets/artifacts/fox-tear.png',
+      iconPath: LOCAL_ASSETS.foxTearArtifact,
       color: 0xff69b4,
     });
   }

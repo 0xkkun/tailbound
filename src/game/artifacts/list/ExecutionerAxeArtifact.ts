@@ -3,6 +3,7 @@
  * 체력이 낮은 적 즉시 처형 (체력 20% 이하 시 즉사)
  */
 
+import { LOCAL_ASSETS } from '@config/assets.config';
 import type { WeaponCategory } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import { AnimatedSprite, Assets, type Container, Rectangle, Texture } from 'pixi.js';
@@ -22,7 +23,7 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
       rarity: 'epic',
       category: 'offensive',
       description: '[근접 무기] 일반 요괴의 체력이 20% 이하일 때 즉시 처형',
-      iconPath: 'assets/artifacts/executioner-axe.png',
+      iconPath: LOCAL_ASSETS.executionerAxeArtifact,
       color: 0x8b0000, // 다크 레드
     });
   }
@@ -84,7 +85,7 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
   private async showExecuteEffect(x: number, y: number, parent: Container): Promise<void> {
     try {
       // 스프라이트시트 로드 (로컬 경로)
-      const texture = await Assets.load('/assets/effects/execution.png');
+      const texture = await Assets.load(LOCAL_ASSETS.executionEffect);
 
       // 프레임 생성 (69x60, 30프레임, 6열 x 5행)
       const frameWidth = 69;

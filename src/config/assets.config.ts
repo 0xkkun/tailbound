@@ -22,6 +22,16 @@ export const LOCAL_ASSETS = {
   favicon: '/favicon.png',
   ogImage: '/og-image.png',
   appleTouchIcon: '/favicon.png',
+
+  // 하위 항목들은 개발중, 완료 후 CDN으로
+
+  // 이펙트
+  executionEffect: '/assets/effects/execution.png',
+
+  // 유물
+  talryeongMaskArtifact: '/assets/artifacts/talryeong-mask.png',
+  executionerAxeArtifact: '/assets/artifacts/executioner-axe.png',
+  foxTearArtifact: '/assets/artifacts/fox-tear.png',
 } as const;
 
 /**
@@ -116,7 +126,7 @@ export const CDN_ASSETS = {
     shamanSignature: `${CDN_BASE_URL}/assets/gui/shaman-signature.png`,
     loadingSprite: `${CDN_BASE_URL}/assets/gui/loading-sprite.png`,
     pattern: `${CDN_BASE_URL}/assets/gui/pattern.png`,
-    cornerPattern: '/assets/corner-pattern.png',
+    cornerPattern: `${CDN_BASE_URL}/assets/gui/corner-pattern.png`,
   },
 
   // Power-ups
