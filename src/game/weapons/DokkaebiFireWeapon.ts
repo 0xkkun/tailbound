@@ -193,4 +193,11 @@ export class DokkaebiFireWeapon extends Weapon {
     }
     this.orbitals = [];
   }
+
+  /**
+   * 진화 전 정리 작업 (WeaponLifecycle 인터페이스 구현)
+   */
+  public onBeforeEvolution(gameLayer: Container): void {
+    this.destroyOrbitals(gameLayer);
+  }
 }
