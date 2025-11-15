@@ -32,6 +32,12 @@ export const LOCAL_ASSETS = {
   talryeongMaskArtifact: '/assets/artifacts/talryeong-mask.png',
   executionerAxeArtifact: '/assets/artifacts/executioner-axe.png',
   foxTearArtifact: '/assets/artifacts/fox-tear.png',
+  crownOfSillaArtifact: '/assets/artifacts/crown-of-silla.png',
+  pensiveBuddhaArtifact: '/assets/artifacts/pensive-buddha.png',
+  baekjeIncenseBurnerArtifact: '/assets/artifacts/baekje-incense-burner.png',
+  celestialHorseArtifact: '/assets/artifacts/celestial-horse.png',
+  celadonCraneVaseArtifact: '/assets/artifacts/celadon-crane-vase.png',
+  fineLineMirrorArtifact: '/assets/artifacts/fine-line-mirror.png',
 } as const;
 
 /**
