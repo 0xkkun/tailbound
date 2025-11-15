@@ -5,6 +5,7 @@ import { CDN_BASE_URL } from '@config/assets.config';
  * 타입: 광역 (AoE)
  * 주기적으로 발동되는 음파 공격
  */
+import { WEAPON_BALANCE } from '@config/balance.config';
 import { calculateWeaponStats, WEAPON_DATA } from '@game/data/weapons';
 import { AoEEffect } from '@game/entities/AoEEffect';
 import type { BaseEnemy } from '@game/entities/enemies';
@@ -28,7 +29,7 @@ const MOKTAK_CONSTANTS = {
 } as const;
 
 export class MoktakSoundWeapon extends Weapon {
-  protected aoeRadius: number = 150;
+  protected aoeRadius: number = WEAPON_BALANCE.moktak_sound.aoeRadius;
 
   constructor() {
     const stats = calculateWeaponStats('moktak_sound', 1);
@@ -105,12 +106,13 @@ export class MoktakSoundWeapon extends Weapon {
     super.levelUp();
 
     const stats = calculateWeaponStats('moktak_sound', this.level);
+    const config = WEAPON_BALANCE.moktak_sound;
     this.damage = stats.damage;
     this.cooldown = stats.cooldown;
 
-    // 레벨업 효과
-    if (this.level % 2 === 0) {
-      this.aoeRadius += 20; // 짝수 레벨마다 범위 +20
+    // 레벨업 효과: N레벨마다 범위 증가
+    if (this.level % config.levelScaling.radiusIncreaseInterval === 0) {
+      this.aoeRadius += config.levelScaling.radiusPerLevel;
     }
 
     console.log(`🔔 목탁 소리 레벨 ${this.level}! (범위: ${this.aoeRadius}px)`);

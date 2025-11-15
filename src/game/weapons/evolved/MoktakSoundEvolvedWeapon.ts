@@ -20,7 +20,6 @@ export class MoktakSoundEvolvedWeapon extends MoktakSoundWeapon {
   // 진화 무기 밸런스 (중앙 집중식 관리)
   private readonly balance = WEAPON_EVOLUTION_BALANCE.moktak_sound;
   private attackCounter: number = 0; // 공격 횟수 카운터
-  private readonly SPECIAL_ATTACK_INTERVAL = 10; // 10번째마다 특수 공격
 
   constructor(baseLevel: number = 7) {
     super();
@@ -53,9 +52,8 @@ export class MoktakSoundEvolvedWeapon extends MoktakSoundWeapon {
     // 범위 계산
     // 기본: 150px 시작, 2레벨당 +20px
     // 진화: 배율 적용
-    const BASE_RADIUS = 150;
-    const RADIUS_PER_2_LEVELS = 20;
-    const baseRadius = BASE_RADIUS + Math.floor(this.level / 2) * RADIUS_PER_2_LEVELS;
+    const baseRadius =
+      this.balance.baseRadius + Math.floor(this.level / 2) * this.balance.radiusPer2Levels;
     this.aoeRadius = baseRadius * this.balance.rangeMultiplier;
   }
 
@@ -73,7 +71,7 @@ export class MoktakSoundEvolvedWeapon extends MoktakSoundWeapon {
     }
 
     this.attackCounter++;
-    const isSpecialAttack = this.attackCounter % this.SPECIAL_ATTACK_INTERVAL === 0;
+    const isSpecialAttack = this.attackCounter % this.balance.specialAttackInterval === 0;
 
     audioManager.playMoktakSound();
 

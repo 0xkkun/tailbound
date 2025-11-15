@@ -40,6 +40,8 @@ export const GAME_CONFIG = {
     baseXpRequired: 100, // 첫 레벨업 필요 경험치
     xpScaling: 1.2, // 레벨당 경험치 증가율
     maxLevel: 99,
+    maxWeaponLevel: 9, // 무기 최대 레벨
+    maxPowerupLevel: 9, // 파워업 최대 레벨
   },
 
   // 투사체 제한

@@ -37,12 +37,12 @@ export const PLAYER_BALANCE = {
     maxHealth: 500, // 최대 체력
     criticalRate: 1.0, // 100%
     criticalDamage: 6.5, // 650% (기본 1.5 + 최대 5.0)
-    damageReduction: 0.8, // 80%
+    damageReduction: 0.5, // 50%
     xpMultiplier: 3.0, // 300%
   },
 
   minStats: {
-    cooldownMultiplier: 0.3, // 30% (70% 감소)
+    cooldownMultiplier: 0.4, // 60% (60% 감소)
   },
 } as const;
 
@@ -150,15 +150,15 @@ export const WEAPON_BALANCE = {
     projectileCount: 1, // 동시 발사 수
     // 레벨별 강화
     levelScaling: {
-      damage: 5, // 레벨당 데미지 증가
-      cooldownReduction: 0.05, // 레벨당 쿨타임 감소
-      piercingPerLevel: 0, // 레벨 5마다 관통 +1
+      damage: 4, // 레벨당 데미지 증가
+      cooldownReduction: 0.04, // 레벨당 쿨타임 감소
+      piercingPerLevel: 0, // 레벨당 관통 +1
     },
   },
   // 도깨비불
   dokkaebi_fire: {
     name: '도깨비불',
-    baseDamage: 4, // 틱 데미지가 빨라지므로 데미지 감소 (8 -> 4)
+    baseDamage: 6, // 틱 데미지가 빨라지므로 데미지 감소
     baseCooldown: 0.5,
     projectileSpeed: 300,
     projectileRadius: 36, // 도깨비불 크기 증가 (12 -> 36, 3배)
@@ -176,14 +176,14 @@ export const WEAPON_BALANCE = {
     blinkOffDurationBase: 3.0, // 꺼짐 시간 기본값
     blinkOffDurationMin: 1.2, // 꺼짐 시간 최소값
     levelScaling: {
-      damage: 2, // 레벨당 데미지 증가량 감소 (3 -> 2)
-      cooldownReduction: 0.03,
+      damage: 2, // 레벨당 데미지 증가량 감소
+      cooldownReduction: 0.04,
       piercingPerLevel: 0,
-      angularSpeedPerLevel: 0.15, // 레벨당 회전속도 증가량 상승 (0.1 -> 0.15)
+      angularSpeedPerLevel: 0.12, // 레벨당 회전속도 증가량
       radiusPerLevel: 10, // 3레벨마다 반경 증가량
       radiusIncreaseInterval: 3, // 반경 증가 주기
-      blinkOnReductionPerLevel: 1.0, // 레벨당 켜짐 시간 감소
-      blinkOffReductionPerLevel: 0.6, // 레벨당 꺼짐 시간 감소
+      blinkOnReductionPerLevel: 0.3, // 레벨당 켜짐 시간 감소
+      blinkOffReductionPerLevel: 0.3, // 레벨당 꺼짐 시간 감소
     },
   },
   // 목탁 소리
@@ -191,19 +191,21 @@ export const WEAPON_BALANCE = {
     name: '목탁 소리',
     baseDamage: 12, // 지속 데미지로 변경되어 감소
     baseCooldown: 2.0,
-    aoeRadius: 200, // 범위 공격 (150 -> 200)
+    aoeRadius: 200, // 초기 범위 (기본)
     piercing: 999, // 모든 적 관통
     projectileCount: 1,
     levelScaling: {
-      damage: 5, // 레벨당 +5로 감소
-      cooldownReduction: 0.1,
+      damage: 8,
+      cooldownReduction: 0.15,
       piercingPerLevel: 0,
+      radiusPerLevel: 20, // 짝수 레벨마다 범위 증가
+      radiusIncreaseInterval: 2, // 2레벨마다 증가
     },
   },
   // 작두날
   jakdu_blade: {
     name: '작두날',
-    baseDamage: 18,
+    baseDamage: 20,
     baseCooldown: 3.0,
     projectileSpeed: 400,
     projectileRadius: 20,
@@ -212,27 +214,31 @@ export const WEAPON_BALANCE = {
     projectileCount: 1,
     attackRadius: 80, // 작두날 공격 범위 (실제 날 부분만 맞도록 축소)
     offsetDistance: 60, // 플레이어로부터의 거리
+    attackDuration: 1.0, // 공격 애니메이션 지속시간 (초)
+    soundInterval: 50, // 작두 효과음 간격 (ms)
+    radiusMultiplierX: 1.5, // 가로 범위 배율
+    radiusMultiplierY: 1.0, // 세로 범위 배율
     levelScaling: {
-      damage: 6,
-      cooldownReduction: 0.1,
+      damage: 5,
+      cooldownReduction: 0.2,
       piercingPerLevel: 1,
-      radiusPerLevel: 5, // 레벨당 범위 +5 (8에서 감소)
+      radiusPerLevel: 3, // 레벨당 범위
     },
   },
   // 부채바람
   fan_wind: {
     name: '부채바람',
-    baseDamage: 12,
+    baseDamage: 10,
     baseCooldown: 2.0,
     projectileSpeed: 300,
     projectileRadius: 15,
     projectileLifetime: 2.0, // 최대 사거리 600픽셀 (300 * 2.0)
     piercing: Infinity, // 무제한 관통
     projectileCount: 1,
-    damageDecayMin: 0.33, // 관통 시 최소 데미지 (33%)
+    damageDecayMin: 0.2, // 관통 시 최소 데미지
     levelScaling: {
-      damage: 8, // 레벨당 데미지 +8
-      cooldownReduction: 0.15, // 레벨당 쿨타임 -0.15초
+      damage: 5, // 레벨당 데미지
+      cooldownReduction: 0.1, // 레벨당 쿨타임
       piercingPerLevel: 0, // 무제한 관통이므로 0
     },
   },
@@ -242,7 +248,7 @@ export const WEAPON_BALANCE = {
     baseDamage: 8, // 틱당 데미지 (DoT)
     baseCooldown: 1.5, // 투척 쿨다운
     projectileRadius: 20, // 사용 안 함 (투척형)
-    projectileSpeed: 100, // 물병 투사체 속도
+    projectileSpeed: 150, // 물병 투사체 속도
     piercing: 0,
     projectileCount: 1, // 초기 투척 개수
     // 투척 설정
@@ -260,8 +266,8 @@ export const WEAPON_BALANCE = {
     enemyRadiusEstimate: 50, // 적 반지름 추정값 (성능 최적화용)
     bottleArrivalThreshold: 10, // 물병 도착 판정 거리 (픽셀)
     levelScaling: {
-      damage: 2, // 레벨당 데미지 증가 (틱당)
-      cooldownReduction: 0.03, // 레벨당 쿨타임 감소
+      damage: 2, // 레벨당 데미지 증가
+      cooldownReduction: 0.02, // 레벨당 쿨타임 감소
       piercingPerLevel: 0,
       throwCountInterval: 2, // N레벨마다 투척 개수 +1
       aoeRadiusPerLevel: 10, // N레벨마다 범위 증가
@@ -516,58 +522,58 @@ export const POWERUP_BALANCE = {
   // ⚔️ 공격 파워업
   damage: {
     common: 0.02, // +2%
+    rare: 0.04, // +4%
+    epic: 0.06, // +6%
+  },
+  cooldown: {
+    common: 0.03, // -3%
+    rare: 0.04, // -4%
+    epic: 0.05, // -5%
+  },
+  crit_rate: {
+    common: 0.03, // +3%
     rare: 0.05, // +5%
     epic: 0.1, // +10%
   },
-  cooldown: {
-    common: 0.02, // -2%
-    rare: 0.05, // -5%
-    epic: 0.1, // -10%
-  },
-  crit_rate: {
-    common: 0.05, // +5%
-    rare: 0.1, // +10%
-    epic: 0.2, // +20%
-  },
   crit_damage: {
-    common: 0.2, // +20%
-    rare: 0.5, // +50%
-    epic: 1.0, // +100%
+    common: 0.1, // +10%
+    rare: 0.2, // +20%
+    epic: 0.3, // +30%
   },
 
   // 💪 방어 파워업
   health: {
     common: 5, // +5 HP
-    rare: 15, // +15 HP
-    epic: 30, // +30 HP
+    rare: 10, // +10 HP
+    epic: 15, // +15 HP
   },
   damage_reduction: {
     common: 0.03, // -3%
-    rare: 0.08, // -8%
-    epic: 0.15, // -15%
+    rare: 0.05, // -5%
+    epic: 0.1, // -10%
   },
   breathing: {
-    common: 0.005, // 0.5%/초
-    rare: 0.012, // 1.2%/초
-    epic: 0.025, // 2.5%/초
+    common: 0.004, // 0.4%/초
+    rare: 0.008, // 0.8%/초
+    epic: 0.015, // 1.5%/초
     regenDelay: 4.0, // 피격 후 회복 시작까지 대기 시간 (초)
   },
 
   // ⚙️ 유틸리티 파워업
   speed: {
     common: 0.03, // +3%
-    rare: 0.07, // +7%
-    epic: 0.15, // +15%
+    rare: 0.05, // +5%
+    epic: 0.1, // +10%
   },
   pickup: {
-    common: 0.05, // +5%
-    rare: 0.15, // +15%
-    epic: 0.3, // +30%
+    common: 0.2, // +20%
+    rare: 0.3, // +30%
+    epic: 0.5, // +50%
   },
   xp_gain: {
-    common: 0.05, // +5%
-    rare: 0.12, // +12%
-    epic: 0.25, // +25%
+    common: 0.04, // +4%
+    rare: 0.08, // +8%
+    epic: 0.15, // +15%
   },
 } as const;
 
@@ -595,6 +601,9 @@ export const WEAPON_EVOLUTION_BALANCE = {
     damageMultiplier: 1.4, // 데미지 140%
     rangeMultiplier: 1.2, // 범위 120%
     cooldownMultiplier: 0.9, // 쿨다운 10% 감소
+    specialAttackInterval: 10, // 10번째 공격마다 특수 공격
+    baseRadius: 150, // 기본 범위
+    radiusPer2Levels: 20, // 2레벨당 범위 증가량
   },
 
   // 부적 → 정문경
@@ -609,6 +618,12 @@ export const WEAPON_EVOLUTION_BALANCE = {
     damageMultiplier: 1.3, // 데미지 130%
     cooldownMultiplier: 0.85, // 쿨다운 15% 감소
     projectileIncrease: 1, // 투사체 +1개
+    // 분열 투사체 설정
+    splitCount: 3, // 분열 개수
+    splitDamageMultiplier: 0.3, // 분열 데미지 배율 (30%)
+    splitLifetimeMultiplier: 0.7, // 분열 수명 배율 (70%)
+    splitDecayMinIncrease: 0.1, // 분열 데미지 감소 최소값 증가
+    splitScale: 1.5, // 분열 투사체 스케일
   },
 
   // 정화수 → 청자 상감운학문 매병
@@ -628,5 +643,7 @@ export const WEAPON_EVOLUTION_BALANCE = {
     speedMultiplier: 1.2, // 회전 속도 120%
     maxOrbitalIncrease: 2, // 최대 궤도 개수 상한 +2
     maxSpeedMultiplier: 1.3, // 최대 회전 속도 상한 130%
+    outerRadiusMultiplier: 1.5, // 바깥쪽 궤도 반지름 배율
+    outerAngleOffset: 0.5, // 바깥쪽 궤도 각도 오프셋 (angleStep * 0.5)
   },
 } as const;

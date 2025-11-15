@@ -41,14 +41,16 @@ export class JakduBladeWeapon extends Weapon {
       return [];
     }
 
+    const config = WEAPON_BALANCE.jakdu_blade;
+
     // 모든 작두 애니메이션 재생
     for (let i = 0; i < this.blades.length; i++) {
       const blade = this.blades[i];
       // 효과음 재생 (작두 개수만큼, 간격을 두고)
       setTimeout(() => {
         audioManager.playJakduBladeSound();
-      }, i * 50); // 50ms 간격
-      blade.startAttack(1.0); // 1.0초 동안 공격 애니메이션 (느리게)
+      }, i * config.soundInterval); // 설정된 간격
+      blade.startAttack(config.attackDuration); // 설정된 지속시간 동안 공격 애니메이션
     }
 
     this.resetCooldown(player);
@@ -68,6 +70,7 @@ export class JakduBladeWeapon extends Weapon {
     this.blades = [];
 
     // 새 작두 생성
+    const config = WEAPON_BALANCE.jakdu_blade;
     const positions: Array<'left' | 'right' | 'forward'> =
       this.bladeCount >= 2 ? ['right', 'left'] : ['forward'];
 
@@ -76,8 +79,8 @@ export class JakduBladeWeapon extends Weapon {
         position,
         offsetDistance: this.offsetDistance,
         damage: this.damage,
-        radiusX: this.attackRadius * 1.5, // 가로로 1.5배 더 길게
-        radiusY: this.attackRadius * 1.0, // 세로는 기본 크기 (하단 포함)
+        radiusX: this.attackRadius * config.radiusMultiplierX, // 가로 배율
+        radiusY: this.attackRadius * config.radiusMultiplierY, // 세로 배율
         color: 0xff0000,
       });
 
@@ -121,18 +124,19 @@ export class JakduBladeWeapon extends Weapon {
     super.levelUp();
 
     const stats = calculateWeaponStats('jakdu_blade', this.level);
+    const config = WEAPON_BALANCE.jakdu_blade;
     this.damage = stats.damage;
     this.cooldown = stats.cooldown;
 
     // 범위 증가
-    const radiusPerLevel = WEAPON_BALANCE.jakdu_blade.levelScaling.radiusPerLevel || 5;
-    this.attackRadius = WEAPON_BALANCE.jakdu_blade.attackRadius + radiusPerLevel * (this.level - 1);
+    const radiusPerLevel = config.levelScaling.radiusPerLevel || 5;
+    this.attackRadius = config.attackRadius + radiusPerLevel * (this.level - 1);
 
     // 모든 작두의 데미지와 범위 업데이트 (타원형)
     for (const blade of this.blades) {
       blade.damage = this.damage;
-      blade.radiusX = this.attackRadius * 1.5; // 가로로 1.5배 더 길게
-      blade.radiusY = this.attackRadius * 1.0; // 세로는 기본 크기
+      blade.radiusX = this.attackRadius * config.radiusMultiplierX; // 가로 배율
+      blade.radiusY = this.attackRadius * config.radiusMultiplierY; // 세로 배율
       blade.radius = Math.max(blade.radiusX, blade.radiusY); // 하위 호환용
     }
 

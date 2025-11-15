@@ -170,13 +170,8 @@ export class PurifyingWaterWeapon extends Weapon {
     this.damage = stats.damage;
     this.cooldown = stats.cooldown;
 
-    // 레벨업 효과
-    // throwCountInterval마다 투척 개수 증가 (최대 maxThrowCount까지)
-    if (this.level % config.levelScaling.throwCountInterval === 0) {
-      if (this.throwCount < config.maxThrowCount) {
-        this.throwCount++;
-      }
-    }
+    // 투척 개수 증가: 1→3→5→7→9 (홀수 레벨마다)
+    this.throwCount = Math.floor((this.level + 1) / 2) * 2 - 1;
 
     // aoeRadiusIncreaseInterval마다 범위 증가
     if (this.level % config.levelScaling.aoeRadiusIncreaseInterval === 0) {

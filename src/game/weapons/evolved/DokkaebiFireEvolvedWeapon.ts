@@ -105,11 +105,11 @@ export class DokkaebiFireEvolvedWeapon extends DokkaebiFireWeapon {
     }
 
     // 바깥쪽 궤도 생성 (반시계방향, 1.5배 반지름)
-    const outerRadius = this.orbitalRadius * 1.5;
+    const outerRadius = this.orbitalRadius * this.balance.outerRadiusMultiplier;
     const outerAngularSpeed = -this.angularSpeed; // 반대 방향
 
     for (let i = 0; i < this.orbitalCount; i++) {
-      const angle = angleStep * i + angleStep / 2; // 안쪽 궤도와 엇갈리게 시작
+      const angle = angleStep * i + angleStep * this.balance.outerAngleOffset; // 안쪽 궤도와 엇갈리게 시작
       const orbital = new OrbitalEntity(angle, outerRadius, outerAngularSpeed, 0x00ffff);
       orbital.damage = this.damage;
       orbital.radius = config.projectileRadius;

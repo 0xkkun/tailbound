@@ -1606,40 +1606,52 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
   }
 
   /**
-   * 선택지에 현재 레벨 정보 추가 (무기와 파워업 모두 해당)
+   * 선택지에 현재 레벨 정보 추가 및 Max 레벨 도달 아이템 필터링
    */
   private enrichChoicesWithLevel(choices: LevelUpChoice[]): LevelUpChoice[] {
     const acquiredPowerups = this.player.getAcquiredPowerups();
+    const maxWeaponLevel = GAME_CONFIG.levelUp.maxWeaponLevel;
+    const maxPowerupLevel = GAME_CONFIG.levelUp.maxPowerupLevel;
 
-    return choices.map((choice) => {
-      if (choice.type === 'weapon') {
-        const existingWeapon = this.weapons.find((w) => w.id === choice.id);
-        const currentLevel = existingWeapon ? existingWeapon.level : 0;
-        const nextLevel = currentLevel + 1;
+    return choices
+      .map((choice) => {
+        if (choice.type === 'weapon') {
+          const existingWeapon = this.weapons.find((w) => w.id === choice.id);
+          const currentLevel = existingWeapon ? existingWeapon.level : 0;
+          const nextLevel = currentLevel + 1;
 
-        // 진화 체크: 이 선택지를 선택하면 진화하는지 확인
-        const artifactIds = this.artifactSystem.getActiveArtifacts().map((a) => a.data.id);
-        const willEvolve =
-          !existingWeapon?.isEvolved && canEvolve(choice.id, nextLevel, artifactIds);
-        const evolutionData = willEvolve ? getEvolutionData(choice.id) : null;
+          // 진화 체크: 이 선택지를 선택하면 진화하는지 확인
+          const artifactIds = this.artifactSystem.getActiveArtifacts().map((a) => a.data.id);
+          const willEvolve =
+            !existingWeapon?.isEvolved && canEvolve(choice.id, nextLevel, artifactIds);
+          const evolutionData = willEvolve ? getEvolutionData(choice.id) : null;
 
-        return {
-          ...choice,
-          currentLevel,
-          canEvolve: willEvolve,
-          evolvedName: evolutionData?.evolvedWeaponName,
-        };
-      }
+          return {
+            ...choice,
+            currentLevel,
+            canEvolve: willEvolve,
+            evolvedName: evolutionData?.evolvedWeaponName,
+          };
+        }
 
-      // 파워업: 플레이어가 획득한 파워업 레벨 확인
-      // choice.id 예: 'powerup_damage_common', 'stat_health_rare'
-      // acquiredPowerups는 타입별로 집계됨 (예: 'damage' -> 3회 획득)
-      // choice.id에서 타입 추출 (예: 'powerup_damage_common' -> 'damage')
-      const powerupType = extractPowerupType(choice.id);
-      const currentLevel = powerupType ? acquiredPowerups.get(powerupType) || 0 : 0;
+        // 파워업: 플레이어가 획득한 파워업 레벨 확인
+        // choice.id 예: 'powerup_damage_common', 'stat_health_rare'
+        // acquiredPowerups는 타입별로 집계됨 (예: 'damage' -> 3회 획득)
+        // choice.id에서 타입 추출 (예: 'powerup_damage_common' -> 'damage')
+        const powerupType = extractPowerupType(choice.id);
+        const currentLevel = powerupType ? acquiredPowerups.get(powerupType) || 0 : 0;
 
-      return { ...choice, currentLevel };
-    });
+        return { ...choice, currentLevel };
+      })
+      .filter((choice) => {
+        // Max 레벨 도달한 아이템 제외
+        if (choice.type === 'weapon') {
+          return (choice.currentLevel || 0) < maxWeaponLevel;
+        } else {
+          // 파워업도 Max 레벨 체크
+          return (choice.currentLevel || 0) < maxPowerupLevel;
+        }
+      });
   }
 
   /**

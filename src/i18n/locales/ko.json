@@ -75,11 +75,11 @@
       },
       "rare": {
         "name": "강력 (强力)",
-        "description": "모든 무기의 공격력이 5% 증가합니다."
+        "description": "모든 무기의 공격력이 4% 증가합니다."
       },
       "epic": {
         "name": "맹력 (猛力)",
-        "description": "모든 무기의 공격력이 10% 증가합니다."
+        "description": "모든 무기의 공격력이 6% 증가합니다."
       }
     },
     "speed": {
@@ -89,25 +89,25 @@
       },
       "rare": {
         "name": "질주 (疾走)",
-        "description": "이동 속도가 7% 증가합니다."
+        "description": "이동 속도가 5% 증가합니다."
       },
       "epic": {
         "name": "비행 (飛行)",
-        "description": "이동 속도가 15% 증가합니다."
+        "description": "이동 속도가 10% 증가합니다."
       }
     },
     "cooldown": {
       "common": {
         "name": "신속 (迅速)",
-        "description": "모든 무기의 쿨타임이 2% 감소합니다."
+        "description": "모든 무기의 쿨타임이 3% 감소합니다."
       },
       "rare": {
         "name": "민첩 (敏捷)",
-        "description": "모든 무기의 쿨타임이 5% 감소합니다."
+        "description": "모든 무기의 쿨타임이 4% 감소합니다."
       },
       "epic": {
         "name": "신속 (神速)",
-        "description": "모든 무기의 쿨타임이 10% 감소합니다."
+        "description": "모든 무기의 쿨타임이 5% 감소합니다."
       }
     },
     "health": {
@@ -117,25 +117,25 @@
       },
       "rare": {
         "name": "강건 (强健)",
-        "description": "최대 체력이 15 증가합니다."
+        "description": "최대 체력이 10 증가합니다."
       },
       "epic": {
         "name": "불사 (不死)",
-        "description": "최대 체력이 30 증가합니다."
+        "description": "최대 체력이 15 증가합니다."
       }
     },
     "pickup": {
       "common": {
         "name": "흡인 (吸引)",
-        "description": "경험치 젬 획득 범위가 5% 증가합니다."
+        "description": "경험치 젬 획득 범위가 20% 증가합니다."
       },
       "rare": {
         "name": "인력 (引力)",
-        "description": "경험치 젬 획득 범위가 15% 증가합니다."
+        "description": "경험치 젬 획득 범위가 30% 증가합니다."
       },
       "epic": {
         "name": "자력 (磁力)",
-        "description": "경험치 젬 획득 범위가 30% 증가합니다."
+        "description": "경험치 젬 획득 범위가 50% 증가합니다."
       }
     }
   },
@@ -144,29 +144,29 @@
       "criticalRate": {
         "common": {
           "name": "필살 (必殺)",
-          "description": "치명타 확률이 5% 증가합니다."
+          "description": "치명타 확률이 3% 증가합니다."
         },
         "rare": {
           "name": "급살 (急殺)",
-          "description": "치명타 확률이 10% 증가합니다."
+          "description": "치명타 확률이 5% 증가합니다."
         },
         "epic": {
           "name": "절살 (絶殺)",
-          "description": "치명타 확률이 20% 증가합니다."
+          "description": "치명타 확률이 10% 증가합니다."
         }
       },
       "criticalDamage": {
         "common": {
           "name": "극살 (極殺)",
-          "description": "치명타 피해량이 20% 증가합니다."
+          "description": "치명타 피해량이 10% 증가합니다."
         },
         "rare": {
           "name": "혈살 (血殺)",
-          "description": "치명타 피해량이 50% 증가합니다."
+          "description": "치명타 피해량이 20% 증가합니다."
         },
         "epic": {
           "name": "참살 (斬殺)",
-          "description": "치명타 피해량이 100% 증가합니다."
+          "description": "치명타 피해량이 30% 증가합니다."
         }
       }
     },
@@ -178,25 +178,25 @@
         },
         "rare": {
           "name": "금강 (金剛)",
-          "description": "받는 피해가 8% 감소합니다."
+          "description": "받는 피해가 5% 감소합니다."
         },
         "epic": {
           "name": "불괴 (不壞)",
-          "description": "받는 피해가 15% 감소합니다."
+          "description": "받는 피해가 10% 감소합니다."
         }
       },
       "breathing": {
         "common": {
           "name": "호흡 (呼吸)",
-          "description": "4초간 피격 없을 시 초당 최대 체력의 0.5% 회복"
+          "description": "4초간 피격 없을 시 초당 최대 체력의 0.4% 회복"
         },
         "rare": {
           "name": "조식 (調息)",
-          "description": "4초간 피격 없을 시 초당 최대 체력의 1.2% 회복"
+          "description": "4초간 피격 없을 시 초당 최대 체력의 0.8% 회복"
         },
         "epic": {
           "name": "태식 (胎息)",
-          "description": "4초간 피격 없을 시 초당 최대 체력의 2.5% 회복"
+          "description": "4초간 피격 없을 시 초당 최대 체력의 1.5% 회복"
         }
       }
     },
@@ -204,15 +204,15 @@
       "xpGain": {
         "common": {
           "name": "수련 (修鍊)",
-          "description": "경험치 획득량이 5% 증가합니다."
+          "description": "경험치 획득량이 4% 증가합니다."
         },
         "rare": {
           "name": "정진 (精進)",
-          "description": "경험치 획득량이 12% 증가합니다."
+          "description": "경험치 획득량이 8% 증가합니다."
         },
         "epic": {
           "name": "득도 (得道)",
-          "description": "경험치 획득량이 25% 증가합니다."
+          "description": "경험치 획득량이 15% 증가합니다."
         }
       }
     }

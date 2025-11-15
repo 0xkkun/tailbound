@@ -114,10 +114,10 @@ export class TalismanWeapon extends Weapon {
     this.damage = stats.damage;
     this.cooldown = stats.cooldown;
 
-    // 투사체 개수 증가 (홀수 레벨마다 +1, 최대 5개)
-    if (this.level >= 3 && this.level % 2 === 1 && this.projectileCount < 5) {
-      this.projectileCount++;
-    }
+    // 투사체 개수 증가: 1→3→5→7→9 (홀수 레벨마다)
+    // Math.floor((level + 1) / 2) * 2 - 1
+    // 레벨 1,2 → 1개, 레벨 3,4 → 3개, 레벨 5,6 → 5개, 레벨 7,8 → 7개, 레벨 9 → 9개
+    this.projectileCount = Math.floor((this.level + 1) / 2) * 2 - 1;
 
     console.log(
       `📜 부적 레벨 ${this.level}! (투사체: ${this.projectileCount}개, 데미지: ${this.damage})`

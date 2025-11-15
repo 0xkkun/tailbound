@@ -6,21 +6,23 @@
 import { POWERUPS_CONFIG } from '@config/powerups.config';
 
 /**
- * 파워업 또는 무기의 표시 텍스트를 생성
+ * 파워업 또는 무기의 표시 텍스트를 생성 (하단 목록용)
  *
  * @param powerupType - 파워업 타입 (예: 'damage', 'weapon_talisman')
  * @param level - 현재 레벨 (무기 전용, 파워업은 무시됨)
  * @param totalValue - 누적 수치 (파워업 전용, 무기는 무시됨)
- * @returns 표시할 텍스트 (예: "Lv.3", "+15%", "+50")
+ * @param maxLevel - 최대 레벨 (기본값: 9)
+ * @returns 표시할 텍스트 (예: "Lv.3", "Max", "+15%", "+50")
  */
 export function getPowerupDisplayText(
   powerupType: string,
   level: number = 0,
-  totalValue: number = 0
+  totalValue: number = 0,
+  maxLevel: number = 9
 ): string {
   // 무기: 레벨 표시
   if (powerupType.startsWith('weapon_')) {
-    return `Lv.${level}`;
+    return level >= maxLevel ? 'Max' : `Lv.${level}`;
   }
 
   // 파워업: 누적 수치 표시
@@ -50,10 +52,13 @@ export function isPowerupNew(level: number): boolean {
  * 다음 레벨 표시 텍스트 생성 (레벨업 선택지용 - 무기 전용)
  *
  * @param currentLevel - 현재 레벨
- * @returns "NEW!" 또는 "Lv.N" 형태의 텍스트
+ * @param maxLevel - 최대 레벨 (기본값: 9)
+ * @returns "NEW!" 또는 "Lv.N" 또는 "Max" 형태의 텍스트
  */
-export function getNextLevelDisplayText(currentLevel: number = 0): string {
-  return isPowerupNew(currentLevel) ? 'NEW!' : `Lv.${currentLevel + 1}`;
+export function getNextLevelDisplayText(currentLevel: number = 0, maxLevel: number = 9): string {
+  if (isPowerupNew(currentLevel)) return 'NEW!';
+  const nextLevel = currentLevel + 1;
+  return nextLevel >= maxLevel ? 'Max' : `Lv.${nextLevel}`;
 }
 
 /**

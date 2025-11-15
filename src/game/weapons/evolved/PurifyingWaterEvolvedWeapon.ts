@@ -55,11 +55,9 @@ export class PurifyingWaterEvolvedWeapon extends PurifyingWaterWeapon {
     this.damage = stats.damage * this.balance.damageMultiplier;
     this.cooldown = stats.cooldown;
 
-    // 투척 개수
-    const throwSteps = Math.floor((this.level - 1) / config.levelScaling.throwCountInterval);
-    const baseCount = Math.min(config.projectileCount + throwSteps, config.maxThrowCount);
-    const maxCount = config.maxThrowCount + this.balance.maxThrowIncrease;
-    this.throwCount = Math.min(baseCount + this.balance.throwIncrease, maxCount);
+    // 투척 개수 계산: 기본 개수 + 진화 보너스 +2
+    const baseCount = Math.floor((this.level + 1) / 2) * 2 - 1;
+    this.throwCount = baseCount + 2;
 
     // 범위
     const aoeSteps = Math.floor((this.level - 1) / config.levelScaling.aoeRadiusIncreaseInterval);

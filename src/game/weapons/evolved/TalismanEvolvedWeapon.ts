@@ -50,12 +50,9 @@ export class TalismanEvolvedWeapon extends TalismanWeapon {
     this.damage = stats.damage * this.balance.damageMultiplier;
     this.cooldown = stats.cooldown * this.balance.cooldownMultiplier;
 
-    // 투사체 개수 계산
-    // 기본: 1개 시작, 레벨 3부터 2레벨당 +1 (최대 5개)
-    // 진화: +2개 보너스 (최대 7개)
-    const levelSteps = Math.max(0, Math.floor((this.level - 1) / 2));
-    const baseCount = Math.min(1 + levelSteps, 5);
-    this.projectileCount = Math.min(baseCount + this.balance.projectileIncrease, 7);
+    // 투사체 개수 계산: 기본 개수 + 진화 보너스 +2
+    const baseCount = Math.floor((this.level + 1) / 2) * 2 - 1;
+    this.projectileCount = baseCount + 2;
   }
 
   /**

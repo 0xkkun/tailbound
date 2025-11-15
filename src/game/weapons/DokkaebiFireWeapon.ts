@@ -4,7 +4,7 @@
  * 타입: 궤도형 (Orbital)
  * 플레이어 주변을 맴도는 푸른 불꽃
  */
-import { AUDIO_COOLDOWNS, CDN_BASE_URL } from '@config/assets.config';
+import { AUDIO_COOLDOWNS, CDN_ASSETS } from '@config/assets.config';
 import { WEAPON_BALANCE } from '@config/balance.config';
 import { calculateWeaponStats, WEAPON_DATA } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies';
@@ -75,7 +75,7 @@ export class DokkaebiFireWeapon extends Weapon {
       );
       orbital.damage = this.damage;
       orbital.radius = config.projectileRadius; // 히트박스 크기 설정 (스프라이트 로드 전에 설정)
-      orbital.blinkEnabled = !isMaxCount; // 5개 이상이면 깜박임 비활성화
+      orbital.blinkEnabled = true;
       orbital.blinkOnDuration = blinkOnDuration; // 레벨에 따라 조정된 간격
       orbital.blinkOffDuration = blinkOffDuration;
 
@@ -84,13 +84,7 @@ export class DokkaebiFireWeapon extends Weapon {
 
       // 도깨비불 스프라이트 로드 (6x5 = 30 프레임, 각 프레임 48x48)
       // radius 설정 후 로드하므로 스프라이트 크기가 radius에 맞춰짐
-      await orbital.loadSpriteSheet(
-        `${CDN_BASE_URL}/assets/weapon/dokkabi-fire.png`,
-        48,
-        48,
-        30,
-        6
-      );
+      await orbital.loadSpriteSheet(CDN_ASSETS.weapon.dokkabiFire, 48, 48, 30, 6);
 
       // 적 충돌 시 효과음 콜백 설정 (글로벌 쿨다운 적용)
       orbital.setOnHitSound(() => {

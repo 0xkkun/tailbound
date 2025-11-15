@@ -52,10 +52,9 @@ export class FanWindEvolvedWeapon extends FanWindWeapon {
     this.damage = stats.damage * this.balance.damageMultiplier;
     this.cooldown = stats.cooldown * this.balance.cooldownMultiplier;
 
-    // 투사체 개수: 레벨 1~5까지 1~5개 (최대 5개)
-    // 진화: 2배 증가
-    const baseCount = Math.min(this.level, 5);
-    this.projectileCount = (baseCount + this.balance.projectileIncrease) * 2;
+    // 투사체 개수 계산: 기본 개수 + 진화 보너스 +2
+    const baseCount = Math.floor((this.level + 1) / 2) * 2 - 1;
+    this.projectileCount = baseCount + 2;
   }
 
   /**
@@ -70,7 +69,8 @@ export class FanWindEvolvedWeapon extends FanWindWeapon {
 
     // 진화 효과 적용: 관통 +1 (damageDecayMin 증가) + 분열 효과
     for (const projectile of projectiles) {
-      projectile.damageDecayMin = WEAPON_BALANCE.fan_wind.damageDecayMin + 0.1;
+      projectile.damageDecayMin =
+        WEAPON_BALANCE.fan_wind.damageDecayMin + this.balance.splitDecayMinIncrease;
       // 진화 에셋으로 교체
       projectile.loadSpriteSheet(CDN_ASSETS.weapon.wind_evolved, 32, 32, 12, 12);
       projectile.scale.set(3);
@@ -92,9 +92,9 @@ export class FanWindEvolvedWeapon extends FanWindWeapon {
     weaponData: ReturnType<typeof getWeaponData>,
     player?: Player
   ): void {
-    const splitCount = 3;
+    const splitCount = this.balance.splitCount;
     const angleStep = (Math.PI * 2) / splitCount; // 120도 (2π/3)
-    const splitDamageMultiplier = 0.3; // 분열 투사체는 30% 데미지
+    const splitDamageMultiplier = this.balance.splitDamageMultiplier; // 분열 투사체는 30% 데미지
 
     // 원본 투사체의 진행 방향을 기준으로 회전
     const baseAngle = Math.atan2(originalProjectile.y, originalProjectile.x);
@@ -133,18 +133,20 @@ export class FanWindEvolvedWeapon extends FanWindWeapon {
 
       // 투사체 속성 설정
       splitProjectile.speed = weaponData.projectileSpeed || 350;
-      splitProjectile.lifeTime = (weaponData.projectileLifetime || 1.2) * 0.7; // 분열 투사체는 수명 70%
+      splitProjectile.lifeTime =
+        (weaponData.projectileLifetime || 1.2) * this.balance.splitLifetimeMultiplier; // 분열 투사체는 수명 70%
       splitProjectile.piercing = Infinity;
 
       // 관통 데미지 감소 활성화
       splitProjectile.damageDecayEnabled = true;
-      splitProjectile.damageDecayMin = WEAPON_BALANCE.fan_wind.damageDecayMin + 0.1;
+      splitProjectile.damageDecayMin =
+        WEAPON_BALANCE.fan_wind.damageDecayMin + this.balance.splitDecayMinIncrease;
 
       // 서브 무기 에셋 사용 (32x32, 17프레임)
       splitProjectile.loadSpriteSheet(CDN_ASSETS.weapon.windSub, 32, 32, 17, 17);
 
       // 분열 투사체 크기 및 색상 조정
-      splitProjectile.scale.set(1.5);
+      splitProjectile.scale.set(this.balance.splitScale);
 
       // 분열 투사체 저장소에 추가 (게임 씬에서 가져갈 수 있도록)
       this.splitProjectiles.push(splitProjectile);

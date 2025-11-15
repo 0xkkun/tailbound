@@ -105,16 +105,8 @@ export class FanWindWeapon extends Weapon {
     this.damage = stats.damage;
     this.cooldown = stats.cooldown;
 
-    // 레벨업 시 투사체 수량 증가
-    if (this.level === 2) {
-      this.projectileCount = 2; // 레벨 2: 2개
-    } else if (this.level === 3) {
-      this.projectileCount = 3; // 레벨 3: 3개
-    } else if (this.level === 4) {
-      this.projectileCount = 4; // 레벨 4: 4개
-    } else if (this.level === 5) {
-      this.projectileCount = 5; // 레벨 5: 5개
-    }
+    // 투사체 개수 증가: 1→3→5→7→9 (홀수 레벨마다)
+    this.projectileCount = Math.floor((this.level + 1) / 2) * 2 - 1;
 
     console.log(
       `🌪️ 부채바람 레벨 ${this.level}! (투사체: ${this.projectileCount}개, 데미지: ${this.damage})`
