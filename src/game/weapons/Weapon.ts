@@ -19,6 +19,7 @@ export abstract class Weapon {
   public readonly id: string; // 무기 고유 ID (Analytics용)
   public name: string;
   public level: number = 1;
+  public isEvolved: boolean = false; // 진화 여부
 
   // 스텟
   public damage: number;

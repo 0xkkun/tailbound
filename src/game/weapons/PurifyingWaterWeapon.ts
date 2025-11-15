@@ -16,10 +16,10 @@ import { Weapon } from './Weapon';
 
 export class PurifyingWaterWeapon extends Weapon {
   private bottles: WaterBottle[] = [];
-  private throwCount: number;
-  private maxThrowRange: number;
-  private aoeRadius: number;
-  private bottleSpeed: number;
+  protected throwCount: number;
+  protected maxThrowRange: number;
+  protected aoeRadius: number;
+  protected bottleSpeed: number;
 
   constructor() {
     const stats = calculateWeaponStats('purifying_water', 1);

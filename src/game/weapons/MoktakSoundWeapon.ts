@@ -28,7 +28,7 @@ const MOKTAK_CONSTANTS = {
 } as const;
 
 export class MoktakSoundWeapon extends Weapon {
-  private aoeRadius: number = 150;
+  protected aoeRadius: number = 150;
 
   constructor() {
     const stats = calculateWeaponStats('moktak_sound', 1);

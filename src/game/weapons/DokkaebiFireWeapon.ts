@@ -18,9 +18,9 @@ import { Weapon } from './Weapon';
 
 export class DokkaebiFireWeapon extends Weapon {
   private orbitals: OrbitalEntity[] = [];
-  private orbitalCount: number = 2; // 초기 개수 2개로 증가
-  private orbitalRadius: number = WEAPON_BALANCE.dokkaebi_fire.orbitalRadius;
-  private angularSpeed: number = WEAPON_BALANCE.dokkaebi_fire.baseAngularSpeed;
+  protected orbitalCount: number = 2; // 초기 개수 2개로 증가
+  protected orbitalRadius: number = WEAPON_BALANCE.dokkaebi_fire.orbitalRadius;
+  protected angularSpeed: number = WEAPON_BALANCE.dokkaebi_fire.baseAngularSpeed;
 
   // 글로벌 효과음 쿨다운 (모든 orbital 공유)
   private lastGlobalSoundTime: number = 0;

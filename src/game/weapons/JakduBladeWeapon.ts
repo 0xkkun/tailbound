@@ -10,6 +10,7 @@ import { calculateWeaponStats, WEAPON_DATA } from '@game/data/weapons';
 import { AttachedEntity } from '@game/entities/AttachedEntity';
 import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
+import type { Projectile } from '@game/entities/Projectile';
 import { audioManager } from '@services/audioManager';
 import type { Vector2 } from '@type/game.types';
 import type { Container } from 'pixi.js';
@@ -17,10 +18,10 @@ import type { Container } from 'pixi.js';
 import { Weapon } from './Weapon';
 
 export class JakduBladeWeapon extends Weapon {
-  private blades: AttachedEntity[] = [];
-  private bladeCount: number = 1; // 처음엔 왼쪽 1개
-  private offsetDistance: number = WEAPON_BALANCE.jakdu_blade.offsetDistance;
-  private attackRadius: number = WEAPON_BALANCE.jakdu_blade.attackRadius;
+  protected blades: AttachedEntity[] = [];
+  protected bladeCount: number = 1; // 처음엔 왼쪽 1개
+  protected offsetDistance: number = WEAPON_BALANCE.jakdu_blade.offsetDistance;
+  protected attackRadius: number = WEAPON_BALANCE.jakdu_blade.attackRadius;
 
   constructor() {
     const stats = calculateWeaponStats('jakdu_blade', 1);
@@ -29,8 +30,9 @@ export class JakduBladeWeapon extends Weapon {
 
   /**
    * 공격 체크 (타이밍에 맞춰 애니메이션 재생)
+   * 기본 작두는 투사체를 발사하지 않지만, 진화 시 투사체 발사 가능
    */
-  public fire(_playerPos: Vector2, _enemies: BaseEnemy[], player?: Player): never[] {
+  public fire(_playerPos: Vector2, _enemies: BaseEnemy[], player?: Player): Projectile[] {
     if (!this.canFire()) {
       return [];
     }

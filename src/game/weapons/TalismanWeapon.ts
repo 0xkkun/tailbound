@@ -15,7 +15,7 @@ import { Weapon } from './Weapon';
 
 export class TalismanWeapon extends Weapon {
   private projectileIdCounter: number = 0;
-  private projectileCount: number = 1; // 발사할 투사체 개수
+  protected projectileCount: number = 1; // 발사할 투사체 개수
   private readonly MAX_FIRE_RANGE = 600; // 최대 발사 거리 (화면 크기 정도)
 
   constructor() {

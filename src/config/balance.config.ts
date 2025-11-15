@@ -570,3 +570,61 @@ export const POWERUP_BALANCE = {
     epic: 0.25, // +25%
   },
 } as const;
+
+/**
+ * 무기 진화 밸런스 설정
+ *
+ * 진화 조건: 무기 레벨 7 + 해당 유물 보유
+ * 진화 효과: 기본 스탯에 배율 적용 + 추가 보너스
+ */
+export const WEAPON_EVOLUTION_BALANCE = {
+  // 공통 설정
+  common: {
+    requiredLevel: 7, // 모든 무기 진화 요구 레벨
+  },
+
+  // 작두날 → 백제 금동대향로
+  jakdu_blade: {
+    damageMultiplier: 1.33, // 데미지 133% (1.33배)
+    cooldownMultiplier: 0.9, // 쿨다운 10% 감소
+    // 범위는 기존 로직 유지 (radiusPerLevel)
+  },
+
+  // 목탁소리 → 금동미륵보살반가사유상
+  moktak_sound: {
+    damageMultiplier: 1.4, // 데미지 140%
+    rangeMultiplier: 1.2, // 범위 120%
+    cooldownMultiplier: 0.9, // 쿨다운 10% 감소
+  },
+
+  // 부적 → 정문경
+  talisman: {
+    damageMultiplier: 1.2, // 데미지 120%
+    projectileIncrease: 2, // 투사체 +2개
+    cooldownMultiplier: 0.9, // 쿨다운 10% 감소
+  },
+
+  // 부채바람 → 천마총 천마도
+  fan_wind: {
+    damageMultiplier: 1.3, // 데미지 130%
+    cooldownMultiplier: 0.85, // 쿨다운 15% 감소
+    projectileIncrease: 1, // 투사체 +1개
+  },
+
+  // 정화수 → 청자 상감운학문 매병
+  purifying_water: {
+    damageMultiplier: 1.4, // 데미지 140%
+    aoeMultiplier: 1.2, // 범위 120%
+    throwIncrease: 1, // 투척 개수 +1
+    maxThrowIncrease: 1, // 최대 투척 개수 상한 +1
+  },
+
+  // 도깨비불 → 금관총 금관
+  dokkaebi_fire: {
+    damageMultiplier: 1.5, // 데미지 150%
+    orbitalIncrease: 1, // 궤도 개수 +1
+    speedMultiplier: 1.2, // 회전 속도 120%
+    maxOrbitalIncrease: 2, // 최대 궤도 개수 상한 +2
+    maxSpeedMultiplier: 1.3, // 최대 회전 속도 상한 130%
+  },
+} as const;

@@ -17,7 +17,7 @@ import { Projectile } from '../entities/Projectile';
 import { Weapon } from './Weapon';
 
 export class FanWindWeapon extends Weapon {
-  private projectileCount: number = 1; // 투사체 개수
+  protected projectileCount: number = 1; // 투사체 개수
   private weaponData = getWeaponData('fan_wind');
 
   constructor() {
