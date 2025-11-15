@@ -4,9 +4,16 @@
 import { CDN_ASSETS, CDN_BASE_URL } from '@config/assets.config';
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
+import { BaekjeIncenseBurnerArtifact } from '@game/artifacts/list/BaekjeIncenseBurnerArtifact';
+import { CeladonCraneVaseArtifact } from '@game/artifacts/list/CeladonCraneVaseArtifact';
+import { CelestialHorseArtifact } from '@game/artifacts/list/CelestialHorseArtifact';
+import { CrownOfSillaArtifact } from '@game/artifacts/list/CrownOfSillaArtifact';
 import { ExecutionerAxeArtifact } from '@game/artifacts/list/ExecutionerAxeArtifact';
+import { FineLineMirrorArtifact } from '@game/artifacts/list/FineLineMirrorArtifact';
 import { FoxTearArtifact } from '@game/artifacts/list/FoxTearArtifact';
+import { PensiveBuddhaArtifact } from '@game/artifacts/list/PensiveBuddhaArtifact';
 import { TalryeongMaskArtifact } from '@game/artifacts/list/TalryeongMaskArtifact';
+import { canEvolve, getEvolutionData } from '@game/data/weaponEvolution';
 import { WEAPON_DATA } from '@game/data/weapons';
 import { AoEEffect } from '@game/entities/AoEEffect';
 import {
@@ -472,14 +479,32 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
   protected async initScene(): Promise<void> {
     // TODO: 테스트중 - 유물 시스템 초기화 (게임 시작 시 유물 자동 획득)
     this.artifactSystem = new ArtifactSystem(this.player, this);
+
+    // 기존 유물
     const foxTear = new FoxTearArtifact();
     const executionerAxe = new ExecutionerAxeArtifact();
     const talryeongMask = new TalryeongMaskArtifact();
+
+    // 진화 유물 6개
+    const baekjeIncenseBurner = new BaekjeIncenseBurnerArtifact(); // 작두날
+    const pensiveBuddha = new PensiveBuddhaArtifact(); // 목탁소리
+    const fineLineMirror = new FineLineMirrorArtifact(); // 부적
+    const celestialHorse = new CelestialHorseArtifact(); // 부채바람
+    const celadonCraneVase = new CeladonCraneVaseArtifact(); // 정화수
+    const crownOfSilla = new CrownOfSillaArtifact(); // 도깨비불
+
     this.artifactSystem.add(foxTear);
     this.artifactSystem.add(executionerAxe);
     this.artifactSystem.add(talryeongMask);
+    this.artifactSystem.add(baekjeIncenseBurner);
+    this.artifactSystem.add(pensiveBuddha);
+    this.artifactSystem.add(fineLineMirror);
+    this.artifactSystem.add(celestialHorse);
+    this.artifactSystem.add(celadonCraneVase);
+    this.artifactSystem.add(crownOfSilla);
+
     console.log(
-      '[OverworldGameScene] 🦊 FoxTear & ⚔️ ExecutionerAxe & 👹 TalryeongMask 테스트 모드 활성화'
+      '[OverworldGameScene] 🦊 FoxTear & ⚔️ ExecutionerAxe & 👹 TalryeongMask & ✨ 진화 유물 6개 테스트 모드 활성화'
     );
 
     // 플레이어 레벨업 콜백 설정
@@ -1574,9 +1599,20 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
     return choices.map((choice) => {
       if (choice.type === 'weapon') {
         const existingWeapon = this.weapons.find((w) => w.id === choice.id);
+        const currentLevel = existingWeapon ? existingWeapon.level : 0;
+        const nextLevel = currentLevel + 1;
+
+        // 진화 체크: 이 선택지를 선택하면 진화하는지 확인
+        const artifactIds = this.artifactSystem.getActiveArtifacts().map((a) => a.data.id);
+        const willEvolve =
+          !existingWeapon?.isEvolved && canEvolve(choice.id, nextLevel, artifactIds);
+        const evolutionData = willEvolve ? getEvolutionData(choice.id) : null;
+
         return {
           ...choice,
-          currentLevel: existingWeapon ? existingWeapon.level : 0,
+          currentLevel,
+          canEvolve: willEvolve,
+          evolvedName: evolutionData?.evolvedWeaponName,
         };
       }
       return { ...choice, currentLevel: 0 };
@@ -1663,6 +1699,102 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
   }
 
   /**
+   * 무기 진화 체크 및 교체
+   */
+  private async checkAndEvolveWeapon(weapon: Weapon): Promise<void> {
+    // 입력 검증
+    if (!weapon) {
+      console.error('[Evolution] Invalid weapon object');
+      return;
+    }
+
+    // 이미 진화된 무기는 스킵
+    if (weapon.isEvolved) return;
+
+    try {
+      // 유물 ID 목록 가져오기
+      const artifactIds = this.artifactSystem.getActiveArtifacts().map((a) => a.data.id);
+
+      // 진화 가능 여부 체크
+      if (!canEvolve(weapon.id, weapon.level, artifactIds)) {
+        return; // 진화 조건 미충족 (정상적인 경우)
+      }
+
+      const evolutionData = getEvolutionData(weapon.id);
+      if (!evolutionData) {
+        console.warn(`[Evolution] Evolution data not found for weapon: ${weapon.id}`);
+        return;
+      }
+
+      if (!evolutionData.enabled) {
+        console.warn(`[Evolution] Evolution disabled for weapon: ${weapon.id}`);
+        return;
+      }
+
+      // 기존 무기 인덱스 찾기
+      const weaponIndex = this.weapons.indexOf(weapon);
+      if (weaponIndex === -1) {
+        console.error(`[Evolution] Weapon not found in weapons array: ${weapon.id}`);
+        return;
+      }
+
+      // 진화 무기 생성 (Factory 패턴 사용)
+      console.log(
+        `🔄 [Evolution] Starting evolution: ${weapon.name} (Lv.${weapon.level}) → ${evolutionData.evolvedWeaponName}`
+      );
+
+      // 1. 기존 무기 정리 (lifecycle hook 사용)
+      try {
+        if (weapon.onBeforeEvolution) {
+          weapon.onBeforeEvolution(this.gameLayer);
+        }
+      } catch (error) {
+        console.error(`[Evolution] Failed to cleanup old weapon: ${weapon.name}`, error);
+        throw error; // 정리 실패는 치명적이므로 진화 중단
+      }
+
+      // 2. 진화 무기 생성
+      let evolvedWeapon: Weapon;
+      try {
+        evolvedWeapon = new evolutionData.evolvedWeaponFactory(weapon.level);
+      } catch (error) {
+        console.error(`[Evolution] Failed to create evolved weapon: ${weapon.name}`, error);
+        throw error; // Factory 실패는 치명적
+      }
+
+      // 3. 진화 무기 검증
+      if (!evolvedWeapon) {
+        throw new Error(`Factory returned null/undefined for ${weapon.id}`);
+      }
+
+      if (!evolvedWeapon.isEvolved) {
+        console.warn(`[Evolution] Created weapon missing isEvolved flag: ${weapon.id}`);
+      }
+
+      // 4. 진화 무기로 교체
+      this.weapons[weaponIndex] = evolvedWeapon;
+      console.log(`✨ ${weapon.name} → ${evolvedWeapon.name} 진화 완료!`);
+      this.player.trackWeaponAcquisition(weapon.id, evolvedWeapon.level);
+
+      // 5. 진화 무기 초기화 (lifecycle hook 사용)
+      try {
+        if (evolvedWeapon.onAfterEvolution) {
+          await evolvedWeapon.onAfterEvolution(this.gameLayer);
+        }
+      } catch (error) {
+        console.error(
+          `[Evolution] Failed to initialize evolved weapon: ${evolvedWeapon.name}`,
+          error
+        );
+        // 초기화 실패는 무기가 이미 교체되었으므로 경고만 출력
+      }
+    } catch (error) {
+      console.error(`❌ [Evolution] 무기 진화 실패: ${weapon.name} (${weapon.id})`, error);
+      // 전체 진화 프로세스 실패 - 무기 상태 롤백은 복잡하므로 현재는 스킵
+    }
+  }
+
+  /**
    * 무기 추가
    */
   protected async addWeapon(weaponId: string): Promise<void> {
@@ -1676,11 +1808,15 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           existingTalisman.levelUp();
           console.log(`부적 레벨업! Lv.${existingTalisman.level}`);
           this.player.trackWeaponAcquisition(weaponId, existingTalisman.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(existingTalisman);
         } else {
           const talisman = new TalismanWeapon();
           this.weapons.push(talisman);
           console.log('부적 무기 추가 완료!');
           this.player.trackWeaponAcquisition(weaponId, talisman.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(talisman);
         }
         break;
       }
@@ -1693,6 +1829,8 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           await (existingDokkaebi as DokkaebiFireWeapon).spawnOrbitals(this.gameLayer);
           console.log(`도깨비불 레벨업! Lv.${existingDokkaebi.level}`);
           this.player.trackWeaponAcquisition(weaponId, existingDokkaebi.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(existingDokkaebi);
         } else {
           const dokkaebi = new DokkaebiFireWeapon();
           this.weapons.push(dokkaebi);
@@ -1700,6 +1838,8 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           await dokkaebi.spawnOrbitals(this.gameLayer);
           console.log('도깨비불 무기 추가 완료!');
           this.player.trackWeaponAcquisition(weaponId, dokkaebi.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(dokkaebi);
         }
         break;
       }
@@ -1710,11 +1850,15 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           existingMoktak.levelUp();
           console.log(`목탁 소리 레벨업! Lv.${existingMoktak.level}`);
           this.player.trackWeaponAcquisition(weaponId, existingMoktak.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(existingMoktak);
         } else {
           const moktak = new MoktakSoundWeapon();
           this.weapons.push(moktak);
           console.log('목탁 소리 무기 추가 완료!');
           this.player.trackWeaponAcquisition(weaponId, moktak.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(moktak);
         }
         break;
       }
@@ -1727,6 +1871,8 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           await (existingJakdu as JakduBladeWeapon).spawnBlades(this.gameLayer);
           console.log(`작두날 레벨업! Lv.${existingJakdu.level}`);
           this.player.trackWeaponAcquisition(weaponId, existingJakdu.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(existingJakdu);
         } else {
           const jakdu = new JakduBladeWeapon();
           this.weapons.push(jakdu);
@@ -1734,6 +1880,8 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           await jakdu.spawnBlades(this.gameLayer);
           console.log('작두날 무기 추가 완료!');
           this.player.trackWeaponAcquisition(weaponId, jakdu.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(jakdu);
         }
         break;
       }
@@ -1744,11 +1892,15 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           existingFanWind.levelUp();
           console.log(`부채바람 레벨업! Lv.${existingFanWind.level}`);
           this.player.trackWeaponAcquisition(weaponId, existingFanWind.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(existingFanWind);
         } else {
           const fanWind = new FanWindWeapon();
           this.weapons.push(fanWind);
           console.log('부채바람 무기 추가 완료!');
           this.player.trackWeaponAcquisition(weaponId, fanWind.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(fanWind);
         }
         break;
       }
@@ -1759,11 +1911,15 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           existingWater.levelUp();
           console.log(`정화수 레벨업! Lv.${existingWater.level}`);
           this.player.trackWeaponAcquisition(weaponId, existingWater.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(existingWater);
         } else {
           const water = new PurifyingWaterWeapon();
           this.weapons.push(water);
           console.log('정화수 무기 추가 완료!');
           this.player.trackWeaponAcquisition(weaponId, water.level);
+          // 진화 체크
+          await this.checkAndEvolveWeapon(water);
         }
         break;
       }

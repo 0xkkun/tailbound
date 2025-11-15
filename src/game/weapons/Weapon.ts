@@ -14,7 +14,25 @@ import type { Vector2 } from '@type/game.types';
 // 무기가 발사할 수 있는 엔티티 타입들
 export type WeaponEntity = Projectile | AoEEffect | MeleeSwing | WaterSplash | WaterBottle;
 
-export abstract class Weapon {
+/**
+ * 무기 생명주기 인터페이스
+ * 진화 시 cleanup 및 initialization 로직을 정의
+ */
+export interface WeaponLifecycle {
+  /**
+   * 진화 전 정리 작업 (기존 무기의 엔티티 제거 등)
+   * @param gameLayer 게임 레이어 (엔티티 제거용)
+   */
+  onBeforeEvolution?(gameLayer: unknown): void;
+
+  /**
+   * 진화 후 초기화 작업 (새로운 엔티티 생성 등)
+   * @param gameLayer 게임 레이어 (엔티티 추가용)
+   */
+  onAfterEvolution?(gameLayer: unknown): Promise<void>;
+}
+
+export abstract class Weapon implements WeaponLifecycle {
   // 무기 정보
   public readonly id: string; // 무기 고유 ID (Analytics용)
   public name: string;
@@ -31,6 +49,22 @@ export abstract class Weapon {
     this.name = name;
     this.damage = damage;
     this.cooldown = cooldown;
+  }
+
+  /**
+   * 진화 전 정리 작업 (기본 구현 - 하위 클래스에서 오버라이드)
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onBeforeEvolution?(gameLayer: unknown): void {
+    // 기본 구현 없음 - 필요한 무기만 오버라이드
+  }
+
+  /**
+   * 진화 후 초기화 작업 (기본 구현 - 하위 클래스에서 오버라이드)
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async onAfterEvolution?(gameLayer: unknown): Promise<void> {
+    // 기본 구현 없음 - 필요한 무기만 오버라이드
   }
 
   /**
