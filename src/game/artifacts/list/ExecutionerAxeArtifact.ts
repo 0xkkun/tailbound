@@ -3,7 +3,7 @@
  * 체력이 낮은 적 즉시 처형 (체력 20% 이하 시 즉사)
  */
 
-import { LOCAL_ASSETS } from '@config/assets.config';
+import { CDN_ASSETS } from '@config/assets.config';
 import type { WeaponCategory } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies/BaseEnemy';
 import { AnimatedSprite, Assets, type Container, Rectangle, Texture } from 'pixi.js';
@@ -23,7 +23,7 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
       rarity: 'epic',
       category: 'offensive',
       description: '[근접 무기] 일반 요괴의 체력이 20% 이하일 때 즉시 처형',
-      iconPath: LOCAL_ASSETS.executionerAxeArtifact,
+      iconPath: CDN_ASSETS.artifact.executionerAxe,
       color: 0x8b0000, // 다크 레드
     });
   }

@@ -22,22 +22,6 @@ export const LOCAL_ASSETS = {
   favicon: '/favicon.png',
   ogImage: '/og-image.png',
   appleTouchIcon: '/favicon.png',
-
-  // 하위 항목들은 개발중, 완료 후 CDN으로
-
-  // 이펙트
-  executionEffect: '/assets/effects/execution.png',
-
-  // 유물
-  talryeongMaskArtifact: '/assets/artifacts/talryeong-mask.png',
-  executionerAxeArtifact: '/assets/artifacts/executioner-axe.png',
-  foxTearArtifact: '/assets/artifacts/fox-tear.png',
-  crownOfSillaArtifact: '/assets/artifacts/crown-of-silla.png',
-  pensiveBuddhaArtifact: '/assets/artifacts/pensive-buddha.png',
-  baekjeIncenseBurnerArtifact: '/assets/artifacts/baekje-incense-burner.png',
-  celestialHorseArtifact: '/assets/artifacts/celestial-horse.png',
-  celadonCraneVaseArtifact: '/assets/artifacts/celadon-crane-vase.png',
-  fineLineMirrorArtifact: '/assets/artifacts/fine-line-mirror.png',
 } as const;
 
 /**
@@ -159,6 +143,24 @@ export const CDN_ASSETS = {
     experienceBoost: `${CDN_BASE_URL}/assets/power-up/experience-boost.png`,
     criticalDamage: `${CDN_BASE_URL}/assets/power-up/critical-damage.png`,
     giftbox: `${CDN_BASE_URL}/assets/power-up/giftbox.png`,
+  },
+
+  // Effects
+  effect: {
+    execution: `${CDN_BASE_URL}/assets/effects/execution.png`,
+  },
+
+  // Artifacts
+  artifact: {
+    talryeongMask: `${CDN_BASE_URL}/assets/artifacts/talryeong-mask.png`,
+    executionerAxe: `${CDN_BASE_URL}/assets/artifacts/executioner-axe.png`,
+    foxTear: `${CDN_BASE_URL}/assets/artifacts/fox-tear.png`,
+    crownOfSilla: `${CDN_BASE_URL}/assets/artifacts/crown-of-silla.png`,
+    pensiveBuddha: `${CDN_BASE_URL}/assets/artifacts/pensive-buddha.png`,
+    baekjeIncenseBurner: `${CDN_BASE_URL}/assets/artifacts/baekje-incense-burner.png`,
+    celestialHorse: `${CDN_BASE_URL}/assets/artifacts/celestial-horse.png`,
+    celadonCraneVase: `${CDN_BASE_URL}/assets/artifacts/celadon-crane-vase.png`,
+    fineLineMirror: `${CDN_BASE_URL}/assets/artifacts/fine-line-mirror.png`,
   },
 
   // Drops
@@ -285,6 +287,18 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.powerUp.kill,
     CDN_ASSETS.powerUp.criticalChance,
     CDN_ASSETS.powerUp.criticalDamage,
+    // 유물 (3/6/9분 보상 UI에서 사용)
+    CDN_ASSETS.artifact.talryeongMask,
+    CDN_ASSETS.artifact.executionerAxe,
+    CDN_ASSETS.artifact.foxTear,
+    CDN_ASSETS.artifact.crownOfSilla,
+    CDN_ASSETS.artifact.pensiveBuddha,
+    CDN_ASSETS.artifact.baekjeIncenseBurner,
+    CDN_ASSETS.artifact.celestialHorse,
+    CDN_ASSETS.artifact.celadonCraneVase,
+    CDN_ASSETS.artifact.fineLineMirror,
+    // 이펙트
+    CDN_ASSETS.effect.execution,
     // 오디오 파일은 Howler.js(audioManager)에서 별도로 로드됨
   ],
 

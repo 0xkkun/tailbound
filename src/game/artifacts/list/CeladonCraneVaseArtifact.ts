@@ -3,7 +3,7 @@
  * 정화수 무기를 진화시키는 유물 (7레벨 달성 시)
  */
 
-import { LOCAL_ASSETS } from '@config/assets.config';
+import { CDN_ASSETS } from '@config/assets.config';
 
 import { BaseArtifact } from '../base/BaseArtifact';
 
@@ -16,7 +16,7 @@ export class CeladonCraneVaseArtifact extends BaseArtifact {
       rarity: 'rare',
       category: 'evolution',
       description: '[정화수] 정화수 무기 레벨 7 달성 시 진화',
-      iconPath: LOCAL_ASSETS.celadonCraneVaseArtifact,
+      iconPath: CDN_ASSETS.artifact.celadonCraneVase,
       color: 0xffd700, // 골드
     });
   }
