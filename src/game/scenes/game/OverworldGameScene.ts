@@ -907,7 +907,8 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           entity.damage *= this.player.damageMultiplier;
 
           // 목탁 소리는 플레이어를 따라다니고 캐릭터 뒤에 표시
-          if (weapon instanceof MoktakSoundWeapon) {
+          // shouldFollowPlayer가 true인 경우만 따라다님 (진화 목탁 특수 공격은 제외)
+          if (weapon instanceof MoktakSoundWeapon && entity.shouldFollowPlayer) {
             entity.setFollowTarget(this.player);
             entity.zIndex = GAME_CONFIG.entities.aoeEffect; // 캐릭터 뒤
           }

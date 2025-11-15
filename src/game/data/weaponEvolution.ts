@@ -7,13 +7,13 @@
  */
 
 import { DokkaebiFireEvolvedWeapon } from '@game/weapons/evolved/DokkaebiFireEvolvedWeapon';
+import { FanWindEvolvedWeapon } from '@game/weapons/evolved/FanWindEvolvedWeapon';
 import { JakduBladeEvolvedWeapon } from '@game/weapons/evolved/JakduBladeEvolvedWeapon';
+import { MoktakSoundEvolvedWeapon } from '@game/weapons/evolved/MoktakSoundEvolvedWeapon';
 import { TalismanEvolvedWeapon } from '@game/weapons/evolved/TalismanEvolvedWeapon';
 import type { Weapon } from '@game/weapons/Weapon';
 
-// TODO: 나머지 무기 활성화 시 주석 해제
-// import { FanWindEvolvedWeapon } from '@game/weapons/evolved/FanWindEvolvedWeapon';
-// import { MoktakSoundEvolvedWeapon } from '@game/weapons/evolved/MoktakSoundEvolvedWeapon';
+// TODO: 정수 무기 활성화 시 주석 해제
 // import { PurifyingWaterEvolvedWeapon } from '@game/weapons/evolved/PurifyingWaterEvolvedWeapon';
 
 /**
@@ -58,23 +58,22 @@ export const WEAPON_EVOLUTION_MAP: Record<string, WeaponEvolutionData> = {
     evolvedWeaponFactory: DokkaebiFireEvolvedWeapon,
     enabled: true,
   },
-  // TODO: 나머지 무기 진화 구현 후 활성화
-  // weapon_moktak_sound: {
-  //   weaponId: 'weapon_moktak_sound',
-  //   requiredLevel: 7,
-  //   requiredArtifactId: 'pensive_buddha',
-  //   evolvedWeaponName: '금동미륵보살반가사유상',
-  //   evolvedWeaponFactory: MoktakSoundEvolvedWeapon,
-  //   enabled: false,
-  // },
-  // weapon_fan_wind: {
-  //   weaponId: 'weapon_fan_wind',
-  //   requiredLevel: 7,
-  //   requiredArtifactId: 'celestial_horse',
-  //   evolvedWeaponName: '천마총 천마도',
-  //   evolvedWeaponFactory: FanWindEvolvedWeapon,
-  //   enabled: false,
-  // },
+  weapon_moktak: {
+    weaponId: 'weapon_moktak',
+    requiredLevel: 7,
+    requiredArtifactId: 'pensive_buddha',
+    evolvedWeaponName: '금동미륵보살반가사유상',
+    evolvedWeaponFactory: MoktakSoundEvolvedWeapon,
+    enabled: true,
+  },
+  weapon_fan_wind: {
+    weaponId: 'weapon_fan_wind',
+    requiredLevel: 7,
+    requiredArtifactId: 'celestial_horse',
+    evolvedWeaponName: '천마총 천마도',
+    evolvedWeaponFactory: FanWindEvolvedWeapon,
+    enabled: true,
+  },
   // weapon_purifying_water: {
   //   weaponId: 'weapon_purifying_water',
   //   requiredLevel: 7,

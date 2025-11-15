@@ -17,6 +17,9 @@ export class AoEEffect extends Container {
   // 무기 카테고리 (유물 시스템용)
   public weaponCategories?: WeaponCategory[];
 
+  // 플레이어를 따라다녀야 하는지 여부 (목탁 진화 특수 공격용)
+  public shouldFollowPlayer: boolean = true;
+
   private lifetime: number = 0;
   private maxLifetime: number = 0.5; // 0.5초 동안 표시
   private hitEnemies: Set<string> = new Set(); // 이미 맞힌 적 ID 추적 (한 번만 맞히는 AoE용)
@@ -76,6 +79,13 @@ export class AoEEffect extends Container {
    */
   public setTickInterval(interval: number): void {
     this.tickInterval = interval;
+  }
+
+  /**
+   * 생명 시간 설정
+   */
+  public setLifetime(lifetime: number): void {
+    this.maxLifetime = lifetime;
   }
 
   /**
