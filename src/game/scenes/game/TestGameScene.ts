@@ -269,6 +269,9 @@ export class TestGameScene extends OverworldGameScene {
     ];
     yPos = this.addButtonRow(this.debugPanel, cheatButtons2, panelWidth, yPos, padding);
 
+    const cheatButtons3 = [{ label: '시간 +1분', action: () => this.cheatAddTime() }];
+    yPos = this.addButtonRow(this.debugPanel, cheatButtons3, panelWidth, yPos, padding);
+
     // 닫기 버튼
     yPos += 20;
     this.addButton(this.debugPanel, '닫기', panelWidth - padding * 2, yPos, padding, () =>
@@ -469,7 +472,6 @@ export class TestGameScene extends OverworldGameScene {
    */
   private cheatClearEnemies(): void {
     console.log('[치트] 모든 적 제거');
-    // @ts-expect-error - private 필드 접근
     for (const enemy of this.enemies) {
       enemy.health = 0;
     }
@@ -574,6 +576,19 @@ export class TestGameScene extends OverworldGameScene {
     this.player.maxHealth = Math.min(this.player.maxHealth + 50, 500);
     this.player.health = Math.min(this.player.health + 50, this.player.maxHealth);
     console.log(`[치트] 최대 체력: ${this.player.maxHealth}`);
+  }
+
+  /**
+   * 치트: 시간 +1분 추가
+   */
+  private cheatAddTime(): void {
+    // @ts-expect-error - private 필드 접근
+    this.gameTime += 60; // 1분 = 60초
+    // @ts-expect-error - private 필드 접근
+    const minutes = Math.floor(this.gameTime / 60);
+    // @ts-expect-error - private 필드 접근
+    const seconds = Math.floor(this.gameTime % 60);
+    console.log(`[치트] 시간 +1분 추가. 현재 시간: ${minutes}분 ${seconds}초`);
   }
 
   /**
