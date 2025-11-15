@@ -126,6 +126,7 @@ export const CDN_ASSETS = {
     loadingSprite: `${CDN_BASE_URL}/assets/gui/loading-sprite.png`,
     pattern: `${CDN_BASE_URL}/assets/gui/pattern.png`,
     cornerPattern: `${CDN_BASE_URL}/assets/gui/corner-pattern.png`,
+    brightOpeningEffect: `${CDN_BASE_URL}/assets/gui/bright-opening-effect.png`,
   },
 
   // Power-ups
@@ -299,6 +300,8 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.artifact.fineLineMirror,
     // 이펙트
     CDN_ASSETS.effect.execution,
+    // GUI
+    CDN_ASSETS.gui.brightOpeningEffect,
     // 오디오 파일은 Howler.js(audioManager)에서 별도로 로드됨
   ],
 

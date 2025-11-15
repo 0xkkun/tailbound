@@ -31,6 +31,17 @@
       "melee": "근접",
       "spell": "주문"
     },
+    "types": {
+      "talisman": "부적",
+      "dokkaebi_fire": "도깨비불",
+      "moktak_sound": "목탁소리",
+      "jakdu_blade": "작두날",
+      "fan_wind": "부채바람",
+      "purifying_water": "정화수"
+    },
+    "common": {
+      "all": "전체"
+    },
     "talisman": {
       "name": "부적",
       "description": "자동으로 가장 가까운 적을 추적하는 부적을 발사합니다."

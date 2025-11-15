@@ -22,7 +22,7 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
       tier: 3,
       rarity: 'epic',
       category: 'offensive',
-      description: '[근접 무기] 일반 요괴의 체력이 20% 이하일 때 즉시 처형',
+      description: '공격 시 일반 요괴의 체력이 20% 이하일 때 즉시 처형',
       iconPath: CDN_ASSETS.artifact.executionerAxe,
       color: 0x8b0000, // 다크 레드
       weaponCategories: ['melee'], // 근접 무기만

@@ -4,6 +4,7 @@
 import { CDN_ASSETS, CDN_BASE_URL } from '@config/assets.config';
 import { KNOCKBACK_BALANCE, POTION_BALANCE } from '@config/balance.config';
 import { GAME_CONFIG } from '@config/game.config';
+import type { IArtifact } from '@game/artifacts/base/IArtifact';
 import { BaekjeIncenseBurnerArtifact } from '@game/artifacts/list/BaekjeIncenseBurnerArtifact';
 import { CeladonCraneVaseArtifact } from '@game/artifacts/list/CeladonCraneVaseArtifact';
 import { CelestialHorseArtifact } from '@game/artifacts/list/CelestialHorseArtifact';
@@ -42,6 +43,7 @@ import { SpiralChargeEffect } from '@game/entities/SpiralChargeEffect';
 import { WaterBottle } from '@game/entities/WaterBottle';
 import { WaterSplash } from '@game/entities/WaterSplash';
 import { StageTransitionScene } from '@game/scenes/StageTransitionScene';
+import { ArtifactRewardUI } from '@game/ui/ArtifactRewardUI';
 import { LevelUpUI } from '@game/ui/LevelUpUI';
 import { PixelButton } from '@game/ui/PixelButton';
 import { PortalIndicator } from '@game/ui/PortalIndicator';
@@ -157,12 +159,17 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
   private xpBarY: number = 0; // 경험치바 Y 위치
   private levelTextY: number = 0; // 레벨/킬 텍스트 Y 위치
   private levelUpUI!: LevelUpUI;
+  private artifactRewardUI!: ArtifactRewardUI;
   private portalIndicator!: PortalIndicator;
   private settingsButton!: Container;
   private leaderboardButton!: Container;
   private settingsMenu: Container | null = null;
   private transitionScene: StageTransitionScene | null = null;
   private devClearButton?: Container; // 개발 모드 클리어 버튼
+
+  // 유물 보상 타이밍 (3분, 6분, 9분)
+  private artifactRewardTimes: number[] = [180, 360, 540]; // 초 단위
+  private artifactRewardIndex: number = 0; // 현재 지급할 유물 인덱스
 
   // 콜백
   public onGameOver?: (result: GameResult) => void;
@@ -480,35 +487,7 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
    * 씬 초기화 (BaseGameScene abstract 메서드 구현)
    */
   protected async initScene(): Promise<void> {
-    // TODO: 테스트중 - 유물 시스템 초기화 (게임 시작 시 유물 자동 획득)
     this.artifactSystem = new ArtifactSystem(this.player, this);
-
-    // 기존 유물
-    const foxTear = new FoxTearArtifact();
-    const executionerAxe = new ExecutionerAxeArtifact();
-    const talryeongMask = new TalryeongMaskArtifact();
-
-    // 진화 유물 6개
-    const baekjeIncenseBurner = new BaekjeIncenseBurnerArtifact(); // 작두날
-    const pensiveBuddha = new PensiveBuddhaArtifact(); // 목탁소리
-    const fineLineMirror = new FineLineMirrorArtifact(); // 부적
-    const celestialHorse = new CelestialHorseArtifact(); // 부채바람
-    const celadonCraneVase = new CeladonCraneVaseArtifact(); // 정화수
-    const crownOfSilla = new CrownOfSillaArtifact(); // 도깨비불
-
-    this.artifactSystem.add(foxTear);
-    this.artifactSystem.add(executionerAxe);
-    this.artifactSystem.add(talryeongMask);
-    this.artifactSystem.add(baekjeIncenseBurner);
-    this.artifactSystem.add(pensiveBuddha);
-    this.artifactSystem.add(fineLineMirror);
-    this.artifactSystem.add(celestialHorse);
-    this.artifactSystem.add(celadonCraneVase);
-    this.artifactSystem.add(crownOfSilla);
-
-    console.log(
-      '[OverworldGameScene] 🦊 FoxTear & ⚔️ ExecutionerAxe & 👹 TalryeongMask & ✨ 진화 유물 6개 테스트 모드 활성화'
-    );
 
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
@@ -683,6 +662,11 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
     // 레벨업 UI 선택 처리는 이제 showLevelUpUI()의 Promise를 통해 처리됨
     // (onChoiceSelected 콜백은 LevelUpUI 내부에서 호환성을 위해 유지되지만 여기서는 사용하지 않음)
 
+    // 유물 보상 UI (3/6/9분 유물 지급)
+    this.artifactRewardUI = new ArtifactRewardUI();
+    this.artifactRewardUI.onConfirm = (artifact) => this.handleArtifactRewardConfirm(artifact);
+    this.addChild(this.artifactRewardUI);
+
     // 포탈 인디케이터
     this.portalIndicator = new PortalIndicator();
     this.uiLayer.addChild(this.portalIndicator);
@@ -822,6 +806,13 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
       return;
     }
 
+    // 유물 보상 UI가 표시 중이면 게임 일시정지
+    if (this.artifactRewardUI.visible) {
+      // 룰렛 애니메이션만 업데이트
+      this.artifactRewardUI.update(deltaTime);
+      return;
+    }
+
     // 설정 메뉴가 열려있으면 게임 일시정지
     if (this.settingsMenu) {
       return;
@@ -839,6 +830,9 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
 
     // TODO: 테스트중 - 유물 업데이트
     this.artifactSystem.update(deltaTime);
+
+    // 유물 보상 타이밍 체크 (3분/6분/9분)
+    this.checkArtifactRewardTime();
 
     // 1. 플레이어 업데이트 (오버라이드된 메서드 사용)
     this.updatePlayer(deltaTime);
@@ -1663,6 +1657,73 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
 
     // 사용자가 선택한 파워업/무기 처리
     this.handleLevelUpChoice(choiceId);
+  }
+
+  /**
+   * 유물 보상 확인 핸들러 (3/6/9분 유물 지급)
+   */
+  private handleArtifactRewardConfirm(artifact: IArtifact): void {
+    // 유물 추가
+    const success = this.artifactSystem.add(artifact);
+    if (success) {
+      console.log(`✨ [ArtifactReward] 유물 획득: ${artifact.data.name}`);
+    }
+
+    // 모든 무기 진화 체크
+    for (const weapon of this.weapons) {
+      this.checkAndEvolveWeapon(weapon);
+    }
+  }
+
+  /**
+   * 유물 보상 시간 체크 및 지급 (3분/6분/9분)
+   *
+   * TODO: 추후 선물 보따리를 습득할 때로 변경해야함
+   * 현재는 고정 시간(3/6/9분)에 지급되지만, 향후에는 맵에서 선물 보따리 아이템을
+   * 플레이어가 직접 획득했을 때 이 UI를 표시하도록 변경 필요
+   */
+  private async checkArtifactRewardTime(): Promise<void> {
+    // 다음 보상 시간이 없으면 리턴
+    if (this.artifactRewardIndex >= this.artifactRewardTimes.length) {
+      return;
+    }
+
+    const nextRewardTime = this.artifactRewardTimes[this.artifactRewardIndex];
+
+    // 보상 시간 도달 확인
+    if (this.gameTime >= nextRewardTime) {
+      console.log(`🎁 [ArtifactReward] ${nextRewardTime / 60}분 도달 - 유물 지급 시작`);
+
+      // 인덱스 증가 (중복 지급 방지)
+      this.artifactRewardIndex++;
+
+      // 유물 풀 생성
+      const artifactPool = this.createArtifactPool();
+
+      // 룰렛 시작 (게임 일시정지 효과)
+      await this.artifactRewardUI.startRoulette(artifactPool);
+    }
+  }
+
+  /**
+   * 진화 유물 풀 생성
+   * @note 유물이 추가될 때마다 풀에 추가해야 함
+   */
+  private createArtifactPool(): IArtifact[] {
+    const allArtifacts = [
+      new BaekjeIncenseBurnerArtifact(), // 작두날
+      new PensiveBuddhaArtifact(), // 목탁소리
+      new FineLineMirrorArtifact(), // 부적
+      new CelestialHorseArtifact(), // 부채바람
+      new CeladonCraneVaseArtifact(), // 정화수
+      new CrownOfSillaArtifact(), // 도깨비불
+      new TalryeongMaskArtifact(), // 탈령 가면
+      new ExecutionerAxeArtifact(), // 처형인의 도끼
+      new FoxTearArtifact(), // 구미호 눈물
+    ];
+
+    // 이미 보유한 유물 제외
+    return allArtifacts.filter((artifact) => !this.artifactSystem.has(artifact.data.id));
   }
 
   /**
