@@ -880,7 +880,6 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           if (weapon instanceof PurifyingWaterEvolvedWeapon) {
             weapon.setupSplashReturn(splash, this.player);
             // TODO: 진화 무기 에셋 사용
-            // splash.loadSprite(LOCAL_ASSETS.celadonCraneVaseArtifact);
           }
           splash.loadSpriteSheet(CDN_ASSETS.weapon.purifyingWaterSpike, 64, 48, 16, 16);
 

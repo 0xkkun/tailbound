@@ -5,7 +5,7 @@
  * 진화 조건: 정화수 레벨 7 + 청자 상감운학문 매병 유물 보유
  * 강화 효과: 데미지 140%, 범위 증가, 투척 개수 증가, 지속시간 증가, 플레이어 귀환
  */
-import { LOCAL_ASSETS } from '@config/assets.config';
+import { CDN_ASSETS } from '@config/assets.config';
 import { WEAPON_BALANCE, WEAPON_EVOLUTION_BALANCE } from '@config/balance.config';
 import { calculateWeaponStats } from '@game/data/weapons';
 import type { BaseEnemy } from '@game/entities/enemies';
@@ -78,9 +78,9 @@ export class PurifyingWaterEvolvedWeapon extends PurifyingWaterWeapon {
     // 부모 클래스의 fire 호출
     const bottles = await super.fire(playerPos, enemies, player);
 
-    // 진화 에셋으로 교체 (매병 에셋)
+    // 진화 에셋으로 교체 (청자 매병 유물 아이콘 사용)
     for (const bottle of bottles) {
-      await bottle.loadSprite(LOCAL_ASSETS.celadonCraneVaseArtifact);
+      await bottle.loadSprite(CDN_ASSETS.artifact.celadonCraneVase);
     }
 
     return bottles;
