@@ -47,6 +47,7 @@ import { PixelButton } from '@game/ui/PixelButton';
 import { PortalIndicator } from '@game/ui/PortalIndicator';
 import { checkCircleCollision, checkEllipseCircleCollision } from '@game/utils/collision';
 import { DokkaebiFireWeapon } from '@game/weapons/DokkaebiFireWeapon';
+import { FanWindEvolvedWeapon } from '@game/weapons/evolved/FanWindEvolvedWeapon';
 import { FanWindWeapon } from '@game/weapons/FanWindWeapon';
 import { JakduBladeWeapon } from '@game/weapons/JakduBladeWeapon';
 import { MoktakSoundWeapon } from '@game/weapons/MoktakSoundWeapon';
@@ -933,6 +934,17 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           this.projectiles.push(entity);
           this.gameLayer.addChild(entity);
         }
+      }
+
+      // 부채바람 진화 무기의 분열 투사체 처리
+      if (weapon instanceof FanWindEvolvedWeapon && weapon.splitProjectiles.length > 0) {
+        for (const splitProjectile of weapon.splitProjectiles) {
+          splitProjectile.damage *= this.player.damageMultiplier;
+          this.projectiles.push(splitProjectile);
+          this.gameLayer.addChild(splitProjectile);
+        }
+        // 처리 후 배열 비우기
+        weapon.splitProjectiles = [];
       }
     }
 

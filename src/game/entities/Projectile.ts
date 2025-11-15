@@ -39,6 +39,9 @@ export class Projectile extends Container {
   // 무기 카테고리 (유물 시스템용)
   public weaponCategories?: WeaponCategory[];
 
+  // 수명 종료 콜백 (분열 등)
+  public onExpire?: (projectile: Projectile) => void;
+
   // 시각 효과
   private visual: Graphics | AnimatedSprite;
 
@@ -137,6 +140,10 @@ export class Projectile extends Container {
     // 생명 시간 체크
     this.elapsedTime += deltaTime;
     if (this.elapsedTime >= this.lifeTime) {
+      // 수명 종료 콜백 호출 (분열 등)
+      if (this.onExpire) {
+        this.onExpire(this);
+      }
       this.active = false;
     }
   }
