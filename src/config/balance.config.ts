@@ -248,7 +248,7 @@ export const WEAPON_BALANCE = {
     baseDamage: 8, // 틱당 데미지 (DoT)
     baseCooldown: 1.5, // 투척 쿨다운
     projectileRadius: 20, // 사용 안 함 (투척형)
-    projectileSpeed: 150, // 물병 투사체 속도
+    projectileSpeed: 200, // 물병 투사체 속도
     piercing: 0,
     projectileCount: 1, // 초기 투척 개수
     // 투척 설정
