@@ -69,6 +69,7 @@ import { PortalSpawner } from '@systems/PortalSpawner';
 import { SpawnSystem } from '@systems/SpawnSystem';
 import type { GameResult } from '@type/game.types';
 import type { IGameScene } from '@type/scene.types';
+import { extractPowerupType } from '@utils/powerupDisplay';
 import {
   isInTossApp,
   safeAnalyticsClick,
@@ -1605,9 +1606,11 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
   }
 
   /**
-   * 선택지에 현재 레벨 정보 추가 (무기만 해당)
+   * 선택지에 현재 레벨 정보 추가 (무기와 파워업 모두 해당)
    */
   private enrichChoicesWithLevel(choices: LevelUpChoice[]): LevelUpChoice[] {
+    const acquiredPowerups = this.player.getAcquiredPowerups();
+
     return choices.map((choice) => {
       if (choice.type === 'weapon') {
         const existingWeapon = this.weapons.find((w) => w.id === choice.id);
@@ -1627,7 +1630,15 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           evolvedName: evolutionData?.evolvedWeaponName,
         };
       }
-      return { ...choice, currentLevel: 0 };
+
+      // 파워업: 플레이어가 획득한 파워업 레벨 확인
+      // choice.id 예: 'powerup_damage_common', 'stat_health_rare'
+      // acquiredPowerups는 타입별로 집계됨 (예: 'damage' -> 3회 획득)
+      // choice.id에서 타입 추출 (예: 'powerup_damage_common' -> 'damage')
+      const powerupType = extractPowerupType(choice.id);
+      const currentLevel = powerupType ? acquiredPowerups.get(powerupType) || 0 : 0;
+
+      return { ...choice, currentLevel };
     });
   }
 
@@ -1687,6 +1698,17 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
       return;
     }
 
+    // 버서커 모드 중에는 유물 지급 안함 (버서커 종료 후 처리)
+    const talryeongMask = this.artifactSystem
+      .getActiveArtifacts()
+      .find((artifact) => artifact.data.id === 'talryeong_mask') as
+      | TalryeongMaskArtifact
+      | undefined;
+
+    if (talryeongMask?.isBerserkMode()) {
+      return;
+    }
+
     const nextRewardTime = this.artifactRewardTimes[this.artifactRewardIndex];
 
     // 보상 시간 도달 확인
@@ -1699,8 +1721,18 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
       // 유물 풀 생성
       const artifactPool = this.createArtifactPool();
 
-      // 룰렛 시작 (게임 일시정지 효과)
-      await this.artifactRewardUI.startRoulette(artifactPool);
+      // 유물 풀이 비어있으면 경고 로그 출력 후 리턴
+      if (artifactPool.length === 0) {
+        console.warn(`⚠️ [ArtifactReward] 유물 풀이 비어있음 - 모든 유물을 이미 보유중`);
+        return;
+      }
+
+      try {
+        // 룰렛 시작 (게임 일시정지 효과) - 확인 버튼을 눌러야 획득
+        await this.artifactRewardUI.startRoulette(artifactPool);
+      } catch (error) {
+        console.error(`❌ [ArtifactReward] 유물 룰렛 오류:`, error);
+      }
     }
   }
 

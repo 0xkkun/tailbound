@@ -360,8 +360,10 @@ export class ArtifactRewardUI extends Container {
     // 4. 설명: 이름 아래
     const descY = nameY + 32;
 
-    // 텍스트 최대 너비 계산 (컨텐츠 영역 기준, 양옆 최소 패딩 16px씩)
-    const textMaxWidth = this.boxWidth - 16 - 16 - 16 - 16; // Line 패딩 16*2 + 컨텐츠 패딩 16*2
+    // 텍스트 최대 너비 계산 (박스 너비에서 충분한 패딩 확보)
+    // Line 패딩(8*2) + 컨텐츠 패딩(8*2) + 좌우 여유(16*2) = 총 64px 제외
+    // 추가로 안전 마진 16px 확보
+    const textMaxWidth = this.boxWidth - 80;
 
     // 128x128 배경 사각형 (흰색)
     this.artifactIconBackground = new Graphics();
@@ -392,6 +394,7 @@ export class ArtifactRewardUI extends Container {
         align: 'center',
         wordWrap: true,
         wordWrapWidth: textMaxWidth,
+        breakWords: true, // 단어 중간에서도 줄바꿈 허용
       },
     });
     this.artifactNameText.resolution = 2;
@@ -410,6 +413,7 @@ export class ArtifactRewardUI extends Container {
         align: 'center',
         wordWrap: true,
         wordWrapWidth: textMaxWidth,
+        breakWords: true, // 단어 중간에서도 줄바꿈 허용
         lineHeight: 22,
       },
     });
@@ -449,6 +453,18 @@ export class ArtifactRewardUI extends Container {
    * 룰렛 시작 (0.1초마다 유물 변경)
    */
   public async startRoulette(artifactPool: IArtifact[]): Promise<IArtifact> {
+    // 중복 호출 방지
+    if (this.isRouletting || this.visible) {
+      console.warn('[ArtifactRewardUI] 이미 룰렛이 진행 중입니다');
+      return Promise.reject(new Error('Roulette already in progress'));
+    }
+
+    // 유물 풀 검증
+    if (!artifactPool || artifactPool.length === 0) {
+      console.error('[ArtifactRewardUI] 유물 풀이 비어있습니다');
+      return Promise.reject(new Error('Empty artifact pool'));
+    }
+
     this.artifactPool = artifactPool;
     this.isRouletting = true;
     this.rouletteTimer = 0;
@@ -506,13 +522,8 @@ export class ArtifactRewardUI extends Container {
       this.updateArtifactDisplay(this.selectedArtifact);
     }
 
-    // 확인 버튼 표시
+    // 확인 버튼 표시 (확인 버튼을 눌러야 Promise가 resolve됨)
     this.confirmButton.visible = true;
-
-    // Promise 해결
-    if (this.rouletteResolver && this.selectedArtifact) {
-      this.rouletteResolver(this.selectedArtifact);
-    }
   }
 
   /**
@@ -635,6 +646,11 @@ export class ArtifactRewardUI extends Container {
 
     console.log(`[ArtifactRewardUI] 확인 버튼 클릭: ${this.selectedArtifact.data.name}`);
 
+    // Promise 해결 (확인 버튼을 눌러야 유물 지급)
+    if (this.rouletteResolver && this.selectedArtifact) {
+      this.rouletteResolver(this.selectedArtifact);
+    }
+
     if (this.onConfirm) {
       this.onConfirm(this.selectedArtifact);
     }
@@ -649,6 +665,10 @@ export class ArtifactRewardUI extends Container {
     this.visible = false;
     this.isRouletting = false;
     this.confirmButton.visible = false;
+
+    // Promise resolver 정리 (메모리 누수 방지)
+    this.rouletteResolver = undefined;
+    this.selectedArtifact = undefined;
   }
 
   /**

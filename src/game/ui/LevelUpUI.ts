@@ -9,10 +9,14 @@ import {
   STAT_ICON_MAP,
   WEAPON_SPRITE_INFO,
 } from '@config/levelup.config';
-import { POWERUPS_CONFIG } from '@config/powerups.config';
 import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
 import type { LevelUpChoice } from '@systems/LevelSystem';
+import {
+  getPowerupChoiceDisplayText,
+  getPowerupDisplayText,
+  isPowerupNew,
+} from '@utils/powerupDisplay';
 import { Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 
 // 색상 팔레트 (Figma 디자인 기준)
@@ -518,25 +522,9 @@ export class LevelUpUI extends Container {
         iconCard.addChild(iconText);
       }
 
-      // 레벨 또는 누적 수치 텍스트
-      let displayText: string;
-      if (powerupType.startsWith('weapon_')) {
-        // 무기: 레벨 표시
-        displayText = `Lv.${level}`;
-      } else {
-        // 파워업: 누적 수치 표시
-        const totalValue = this.powerupTotalValues.get(powerupType) || 0;
-        const powerupConfig = POWERUPS_CONFIG[powerupType as keyof typeof POWERUPS_CONFIG];
-
-        if (powerupConfig && powerupConfig.valueType === 'flat') {
-          // 절대값 (예: health)
-          displayText = `+${Math.round(totalValue)}`;
-        } else {
-          // 비율값 (예: damage, crit_rate 등)
-          const percentage = Math.round(totalValue * 100);
-          displayText = `+${percentage}%`;
-        }
-      }
+      // 레벨 또는 누적 수치 텍스트 (공통 유틸리티 사용)
+      const totalValue = this.powerupTotalValues.get(powerupType) || 0;
+      const displayText = getPowerupDisplayText(powerupType, level, totalValue);
 
       const levelText = new Text({
         text: displayText,
@@ -770,12 +758,13 @@ export class LevelUpUI extends Container {
       }
     }
 
-    // 레벨 또는 NEW! 텍스트 (아이콘 바로 아래)
-    // NEW인 경우: "NEW!" 표시
-    // 기존 파워업/무기: 선택 시 얻게 될 다음 레벨 표시 (현재 레벨 + 1)
-    const isNew = choice.currentLevel === 0; // 레벨 0이면 새 파워업
+    // 레벨 또는 NEW! 또는 증가량 텍스트 (아이콘 바로 아래)
+    // 무기: "NEW!" 또는 "Lv.N" 표시
+    // 파워업: "NEW!" 또는 "+5%" 등 증가량 표시
+    const displayText = getPowerupChoiceDisplayText(choice.id, choice.currentLevel || 0);
+    const isNew = isPowerupNew(choice.currentLevel || 0);
     const levelText = new Text({
-      text: isNew ? 'NEW!' : `Lv.${(choice.currentLevel || 0) + 1}`,
+      text: displayText,
       style: {
         fontFamily: 'NeoDunggeunmo',
         fontSize: 13, // 12 -> 13으로 증가
