@@ -32,7 +32,11 @@ export class JakduBladeWeapon extends Weapon {
    * 공격 체크 (타이밍에 맞춰 애니메이션 재생)
    * 기본 작두는 투사체를 발사하지 않지만, 진화 시 투사체 발사 가능
    */
-  public fire(_playerPos: Vector2, _enemies: BaseEnemy[], player?: Player): Projectile[] {
+  public async fire(
+    _playerPos: Vector2,
+    _enemies: BaseEnemy[],
+    player?: Player
+  ): Promise<Projectile[]> {
     if (!this.canFire()) {
       return [];
     }

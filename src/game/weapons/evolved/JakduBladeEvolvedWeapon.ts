@@ -31,6 +31,9 @@ export class JakduBladeEvolvedWeapon extends JakduBladeWeapon {
     // 기존 레벨 복원
     this.level = baseLevel;
 
+    // 양쪽 작두 설정 (진화는 항상 레벨 7 이상이므로 2개)
+    this.bladeCount = 2;
+
     // 스탯 업데이트
     this.updateEvolvedStats();
 
@@ -86,7 +89,7 @@ export class JakduBladeEvolvedWeapon extends JakduBladeWeapon {
       // 무기 카테고리 설정 (유물 시스템용)
       blade.weaponCategories = WEAPON_DATA.jakdu_blade.categories;
 
-      // 진화 에셋 사용
+      // 진화 에셋 사용 (좌상단, 우상단 프레임 스킵)
       await blade.loadSpriteSheet(CDN_ASSETS.weapon.jakdu_evolved, 128, 128, 9, 3, {
         animationSpeed: 0.2,
         loop: false, // 한 번만 재생
@@ -98,6 +101,7 @@ export class JakduBladeEvolvedWeapon extends JakduBladeWeapon {
               ? -Math.PI / 2 // 왼쪽 -90도
               : 0, // forward는 방향에 따라 동적으로 회전 (나중에 업데이트에서 처리)
         scale: 2, // 스프라이트 크기 2배
+        skipFrames: [0, 9], // 좌상단(0), 우하단(9) 프레임 스킵
       });
 
       this.blades.push(blade);
@@ -112,7 +116,11 @@ export class JakduBladeEvolvedWeapon extends JakduBladeWeapon {
   /**
    * 공격 (양쪽 작두 애니메이션 + 참격파 투사체 발사)
    */
-  public fire(playerPos: Vector2, _enemies: BaseEnemy[], player?: Player): Projectile[] {
+  public async fire(
+    playerPos: Vector2,
+    _enemies: BaseEnemy[],
+    player?: Player
+  ): Promise<Projectile[]> {
     if (!this.canFire()) {
       return [];
     }
@@ -152,6 +160,7 @@ export class JakduBladeEvolvedWeapon extends JakduBladeWeapon {
       projectile.speed = 600; // 빠른 속도
       projectile.lifeTime = 1.5; // 1.5초 후 소멸
       projectile.piercing = 3; // 3명 관통
+      projectile.radius = 40; // 히트박스 크기 증가 (128x128 스프라이트 × 1.5배 고려)
 
       if (player) {
         const critResult = player.rollCritical();
@@ -163,12 +172,12 @@ export class JakduBladeEvolvedWeapon extends JakduBladeWeapon {
       }
 
       // 참격 스프라이트 로드 (진화 에셋 재사용) - 크기 증가
-      projectile.loadSpriteSheet(CDN_ASSETS.weapon.jakdu_evolved, 128, 128, 9, 3).then(() => {
-        // 스프라이트가 로드되면 크기 조정 (1.5배로 증가)
-        projectile.scale.set(1.5);
-        // 날아가는 방향으로 회전
-        projectile.rotation = angle + Math.PI / 2; // 90도 보정 (스프라이트 기본 방향)
-      });
+      // ✅ await으로 스프라이트 로드 완료까지 대기 (빤짝거림 방지)
+      await projectile.loadSpriteSheet(CDN_ASSETS.weapon.jakdu_evolved, 128, 128, 9, 3);
+      // 스프라이트가 로드되면 크기 조정 (1.5배로 증가)
+      projectile.scale.set(1.5);
+      // 날아가는 방향으로 회전
+      projectile.rotation = angle + Math.PI / 2; // 90도 보정 (스프라이트 기본 방향)
 
       slashProjectiles.push(projectile);
     }

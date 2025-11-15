@@ -214,6 +214,7 @@ export class AttachedEntity extends Container {
       rotation?: number; // 라디안 단위
       scale?: number; // 스프라이트 크기 배율
       reverse?: boolean; // 프레임 역순 재생
+      skipFrames?: number[]; // 스킵할 프레임 인덱스 배열
     }
   ): Promise<void> {
     try {
@@ -221,7 +222,14 @@ export class AttachedEntity extends Container {
 
       // 프레임 텍스처 배열 생성
       const frames: Texture[] = [];
+      const skipFrameSet = new Set(options?.skipFrames ?? []);
+
       for (let i = 0; i < totalFrames; i++) {
+        // 스킵할 프레임이면 건너뛰기
+        if (skipFrameSet.has(i)) {
+          continue;
+        }
+
         const x = (i % columns) * frameWidth;
         const y = Math.floor(i / columns) * frameHeight;
 
