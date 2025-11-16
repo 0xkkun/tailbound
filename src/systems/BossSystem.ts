@@ -19,9 +19,13 @@ import { StageClearUI } from '@game/ui/StageClearUI';
 import { checkCircleCollision } from '@game/utils/collision';
 import { audioManager } from '@services/audioManager';
 import { GameAnalytics } from '@services/gameAnalytics';
+import type { ArtifactSystem } from '@systems/ArtifactSystem';
 import { Container } from 'pixi.js';
 
 export class BossSystem {
+  // 시스템
+  private artifactSystem?: ArtifactSystem;
+
   // 엔티티
   private boss: WhiteTigerBoss | null = null;
   private bossProjectiles: BossProjectile[] = [];
@@ -76,6 +80,13 @@ export class BossSystem {
     this.player = player;
     this.screenWidth = screenWidth;
     this.screenHeight = screenHeight;
+  }
+
+  /**
+   * ArtifactSystem 설정 (나중에 주입 가능)
+   */
+  public setArtifactSystem(artifactSystem: ArtifactSystem): void {
+    this.artifactSystem = artifactSystem;
   }
 
   /**
@@ -357,7 +368,11 @@ export class BossSystem {
 
       // 보스와 플레이어 충돌
       if (checkCircleCollision(this.boss, this.player)) {
-        this.player.takeDamage(this.boss.damage, 'enemy_contact');
+        let finalDamage = this.boss.damage;
+        if (this.artifactSystem) {
+          finalDamage = this.artifactSystem.triggerTakeDamage(finalDamage, this.boss);
+        }
+        this.player.takeDamage(finalDamage, 'enemy_contact');
       }
     }
 
@@ -379,7 +394,11 @@ export class BossSystem {
 
       // 플레이어 충돌
       if (projectile.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(projectile.damage, 'boss_projectile');
+        let finalDamage = projectile.damage;
+        if (this.artifactSystem) {
+          finalDamage = this.artifactSystem.triggerTakeDamage(finalDamage, projectile);
+        }
+        this.player.takeDamage(finalDamage, 'boss_projectile');
         projectile.active = false;
       }
 
@@ -399,7 +418,11 @@ export class BossSystem {
 
       // 플레이어 충돌
       if (projectile.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(projectile.damage, 'boss_projectile');
+        let finalDamage = projectile.damage;
+        if (this.artifactSystem) {
+          finalDamage = this.artifactSystem.triggerTakeDamage(finalDamage, projectile);
+        }
+        this.player.takeDamage(finalDamage, 'boss_projectile');
         projectile.active = false;
       }
 
@@ -465,7 +488,11 @@ export class BossSystem {
 
       // 플레이어 충돌 (1회만 데미지)
       if (aoe.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(aoe.damage, 'boss_fire_aoe');
+        let finalDamage = aoe.damage;
+        if (this.artifactSystem) {
+          finalDamage = this.artifactSystem.triggerTakeDamage(finalDamage, aoe);
+        }
+        this.player.takeDamage(finalDamage, 'boss_fire_aoe');
       }
 
       // 비활성화 시 제거
@@ -507,7 +534,11 @@ export class BossSystem {
 
     // 보스와 플레이어 충돌 체크
     if (checkCircleCollision(this.boss, this.player)) {
-      this.player.takeDamage(damage, 'boss_dash');
+      let finalDamage = damage;
+      if (this.artifactSystem) {
+        finalDamage = this.artifactSystem.triggerTakeDamage(finalDamage, this.boss);
+      }
+      this.player.takeDamage(finalDamage, 'boss_dash');
     }
   }
 

@@ -25,4 +25,7 @@ export interface IGameScene extends Container {
 
   // 버서커 모드 레벨업 큐 콜백
   onBerserkLevelUpsReady?: (levelUps: Array<{ level: number; choices: LevelUpChoice[] }>) => void;
+
+  // 유물 아이콘 컨테이너 (레벨-처치 사이 중앙)
+  artifactIconsContainer?: Container;
 }

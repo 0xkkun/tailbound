@@ -8,6 +8,7 @@ import type { BaseEnemy } from '@game/entities/enemies';
 import type { Player } from '@game/entities/Player';
 import type { Projectile } from '@game/entities/Projectile';
 import { checkCircleCollision } from '@game/utils/collision';
+import type { ArtifactSystem } from '@systems/ArtifactSystem';
 
 // 적 처치 결과
 export interface KillResult {
@@ -18,6 +19,8 @@ export interface KillResult {
 }
 
 export class CombatSystem {
+  private artifactSystem?: ArtifactSystem;
+
   // 적 처치 콜백
   public onEnemyKilled?: (result: KillResult) => void;
   // TODO: 테스트중 - 적 타격 콜백 (유물 시스템용)
@@ -26,6 +29,17 @@ export class CombatSystem {
     damage: number,
     weaponCategories?: WeaponCategory[]
   ) => void;
+
+  constructor(artifactSystem?: ArtifactSystem) {
+    this.artifactSystem = artifactSystem;
+  }
+
+  /**
+   * ArtifactSystem 설정 (나중에 주입 가능)
+   */
+  public setArtifactSystem(artifactSystem: ArtifactSystem): void {
+    this.artifactSystem = artifactSystem;
+  }
 
   /**
    * 전투 시스템 업데이트
@@ -107,8 +121,14 @@ export class CombatSystem {
       }
 
       if (checkCircleCollision(enemy, player)) {
+        // 유물 시스템의 onTakeDamage 훅 호출 (데미지 조정 가능)
+        let finalDamage = enemy.damage;
+        if (this.artifactSystem) {
+          finalDamage = this.artifactSystem.triggerTakeDamage(finalDamage, enemy);
+        }
+
         // 플레이어 데미지
-        player.takeDamage(enemy.damage);
+        player.takeDamage(finalDamage);
 
         // 플레이어 사망 체크
         if (!player.isAlive()) {

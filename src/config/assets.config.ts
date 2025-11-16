@@ -163,6 +163,7 @@ export const CDN_ASSETS = {
     celestialHorse: `${CDN_BASE_URL}/assets/artifacts/celestial-horse.png`,
     celadonCraneVase: `${CDN_BASE_URL}/assets/artifacts/celadon-crane-vase.png`,
     fineLineMirror: `${CDN_BASE_URL}/assets/artifacts/fine-line-mirror.png`,
+    chuksal: `${CDN_BASE_URL}/assets/artifacts/chuksal.png`,
   },
 
   // Drops
@@ -301,6 +302,7 @@ export const ASSET_LOADING_GROUPS = {
     CDN_ASSETS.artifact.celestialHorse,
     CDN_ASSETS.artifact.celadonCraneVase,
     CDN_ASSETS.artifact.fineLineMirror,
+    CDN_ASSETS.artifact.chuksal,
     // 이펙트
     CDN_ASSETS.effect.execution,
     // GUI

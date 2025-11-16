@@ -8,6 +8,7 @@ import type { IArtifact } from '@game/artifacts/base/IArtifact';
 import { BaekjeIncenseBurnerArtifact } from '@game/artifacts/list/BaekjeIncenseBurnerArtifact';
 import { CeladonCraneVaseArtifact } from '@game/artifacts/list/CeladonCraneVaseArtifact';
 import { CelestialHorseArtifact } from '@game/artifacts/list/CelestialHorseArtifact';
+import { ChuksalArtifact } from '@game/artifacts/list/ChuksalArtifact';
 import { CrownOfSillaArtifact } from '@game/artifacts/list/CrownOfSillaArtifact';
 import { ExecutionerAxeArtifact } from '@game/artifacts/list/ExecutionerAxeArtifact';
 import { FineLineMirrorArtifact } from '@game/artifacts/list/FineLineMirrorArtifact';
@@ -159,6 +160,7 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
   private xpBarWidth: number = 0; // 경험치바 너비 (동적 계산용)
   private xpBarY: number = 0; // 경험치바 Y 위치
   private levelTextY: number = 0; // 레벨/킬 텍스트 Y 위치
+  public artifactIconsContainer!: Container; // 유물 아이콘 컨테이너 (레벨-처치 사이)
   private levelUpUI!: LevelUpUI;
   private artifactRewardUI!: ArtifactRewardUI;
   private portalIndicator!: PortalIndicator;
@@ -490,6 +492,9 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
   protected async initScene(): Promise<void> {
     this.artifactSystem = new ArtifactSystem(this.player, this);
 
+    // CombatSystem에 ArtifactSystem 주입
+    this.combatSystem.setArtifactSystem(this.artifactSystem);
+
     // 플레이어 레벨업 콜백 설정
     this.player.onLevelUp = (level, choices) => {
       console.log(`플레이어가 레벨 ${level}에 도달했습니다!`);
@@ -531,7 +536,7 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
     // 초기 무기도 추적
     this.player.trackWeaponAcquisition('weapon_talisman', talisman.level);
 
-    // TODO: 테스트중 - 적 타격 시 유물 이벤트 트리거
+    // 적 타격 시 유물 이벤트 트리거
     this.combatSystem.onEnemyHit = (enemy, damage, weaponCategories) => {
       this.artifactSystem.triggerHit(enemy, damage, weaponCategories);
     };
@@ -652,6 +657,12 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
     this.levelText.x = this.UI_PADDING;
     this.levelText.y = this.levelTextY;
     this.uiLayer.addChild(this.levelText);
+
+    // 유물 아이콘 컨테이너 (레벨-처치 사이 중앙)
+    this.artifactIconsContainer = new Container();
+    this.artifactIconsContainer.x = this.screenWidth / 2;
+    this.artifactIconsContainer.y = this.levelTextY;
+    this.uiLayer.addChild(this.artifactIconsContainer);
 
     // 처치 아이콘 및 텍스트 (우측에 배치)
     this.loadAndCreateKillUI();
@@ -829,7 +840,7 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
     // 게임 시간 증가
     this.gameTime += deltaTime;
 
-    // TODO: 테스트중 - 유물 업데이트
+    // 유물 업데이트
     this.artifactSystem.update(deltaTime);
 
     // 유물 보상 타이밍 체크 (3분/6분/9분)
@@ -959,7 +970,9 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
 
       // 플레이어와 충돌 체크
       if (enemyProj.active && enemyProj.checkPlayerCollision(this.player)) {
-        this.player.takeDamage(enemyProj.damage, 'enemy_contact');
+        // 유물 시스템의 onTakeDamage 훅 호출 (데미지 조정 가능)
+        const modifiedDamage = this.artifactSystem.triggerTakeDamage(enemyProj.damage, enemyProj);
+        this.player.takeDamage(modifiedDamage, 'enemy_contact');
         enemyProj.active = false;
 
         if (!this.player.isAlive()) {
@@ -1860,6 +1873,7 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
       new TalryeongMaskArtifact(), // 탈령 가면
       new ExecutionerAxeArtifact(), // 처형인의 도끼
       new FoxTearArtifact(), // 구미호 눈물
+      new ChuksalArtifact(), // 척살
     ];
 
     // 이미 보유한 유물 제외
@@ -2794,6 +2808,9 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
       this.screenHeight
     );
 
+    // BossSystem에 ArtifactSystem 주입
+    this.bossSystem.setArtifactSystem(this.artifactSystem);
+
     // 보스 스폰
     this.bossSystem.spawnBoss();
 
@@ -2898,6 +2915,12 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
     if (this.killIcon) {
       this.killIcon.x = this.scoreText.x - this.scoreText.width - this.UI_KILL_ICON_GAP;
       this.killIcon.y = this.levelTextY + this.UI_KILL_ICON_OFFSET_Y;
+    }
+
+    // 유물 아이콘 컨테이너 위치 업데이트
+    if (this.artifactIconsContainer) {
+      this.artifactIconsContainer.x = width / 2;
+      this.artifactIconsContainer.y = this.levelTextY;
     }
 
     // 설정 버튼 위치 업데이트
