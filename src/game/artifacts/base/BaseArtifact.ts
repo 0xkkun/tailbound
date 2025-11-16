@@ -92,6 +92,12 @@ export abstract class BaseArtifact implements IArtifact {
     if (!this.scene?.artifactIconsContainer) return;
 
     try {
+      // 아이콘이 로드되었는지 확인
+      if (!Assets.cache.has(this.data.iconPath)) {
+        // 아직 로드되지 않았으면 다음 프레임에 재시도
+        return;
+      }
+
       // 아이콘 가져오기 (이미 로드된 에셋 사용)
       const iconTexture = Assets.get(this.data.iconPath);
 
