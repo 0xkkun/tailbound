@@ -214,8 +214,9 @@ export class LevelSystem {
 
   /**
    * 레벨업 선택지 생성 (중복 없음, 최적화됨)
+   * @param excludeIds 제외할 선택지 ID 목록 (이미 제공된 선택지 제외용)
    */
-  private generateLevelUpChoices(): LevelUpChoice[] {
+  public generateLevelUpChoices(excludeIds: string[] = []): LevelUpChoice[] {
     // === 무기 선택지 ===
     // Record 타입으로 모든 무기 ID가 정의되었는지 컴파일 타임에 체크
     // 새로운 무기가 WEAPON_IDS에 추가되면 여기서 타입 에러가 발생해서 누락 방지
@@ -502,11 +503,16 @@ export class LevelSystem {
       },
     ];
 
+    // excludeIds에 있는 선택지 제외
+    const filterByExclude = (choices: LevelUpChoice[]) =>
+      choices.filter((choice) => !excludeIds.includes(choice.id));
+
     // 레벨 4 이하일 때는 3개 전부 무기 (초반 빌드 구성 보장)
     if (this.level <= 4) {
       // 무기는 동일 가중치로 3개 선택 (중복 없음)
-      const weaponWeights = Array(weapons.length).fill(1);
-      return this.weightedRandomSelect(weapons, weaponWeights, 3);
+      const filteredWeapons = filterByExclude(weapons);
+      const weaponWeights = Array(filteredWeapons.length).fill(1);
+      return this.weightedRandomSelect(filteredWeapons, weaponWeights, 3);
     }
 
     // 레벨 5 이상: 가중치 기반 선택 (중복 없음)
@@ -515,24 +521,29 @@ export class LevelSystem {
     const allWeights: number[] = [];
 
     // 무기: 3배 가중치
-    allChoices.push(...weapons);
-    allWeights.push(...Array(weapons.length).fill(3));
+    const filteredWeapons = filterByExclude(weapons);
+    allChoices.push(...filteredWeapons);
+    allWeights.push(...Array(filteredWeapons.length).fill(3));
 
     // 기존 스탯: 2배 가중치
-    allChoices.push(...statUpgrades);
-    allWeights.push(...Array(statUpgrades.length).fill(2));
+    const filteredStatUpgrades = filterByExclude(statUpgrades);
+    allChoices.push(...filteredStatUpgrades);
+    allWeights.push(...Array(filteredStatUpgrades.length).fill(2));
 
     // 공격 파워업: 1배 가중치
-    allChoices.push(...combatPowerups);
-    allWeights.push(...Array(combatPowerups.length).fill(1));
+    const filteredCombatPowerups = filterByExclude(combatPowerups);
+    allChoices.push(...filteredCombatPowerups);
+    allWeights.push(...Array(filteredCombatPowerups.length).fill(1));
 
     // 방어 파워업: 1배 가중치
-    allChoices.push(...defensePowerups);
-    allWeights.push(...Array(defensePowerups.length).fill(1));
+    const filteredDefensePowerups = filterByExclude(defensePowerups);
+    allChoices.push(...filteredDefensePowerups);
+    allWeights.push(...Array(filteredDefensePowerups.length).fill(1));
 
     // 유틸 파워업: 1배 가중치
-    allChoices.push(...utilityPowerups);
-    allWeights.push(...Array(utilityPowerups.length).fill(1));
+    const filteredUtilityPowerups = filterByExclude(utilityPowerups);
+    allChoices.push(...filteredUtilityPowerups);
+    allWeights.push(...Array(filteredUtilityPowerups.length).fill(1));
 
     // 가중치 기반 랜덤 선택 (중복 없음)
     return this.weightedRandomSelect(allChoices, allWeights, 3);

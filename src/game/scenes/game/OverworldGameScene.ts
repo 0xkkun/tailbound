@@ -1585,7 +1585,11 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
     audioManager.playButtonClickSound();
 
     // 선택 적용
-    if (choiceId.startsWith('weapon_')) {
+    if (choiceId === 'heal_full') {
+      // 완전 회복 (모든 선택지가 Max 레벨일 때의 fallback)
+      this.player.health = this.player.maxHealth;
+      console.log('[LevelUp] 체력 완전 회복 (All maxed fallback)');
+    } else if (choiceId.startsWith('weapon_')) {
       // 무기 추가
       await this.addWeapon(choiceId);
     } else if (choiceId.startsWith('stat_')) {
@@ -1607,11 +1611,24 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
 
   /**
    * 선택지에 현재 레벨 정보 추가 및 Max 레벨 도달 아이템 필터링
+   * @param choices 필터링할 선택지 목록
+   * @param cachedData 성능 최적화를 위한 캐시된 데이터 (반복 호출 시 사용)
    */
-  private enrichChoicesWithLevel(choices: LevelUpChoice[]): LevelUpChoice[] {
-    const acquiredPowerups = this.player.getAcquiredPowerups();
-    const maxWeaponLevel = GAME_CONFIG.levelUp.maxWeaponLevel;
-    const maxPowerupLevel = GAME_CONFIG.levelUp.maxPowerupLevel;
+  private enrichChoicesWithLevel(
+    choices: LevelUpChoice[],
+    cachedData?: {
+      acquiredPowerups: Map<string, number>;
+      artifactIds: string[];
+      maxWeaponLevel: number;
+      maxPowerupLevel: number;
+    }
+  ): LevelUpChoice[] {
+    // 캐시된 데이터가 없으면 새로 조회 (성능 최적화)
+    const acquiredPowerups = cachedData?.acquiredPowerups ?? this.player.getAcquiredPowerups();
+    const artifactIds =
+      cachedData?.artifactIds ?? this.artifactSystem.getActiveArtifacts().map((a) => a.data.id);
+    const maxWeaponLevel = cachedData?.maxWeaponLevel ?? GAME_CONFIG.levelUp.maxWeaponLevel;
+    const maxPowerupLevel = cachedData?.maxPowerupLevel ?? GAME_CONFIG.levelUp.maxPowerupLevel;
 
     return choices
       .map((choice) => {
@@ -1621,7 +1638,6 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
           const nextLevel = currentLevel + 1;
 
           // 진화 체크: 이 선택지를 선택하면 진화하는지 확인
-          const artifactIds = this.artifactSystem.getActiveArtifacts().map((a) => a.data.id);
           const willEvolve =
             !existingWeapon?.isEvolved && canEvolve(choice.id, nextLevel, artifactIds);
           const evolutionData = willEvolve ? getEvolutionData(choice.id) : null;
@@ -1658,8 +1674,89 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
    * 레벨업 UI 표시 (공통 로직) - 사용자 선택을 기다리고 선택 처리
    */
   private async showLevelUpUI(level: number, choices: LevelUpChoice[]): Promise<void> {
-    const choicesWithLevel = this.enrichChoicesWithLevel(choices);
+    // 성능 최적화: 무거운 연산을 한 번만 수행하고 캐시
     const acquiredPowerups = this.player.getAcquiredPowerups();
+    const cachedData = {
+      acquiredPowerups,
+      artifactIds: this.artifactSystem.getActiveArtifacts().map((a) => a.data.id),
+      maxWeaponLevel: GAME_CONFIG.levelUp.maxWeaponLevel,
+      maxPowerupLevel: GAME_CONFIG.levelUp.maxPowerupLevel,
+    };
+
+    // Max 레벨 도달한 파워업 타입 수집 (중복 시도 방지)
+    const maxedPowerupTypes = new Set<string>();
+    acquiredPowerups.forEach((level, type) => {
+      if (level >= cachedData.maxPowerupLevel) {
+        maxedPowerupTypes.add(type);
+      }
+    });
+
+    let choicesWithLevel = this.enrichChoicesWithLevel(choices, cachedData);
+    const excludedChoiceIds = new Set<string>(choices.map((c) => c.id)); // Set으로 O(1) 검색
+
+    // Max 레벨 필터링 후 선택지가 2개 미만이면 추가 선택지 생성
+    const minChoices = 2;
+    const MAX_ATTEMPTS = 10; // 무한 루프 방지
+    let attempts = 0;
+
+    while (choicesWithLevel.length < minChoices && attempts < MAX_ATTEMPTS) {
+      attempts++;
+      console.log(
+        `[LevelUp] 선택지 부족 (${choicesWithLevel.length}/${minChoices}), ` +
+          `추가 선택지 생성 중... (시도: ${attempts}/${MAX_ATTEMPTS})`
+      );
+
+      // LevelSystem에서 추가 선택지 생성 (이미 제공된 선택지 제외)
+      const additionalChoices = this.player
+        .getLevelSystem()
+        .generateLevelUpChoices(Array.from(excludedChoiceIds));
+
+      if (additionalChoices.length === 0) {
+        console.warn('[LevelUp] 더 이상 생성할 선택지가 없습니다.');
+        break;
+      }
+
+      // 새로운 선택지 ID 추가 (Set 사용으로 자동 중복 제거)
+      additionalChoices.forEach((c) => excludedChoiceIds.add(c.id));
+
+      // 추가 선택지도 필터링하고 병합 (캐시된 데이터 재사용)
+      const filteredAdditional = this.enrichChoicesWithLevel(additionalChoices, cachedData);
+
+      // 필터링 후 유효성 체크 (무한 루프 방지)
+      if (filteredAdditional.length === 0) {
+        console.warn(
+          `[LevelUp] 필터링 후 유효한 선택지가 없습니다. (시도: ${attempts}/${MAX_ATTEMPTS})`
+        );
+        continue; // 다시 시도
+      }
+
+      choicesWithLevel = [...choicesWithLevel, ...filteredAdditional];
+
+      // 필요한 개수만큼만 유지
+      if (choicesWithLevel.length >= minChoices) {
+        choicesWithLevel = choicesWithLevel.slice(0, minChoices);
+        break;
+      }
+    }
+
+    // 최종 안전망: 선택지가 여전히 부족한 경우 체력 회복으로 대체
+    if (choicesWithLevel.length === 0) {
+      console.error('[LevelUp] 모든 선택지가 Max 레벨! 체력 회복으로 대체');
+      // Max 레벨 아이템 대신 체력 회복 제공 (게임 진행 보장)
+      choicesWithLevel = [
+        {
+          id: 'heal_full',
+          type: 'heal',
+          name: '완전 회복',
+          description: '체력을 100% 회복합니다',
+          rarity: 'epic',
+        },
+      ];
+    } else if (choicesWithLevel.length < minChoices && attempts >= MAX_ATTEMPTS) {
+      console.warn(
+        `[LevelUp] 최대 시도 횟수 도달. 현재 선택지로 진행 (${choicesWithLevel.length}개)`
+      );
+    }
     const powerupTotalValues = this.player.getPowerupTotalValues();
     const powerupDisplayIds = this.player.getPowerupDisplayIds();
 
@@ -1672,7 +1769,7 @@ export class OverworldGameScene extends BaseGameScene implements IGameScene {
     const choiceId = await this.levelUpUI.show(
       choicesWithLevel,
       level,
-      acquiredPowerups,
+      cachedData.acquiredPowerups,
       powerupTotalValues,
       powerupDisplayIds
     );
