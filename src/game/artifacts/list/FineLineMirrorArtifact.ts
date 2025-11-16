@@ -26,7 +26,7 @@ export class FineLineMirrorArtifact extends BaseArtifact {
     void _delta;
 
     if (!this.centerUI) {
-      void this.createCenterUI();
+      this.createCenterUI();
     }
   }
 }

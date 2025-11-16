@@ -26,7 +26,7 @@ export class PensiveBuddhaArtifact extends BaseArtifact {
     void _delta;
 
     if (!this.centerUI) {
-      void this.createCenterUI();
+      this.createCenterUI();
     }
   }
 }

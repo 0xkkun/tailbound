@@ -53,7 +53,7 @@ export class ChuksalArtifact extends BaseArtifact {
 
     // UI가 준비되면 아이콘+텍스트 생성 (한번만)
     if (!this.centerUI) {
-      void this.createCenterUI(); // BaseArtifact 헬퍼 사용
+      this.createCenterUI(); // BaseArtifact 헬퍼 사용
       this.updateStatusText();
     }
   }

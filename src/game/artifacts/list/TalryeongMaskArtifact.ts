@@ -98,7 +98,7 @@ export class TalryeongMaskArtifact extends BaseArtifact {
   public update(delta: number): void {
     // 중앙 UI 생성 (lazy)
     if (!this.centerUI) {
-      void this.createCenterUI();
+      this.createCenterUI();
     }
 
     // 프로그레스바 생성 (centerIcon이 생성된 후)

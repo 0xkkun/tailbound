@@ -81,19 +81,19 @@ export abstract class BaseArtifact implements IArtifact {
    * @param textColor 텍스트 색상 (기본: 0xe39f54)
    * @param _textOffsetY 텍스트 Y 오프셋 (기본: 26) - 현재 미사용
    */
-  protected async createCenterUI(
+  protected createCenterUI(
     iconSize: number = 20,
     fontSize: number = 12,
     textColor: number = 0xe39f54,
     _textOffsetY: number = 26
-  ): Promise<void> {
+  ): void {
     void _textOffsetY; // 현재 미사용 (텍스트가 아이콘 중앙에 오버레이되므로)
 
     if (!this.scene?.artifactIconsContainer) return;
 
     try {
-      // 아이콘 로드
-      const iconTexture = await Assets.load(this.data.iconPath);
+      // 아이콘 가져오기 (이미 로드된 에셋 사용)
+      const iconTexture = Assets.get(this.data.iconPath);
 
       // UI 컨테이너 생성
       this.centerUI = new Container();

@@ -26,7 +26,7 @@ export class CrownOfSillaArtifact extends BaseArtifact {
     void _delta;
 
     if (!this.centerUI) {
-      void this.createCenterUI();
+      this.createCenterUI();
     }
   }
 }
