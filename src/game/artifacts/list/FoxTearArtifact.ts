@@ -74,6 +74,11 @@ export class FoxTearArtifact extends BaseArtifact {
    * 매 프레임 업데이트
    */
   public update(delta: number): void {
+    // 중앙 UI 생성
+    if (!this.centerUI) {
+      void this.createCenterUI();
+    }
+
     const toRemove: BaseEnemy[] = [];
 
     for (const [enemy, data] of this.charmedEnemies.entries()) {

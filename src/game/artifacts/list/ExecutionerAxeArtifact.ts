@@ -30,6 +30,17 @@ export class ExecutionerAxeArtifact extends BaseArtifact {
   }
 
   /**
+   * 매 프레임 업데이트
+   */
+  public update(_delta: number): void {
+    void _delta;
+
+    if (!this.centerUI) {
+      void this.createCenterUI();
+    }
+  }
+
+  /**
    * 적을 맞을 때마다 호출
    */
   public onHit(enemy: BaseEnemy, damage: number, weaponCategories?: WeaponCategory[]): void {

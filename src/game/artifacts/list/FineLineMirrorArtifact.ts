@@ -22,10 +22,11 @@ export class FineLineMirrorArtifact extends BaseArtifact {
     });
   }
 
-  /**
-   * 정리
-   */
-  public cleanup(): void {
-    super.cleanup();
+  public update(_delta: number): void {
+    void _delta;
+
+    if (!this.centerUI) {
+      void this.createCenterUI();
+    }
   }
 }

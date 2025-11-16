@@ -96,9 +96,28 @@ export class TalryeongMaskArtifact extends BaseArtifact {
    * 매 프레임 업데이트
    */
   public update(delta: number): void {
+    // 중앙 UI 생성 (lazy)
+    if (!this.centerUI) {
+      void this.createCenterUI();
+    }
+
+    // 프로그레스바 생성 (centerIcon이 생성된 후)
+    if (this.centerIcon && !this.centerProgress) {
+      this.createCenterProgress();
+    }
+
     // 쿨다운 타이머 감소
     if (this.berserkCooldownTimer > 0) {
       this.berserkCooldownTimer -= delta;
+
+      // 쿨다운 프로그레스 업데이트
+      const cooldownProgress = 1 - this.berserkCooldownTimer / this.BERSERK_COOLDOWN;
+      this.updateCenterProgress(cooldownProgress);
+      this.updateCenterText(''); // 쿨다운 중엔 텍스트 숨김
+    } else {
+      // 쿨다운 완료 - 킬 카운트 표시 (현재 킬수만, 0이면 숨김)
+      this.updateCenterProgress(0); // 프로그레스 숨김
+      this.updateCenterText(this.killCount > 0 ? `${this.killCount}` : '');
     }
 
     // 버서커 모드가 아니면 조기 종료
